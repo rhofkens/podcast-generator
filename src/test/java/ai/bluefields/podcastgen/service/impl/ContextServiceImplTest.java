@@ -38,6 +38,27 @@ class ContextServiceImplTest {
         context.setSourceUrl("http://example.com");
     }
 
+    // Create operations
+    @Test
+    void createContext_ShouldSaveAndReturnContext() {
+        when(contextRepository.save(any(Context.class))).thenReturn(context);
+
+        Context result = contextService.createContext(context);
+
+        assertThat(result.getDescriptionText()).isEqualTo("Test Description");
+        verify(contextRepository).save(context);
+    }
+
+    @Test 
+    void createContext_WithInvalidData_ShouldThrowException() {
+        Context invalidContext = new Context();
+        
+        assertThatThrownBy(() -> contextService.createContext(invalidContext))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("description text cannot be empty");
+    }
+
+    // Read operations
     @Test
     void getAllContexts_ShouldReturnAllContexts() {
         when(contextRepository.findAll()).thenReturn(Arrays.asList(context));
@@ -61,15 +82,16 @@ class ContextServiceImplTest {
     }
 
     @Test
-    void createContext_ShouldSaveAndReturnContext() {
-        when(contextRepository.save(any(Context.class))).thenReturn(context);
+    void getContextById_WhenContextDoesNotExist_ShouldReturnEmpty() {
+        when(contextRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Context result = contextService.createContext(context);
+        Optional<Context> result = contextService.getContextById(1L);
 
-        assertThat(result.getDescriptionText()).isEqualTo("Test Description");
-        verify(contextRepository).save(context);
+        assertThat(result).isEmpty();
+        verify(contextRepository).findById(1L);
     }
 
+    // Update operations
     @Test
     void updateContext_WhenContextExists_ShouldUpdateAndReturnContext() {
         when(contextRepository.findById(1L)).thenReturn(Optional.of(context));
@@ -94,8 +116,9 @@ class ContextServiceImplTest {
         verify(contextRepository, never()).save(any());
     }
 
+    // Delete operations
     @Test
-    void deleteContext_ShouldDeleteContext() {
+    void deleteContext_WhenContextExists_ShouldDeleteContext() {
         when(contextRepository.existsById(1L)).thenReturn(true);
         
         contextService.deleteContext(1L);
