@@ -15,7 +15,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll()
+                .requestMatchers("/api/podcasts/**", 
+                               "/api/contexts/**",
+                               "/api/participants/**",
+                               "/api/transcripts/**",
+                               "/api/audios/**").permitAll()
                 .anyRequest().authenticated()
             );
         
