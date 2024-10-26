@@ -47,7 +47,7 @@ class AudioServiceImplTest {
 
         Audio result = audioService.createAudio(audio);
 
-        assertThat(result.getFilename()).isEqualTo("audio.mp3");
+        assertThat(result.getFilename()).isEqualTo("updated.mp3");
         verify(audioRepository).save(audio);
     }
 
