@@ -15,7 +15,7 @@ public class Context {
     private Long id;
 
     @Column(name = "description_text")
-    private String description;
+    private String descriptionText;
 
     @Column(name = "source_url")
     private String sourceUrl;
