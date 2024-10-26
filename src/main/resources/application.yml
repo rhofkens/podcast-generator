@@ -3,8 +3,8 @@ spring:
     name: podcast-generator
   datasource:
     url: jdbc:postgresql://localhost:5432/podcast_db
-    username: postgres
-    password: postgres
+    username: podcastadmin
+    password: K8MJGwIJ9Vgek7$Mncu*
   jpa:
     hibernate:
       ddl-auto: validate
