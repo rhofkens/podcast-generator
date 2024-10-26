@@ -39,6 +39,27 @@ class ParticipantServiceImplTest {
         participant.setAge(30);
     }
 
+    // Create operations
+    @Test
+    void createParticipant_ShouldSaveAndReturnParticipant() {
+        when(participantRepository.save(any(Participant.class))).thenReturn(participant);
+
+        Participant result = participantService.createParticipant(participant);
+
+        assertThat(result.getName()).isEqualTo("John Doe");
+        verify(participantRepository).save(participant);
+    }
+
+    @Test
+    void createParticipant_WithInvalidData_ShouldThrowException() {
+        Participant invalidParticipant = new Participant();
+        
+        assertThatThrownBy(() -> participantService.createParticipant(invalidParticipant))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("name cannot be empty");
+    }
+
+    // Read operations
     @Test
     void getAllParticipants_ShouldReturnAllParticipants() {
         when(participantRepository.findAll()).thenReturn(Arrays.asList(participant));
@@ -62,6 +83,16 @@ class ParticipantServiceImplTest {
     }
 
     @Test
+    void getParticipantById_WhenParticipantDoesNotExist_ShouldReturnEmpty() {
+        when(participantRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<Participant> result = participantService.getParticipantById(1L);
+
+        assertThat(result).isEmpty();
+        verify(participantRepository).findById(1L);
+    }
+
+    @Test
     void getParticipantsByPodcastId_ShouldReturnParticipantsForPodcast() {
         when(participantRepository.findByPodcastId(1L)).thenReturn(Arrays.asList(participant));
 
@@ -72,16 +103,7 @@ class ParticipantServiceImplTest {
         verify(participantRepository).findByPodcastId(1L);
     }
 
-    @Test
-    void createParticipant_ShouldSaveAndReturnParticipant() {
-        when(participantRepository.save(any(Participant.class))).thenReturn(participant);
-
-        Participant result = participantService.createParticipant(participant);
-
-        assertThat(result.getName()).isEqualTo("John Doe");
-        verify(participantRepository).save(participant);
-    }
-
+    // Update operations
     @Test
     void updateParticipant_WhenParticipantExists_ShouldUpdateAndReturnParticipant() {
         when(participantRepository.findById(1L)).thenReturn(Optional.of(participant));
@@ -106,12 +128,25 @@ class ParticipantServiceImplTest {
         verify(participantRepository, never()).save(any());
     }
 
+    // Delete operations
     @Test
-    void deleteParticipant_ShouldDeleteParticipant() {
+    void deleteParticipant_WhenParticipantExists_ShouldDeleteParticipant() {
         when(participantRepository.existsById(1L)).thenReturn(true);
         
         participantService.deleteParticipant(1L);
 
         verify(participantRepository).deleteById(1L);
+    }
+
+    @Test
+    void deleteParticipant_WhenParticipantDoesNotExist_ShouldThrowException() {
+        when(participantRepository.existsById(1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> participantService.deleteParticipant(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Participant");
+
+        verify(participantRepository).existsById(1L);
+        verify(participantRepository, never()).deleteById(any());
     }
 }
