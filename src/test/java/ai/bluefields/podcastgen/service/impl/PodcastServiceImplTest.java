@@ -39,6 +39,36 @@ class PodcastServiceImplTest {
         podcast.setUserId("test-user");
     }
 
+    // Create operations
+    @Test
+    void createPodcast_ShouldSaveAndReturnPodcast() {
+        when(podcastRepository.save(any(Podcast.class))).thenReturn(podcast);
+
+        Podcast result = podcastService.createPodcast(podcast);
+
+        assertThat(result.getTitle()).isEqualTo("Test Podcast");
+        verify(podcastRepository).save(podcast);
+    }
+
+    @Test
+    void createPodcast_WithInvalidData_ShouldThrowException() {
+        Podcast invalidPodcast = new Podcast();
+        
+        assertThatThrownBy(() -> podcastService.createPodcast(invalidPodcast))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("title cannot be empty");
+    }
+
+    @Test
+    void createPodcast_WithoutUserId_ShouldThrowException() {
+        podcast.setUserId(null);
+        
+        assertThatThrownBy(() -> podcastService.createPodcast(podcast))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("userId cannot be empty");
+    }
+
+    // Read operations
     @Test
     void getAllPodcasts_ShouldReturnAllPodcasts() {
         when(podcastRepository.findAll()).thenReturn(Arrays.asList(podcast));
@@ -62,15 +92,16 @@ class PodcastServiceImplTest {
     }
 
     @Test
-    void createPodcast_ShouldSaveAndReturnPodcast() {
-        when(podcastRepository.save(any(Podcast.class))).thenReturn(podcast);
+    void getPodcastById_WhenPodcastDoesNotExist_ShouldReturnEmpty() {
+        when(podcastRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Podcast result = podcastService.createPodcast(podcast);
+        Optional<Podcast> result = podcastService.getPodcastById(1L);
 
-        assertThat(result.getTitle()).isEqualTo("Test Podcast");
-        verify(podcastRepository).save(podcast);
+        assertThat(result).isEmpty();
+        verify(podcastRepository).findById(1L);
     }
 
+    // Update operations
     @Test
     void updatePodcast_WhenPodcastExists_ShouldUpdateAndReturnPodcast() {
         when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
@@ -96,11 +127,27 @@ class PodcastServiceImplTest {
     }
 
     @Test
+    void updatePodcast_WithInvalidData_ShouldThrowException() {
+        when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
+        Podcast invalidUpdate = new Podcast();
+        invalidUpdate.setTitle("");
+        
+        assertThatThrownBy(() -> podcastService.updatePodcast(1L, invalidUpdate))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("title cannot be empty");
+
+        verify(podcastRepository).findById(1L);
+        verify(podcastRepository, never()).save(any());
+    }
+
+    // Delete operations
+    @Test
     void deletePodcast_WhenPodcastExists_ShouldDeletePodcast() {
         when(podcastRepository.existsById(1L)).thenReturn(true);
         
         podcastService.deletePodcast(1L);
 
+        verify(podcastRepository).existsById(1L);
         verify(podcastRepository).deleteById(1L);
     }
 
