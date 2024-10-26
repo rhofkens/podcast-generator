@@ -21,6 +21,9 @@ public class Participant {
 
     private Integer age;
 
+    @Column(name = "role")
+    private String role;
+
     @Column(name = "role_description")
     private String roleDescription;
 
