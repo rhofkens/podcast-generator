@@ -128,7 +128,6 @@ class PodcastServiceImplTest {
 
     @Test
     void updatePodcast_WithInvalidData_ShouldThrowException() {
-        when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
         Podcast invalidUpdate = new Podcast();
         invalidUpdate.setTitle("");
         
@@ -136,7 +135,7 @@ class PodcastServiceImplTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("title cannot be empty");
 
-        verify(podcastRepository).findById(1L);
+        verify(podcastRepository, never()).findById(any());
         verify(podcastRepository, never()).save(any());
     }
 
