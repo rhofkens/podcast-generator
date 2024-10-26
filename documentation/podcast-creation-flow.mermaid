@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant U as User
+    participant S as System
+    
+    U->>S: Create new podcast
+    U->>S: Add podcast metadata
+    S->>S: Save podcast to DB
+    U->>S: Add context (text/URL/document)
+    S->>S: Parse context & content
+    S->>S: Generate prompt for participants
+    S->>S: Add defined participants
+    U->>S: Validate/edit participants
+    Note over U,S: Can add/delete participants
+    U->>S: Save participants
+    S->>S: Generate podcast transcript
+    S->>U: Display transcript
+    U->>S: Validate/edit transcript
+    U->>S: Save transcript
+    S->>S: Generate MP3 files via TTS
+    S->>S: Stitch MP3s & attach to podcast
+    U->>S: Request podcast playback
+    Note over U: Views sound wave rendering
+    S->>U: Play MP3
+    U->>S: Download MP3
