@@ -30,8 +30,7 @@ public class Podcast {
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "context_id")
+    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL)
     private Context context;
 
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
