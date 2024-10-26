@@ -45,6 +45,9 @@ public class Podcast {
 
     @Enumerated(EnumType.STRING)
     private PodcastStatus status;
+    
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
     @PrePersist
     protected void onCreate() {
