@@ -107,6 +107,8 @@ class AudioServiceImplTest {
 
     @Test
     void deleteAudio_ShouldDeleteAudio() {
+        when(audioRepository.existsById(1L)).thenReturn(true);
+        
         audioService.deleteAudio(1L);
 
         verify(audioRepository).deleteById(1L);

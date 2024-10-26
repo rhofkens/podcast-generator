@@ -96,6 +96,8 @@ class ContextServiceImplTest {
 
     @Test
     void deleteContext_ShouldDeleteContext() {
+        when(contextRepository.existsById(1L)).thenReturn(true);
+        
         contextService.deleteContext(1L);
 
         verify(contextRepository).deleteById(1L);

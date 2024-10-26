@@ -108,6 +108,8 @@ class ParticipantServiceImplTest {
 
     @Test
     void deleteParticipant_ShouldDeleteParticipant() {
+        when(participantRepository.existsById(1L)).thenReturn(true);
+        
         participantService.deleteParticipant(1L);
 
         verify(participantRepository).deleteById(1L);
