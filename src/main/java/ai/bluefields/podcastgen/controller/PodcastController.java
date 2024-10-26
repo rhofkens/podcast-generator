@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/podcasts")
+@RequestMapping("/api/podcasts")
 @RequiredArgsConstructor
 public class PodcastController {
 

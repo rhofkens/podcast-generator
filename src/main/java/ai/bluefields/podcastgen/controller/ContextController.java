@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/contexts")
+@RequestMapping("/api/contexts")
 @RequiredArgsConstructor
 public class ContextController {
 

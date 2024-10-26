@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/audios")
+@RequestMapping("/api/audios")
 @RequiredArgsConstructor
 public class AudioController {
 
