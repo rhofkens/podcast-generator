@@ -53,9 +53,8 @@ public class TranscriptServiceImpl implements TranscriptService {
 
     @Override
     public void deleteTranscript(Long id) {
-        if (!transcriptRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Transcript", "id", id);
-        }
+        transcriptRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Transcript", "id", id));
         transcriptRepository.deleteById(id);
     }
 }

@@ -47,9 +47,8 @@ public class PodcastServiceImpl implements PodcastService {
 
     @Override
     public void deletePodcast(Long id) {
-        if (!podcastRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Podcast", "id", id);
-        }
+        podcastRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Podcast", "id", id));
         podcastRepository.deleteById(id);
     }
 }
