@@ -17,6 +17,9 @@ public class Audio {
     @Column(name = "file_path")
     private String filePath;
 
+    @Column(name = "filename")
+    private String filename;
+
     @Column(name = "file_size")
     private Long fileSize;
 
