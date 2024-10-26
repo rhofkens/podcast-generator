@@ -3,6 +3,7 @@ package ai.bluefields.podcastgen.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audios")
@@ -13,16 +14,24 @@ public class Audio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String filename;
+    @Column(name = "file_path")
+    private String filePath;
 
-    private Long size;
+    @Column(name = "file_size")
+    private Long fileSize;
 
     private Integer duration;
 
     private String format;
 
-    @Column(name = "quality_score")
-    private Float qualityScore;
+    @Column(name = "quality_metrics", columnDefinition = "jsonb")
+    private String qualityMetrics;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "podcast_id")
