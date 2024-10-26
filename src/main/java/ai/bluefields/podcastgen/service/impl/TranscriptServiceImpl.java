@@ -5,6 +5,9 @@ import ai.bluefields.podcastgen.model.Transcript;
 import ai.bluefields.podcastgen.repository.TranscriptRepository;
 import ai.bluefields.podcastgen.service.TranscriptService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,18 +19,39 @@ import java.util.Optional;
 @Transactional
 public class TranscriptServiceImpl implements TranscriptService {
     
+    private static final Logger log = LoggerFactory.getLogger(TranscriptServiceImpl.class);
     private final TranscriptRepository transcriptRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<Transcript> getAllTranscripts() {
-        return transcriptRepository.findAll();
+        log.info("Fetching all transcripts");
+        try {
+            List<Transcript> transcripts = transcriptRepository.findAll();
+            log.info("Successfully retrieved {} transcripts", transcripts.size());
+            return transcripts;
+        } catch (DataAccessException e) {
+            log.error("Database error while fetching all transcripts: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch transcripts", e);
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Transcript> getTranscriptById(Long id) {
-        return transcriptRepository.findById(id);
+        log.info("Fetching transcript with id: {}", id);
+        try {
+            Optional<Transcript> transcript = transcriptRepository.findById(id);
+            if (transcript.isPresent()) {
+                log.info("Found transcript with id: {}", id);
+            } else {
+                log.warn("No transcript found with id: {}", id);
+            }
+            return transcript;
+        } catch (DataAccessException e) {
+            log.error("Database error while fetching transcript id {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch transcript", e);
+        }
     }
 
     @Override
