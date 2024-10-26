@@ -105,9 +105,24 @@ class TranscriptServiceImplTest {
     }
 
     @Test
-    void deleteTranscript_ShouldDeleteTranscript() {
+    void deleteTranscript_WhenTranscriptExists_ShouldDeleteTranscript() {
+        when(transcriptRepository.findById(1L)).thenReturn(Optional.of(transcript));
+        
         transcriptService.deleteTranscript(1L);
 
+        verify(transcriptRepository).findById(1L);
         verify(transcriptRepository).deleteById(1L);
+    }
+
+    @Test
+    void deleteTranscript_WhenTranscriptDoesNotExist_ShouldThrowException() {
+        when(transcriptRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> transcriptService.deleteTranscript(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Transcript");
+
+        verify(transcriptRepository).findById(1L);
+        verify(transcriptRepository, never()).deleteById(any());
     }
 }

@@ -96,9 +96,24 @@ class PodcastServiceImplTest {
     }
 
     @Test
-    void deletePodcast_ShouldDeletePodcast() {
+    void deletePodcast_WhenPodcastExists_ShouldDeletePodcast() {
+        when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
+        
         podcastService.deletePodcast(1L);
 
+        verify(podcastRepository).findById(1L);
         verify(podcastRepository).deleteById(1L);
+    }
+
+    @Test
+    void deletePodcast_WhenPodcastDoesNotExist_ShouldThrowException() {
+        when(podcastRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> podcastService.deletePodcast(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Podcast");
+
+        verify(podcastRepository).findById(1L);
+        verify(podcastRepository, never()).deleteById(any());
     }
 }
