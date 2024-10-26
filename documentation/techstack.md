@@ -6,7 +6,7 @@ The frontend and backend will be deployed in a single, monolithic repo.
 
 ### 1.2. Backend
 
-We use Spring Boot 3.3.5, java 17 and JPA.
+We use Spring Boot 3.2.0, java 17 and JPA.
 Database is PostgreSQL.
 
 ### 1.3.  Frontend
