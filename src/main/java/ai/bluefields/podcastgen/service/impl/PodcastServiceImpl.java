@@ -75,7 +75,7 @@ public class PodcastServiceImpl implements PodcastService {
     public Podcast updatePodcast(Long id, Podcast podcast) {
         log.info("Updating podcast with id: {}", id);
         try {
-            validatePodcast(podcast);
+            validatePodcast(podcast); // Validate first
             return podcastRepository.findById(id)
                 .map(existingPodcast -> {
                     updatePodcastFields(existingPodcast, podcast);
