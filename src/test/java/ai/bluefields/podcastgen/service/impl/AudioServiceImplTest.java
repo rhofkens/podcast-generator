@@ -68,6 +68,7 @@ class AudioServiceImplTest {
 
         Audio updated = new Audio();
         updated.setFilename("updated.mp3");
+        updated.setFilePath("/path/to/updated.mp3");
         
         Audio result = audioService.updateAudio(1L, updated);
 
