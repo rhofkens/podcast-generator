@@ -36,15 +36,14 @@ handle_response $status "$body" "podcast"
 # Store podcast ID for later use
 podcast_id=$(echo "$body" | jq -r '.id')
 
-
 # Create a context for the podcast
 echo -e "\n📋 Creating context..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/contexts \
   -H "Content-Type: application/json" \
   -d "{
-     \"podcast\": {
-       \"id\": 1
-     },
+    \"podcast\": {
+      \"id\": $podcast_id
+    },
     \"descriptionText\": \"Test context description\",
     \"sourceUrl\": \"https://example.com/source\",
     \"filePath\": \"/path/to/source.txt\",
@@ -59,7 +58,9 @@ echo -e "\n👤 Creating participant 1..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/participants \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": \"1\",
+    \"podcast\": {
+      \"id\": $podcast_id
+    },
     \"name\": \"John Doe\",
     \"gender\": \"Male\",
     \"age\": 30,
@@ -76,7 +77,9 @@ echo -e "\n👤 Creating participant 2..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/participants \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": $podcast_id,
+    \"podcast\": {
+      \"id\": $podcast_id
+    },
     \"name\": \"Jane Smith\",
     \"gender\": \"Female\",
     \"age\": 28,
@@ -94,7 +97,9 @@ echo -e "\n📄 Creating transcript..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/transcripts \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": $podcast_id,
+    \"podcast\": {
+      \"id\": $podcast_id
+    },
     \"content\": \"This is the transcript content\",
     \"timingInfo\": {\"start\": 0, \"end\": 1800},
     \"editHistory\": {\"version\": 1, \"lastEditor\": \"system\"}
@@ -108,7 +113,9 @@ echo -e "\n🔊 Creating audio..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/audios \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": $podcast_id,
+    \"podcast\": {
+      \"id\": $podcast_id
+    },
     \"filePath\": \"/path/to/output.mp3\",
     \"filename\": \"output.mp3\",
     \"fileSize\": 5242880,
