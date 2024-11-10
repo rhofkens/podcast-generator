@@ -27,8 +27,8 @@ public class Podcast {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "modified_at")
-    private LocalDateTime modifiedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Context context;
@@ -51,11 +51,11 @@ public class Podcast {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        modifiedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        modifiedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 }
