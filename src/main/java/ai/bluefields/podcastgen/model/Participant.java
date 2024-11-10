@@ -42,4 +42,16 @@ public class Participant {
     @ManyToOne
     @JoinColumn(name = "podcast_id")
     private Podcast podcast;
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
