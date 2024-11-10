@@ -1,33 +1,28 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './styles/globals.css'
 import { TopNav } from './components/layout/TopNav'
 import { LeftNav } from './components/layout/LeftNav'
-import { Breadcrumb } from './components/layout/Breadcrumb'
+import { PodcastListPage } from './pages/PodcastListPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <TopNav />
-      <div className="flex-1 flex">
-        <LeftNav />
-        <main className="flex-1 bg-gray-50">
-          <Breadcrumb 
-            items={[
-              { label: 'Home', href: '/' },
-              { label: 'Podcasts' }
-            ]} 
-          />
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Your Podcasts</h2>
-            {/* Podcast list will go here */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <p className="text-gray-600">No podcasts yet. Create your first podcast to get started.</p>
-            </div>
-          </div>
-        </main>
+    <BrowserRouter>
+      <div className="min-h-screen flex flex-col">
+        <TopNav />
+        <div className="flex-1 flex">
+          <LeftNav />
+          <main className="flex-1 bg-gray-50">
+            <Routes>
+              <Route path="/" element={<PodcastListPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+    </BrowserRouter>
   )
 }
 
