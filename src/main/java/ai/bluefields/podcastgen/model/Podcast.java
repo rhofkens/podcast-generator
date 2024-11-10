@@ -30,16 +30,16 @@ public class Podcast {
     @Column(name = "modified_at")
     private LocalDateTime modifiedAt;
 
-    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Context context;
 
-    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
-    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Transcript transcript;
 
-    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Audio> audioOutputs;
 
     @Enumerated(EnumType.STRING)
