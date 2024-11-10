@@ -1,4 +1,5 @@
 import { Breadcrumb } from '../components/layout/Breadcrumb'
+import { PodcastList } from '../components/podcast/PodcastList'
 
 export function PodcastListPage() {
   return (
@@ -16,11 +17,7 @@ export function PodcastListPage() {
             New Podcast
           </button>
         </div>
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4">
-            <p className="text-gray-600">No podcasts yet. Create your first podcast to get started.</p>
-          </div>
-        </div>
+        <PodcastList />
       </div>
     </>
   )
