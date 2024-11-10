@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Entity
 @Table(name = "audios")
@@ -28,7 +29,7 @@ public class Audio {
     private String format;
 
     @Column(name = "quality_metrics", columnDefinition = "jsonb")
-    private String qualityMetrics;
+    private JsonNode qualityMetrics;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
