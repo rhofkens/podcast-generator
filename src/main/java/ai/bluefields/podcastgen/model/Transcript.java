@@ -20,7 +20,8 @@ public class Transcript {
     @Column(name = "last_edited")
     private LocalDateTime lastEdited;
 
-    @OneToOne(mappedBy = "transcript")
+    @OneToOne
+    @JoinColumn(name = "podcast_id")
     private Podcast podcast;
 
     @PrePersist

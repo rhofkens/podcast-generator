@@ -36,8 +36,7 @@ public class Podcast {
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
     private List<Participant> participants;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "transcript_id")
+    @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL)
     private Transcript transcript;
 
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL)
