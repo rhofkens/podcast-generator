@@ -133,3 +133,27 @@ public class PodcastServiceImpl implements PodcastService {
         // modifiedAt is updated via @PreUpdate
     }
 }
+package ai.bluefields.podcastgen.service.impl;
+
+import ai.bluefields.podcastgen.model.Podcast;
+import ai.bluefields.podcastgen.repository.PodcastRepository;
+import ai.bluefields.podcastgen.service.PodcastService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class PodcastServiceImpl implements PodcastService {
+    private final PodcastRepository podcastRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Podcast> getAllPodcasts(Pageable pageable) {
+        return podcastRepository.findAll(pageable);
+    }
+    // ... other methods ...
+}

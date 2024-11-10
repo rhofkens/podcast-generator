@@ -11,3 +11,13 @@ public interface PodcastService {
     Podcast updatePodcast(Long id, Podcast podcast);
     void deletePodcast(Long id);
 }
+package ai.bluefields.podcastgen.service;
+
+import ai.bluefields.podcastgen.model.Podcast;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface PodcastService {
+    Page<Podcast> getAllPodcasts(Pageable pageable);
+    // ... other methods ...
+}

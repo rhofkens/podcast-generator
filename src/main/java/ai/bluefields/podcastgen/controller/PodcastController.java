@@ -104,3 +104,50 @@ public class PodcastController {
         }
     }
 }
+package ai.bluefields.podcastgen.controller;
+
+import ai.bluefields.podcastgen.dto.PodcastDTO;
+import ai.bluefields.podcastgen.dto.PageResponseDTO;
+import ai.bluefields.podcastgen.model.Podcast;
+import ai.bluefields.podcastgen.service.PodcastService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/podcasts")
+@RequiredArgsConstructor
+public class PodcastController {
+    private final PodcastService podcastService;
+
+    @GetMapping
+    public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
+        Page<Podcast> podcastPage = podcastService.getAllPodcasts(pageable);
+        
+        PageResponseDTO<PodcastDTO> response = new PageResponseDTO<>();
+        response.setContent(podcastPage.getContent().stream()
+            .map(this::convertToDTO)
+            .toList());
+        response.setTotalPages(podcastPage.getTotalPages());
+        response.setTotalElements(podcastPage.getTotalElements());
+        response.setSize(podcastPage.getSize());
+        response.setNumber(podcastPage.getNumber());
+        
+        return ResponseEntity.ok(response);
+    }
+
+    private PodcastDTO convertToDTO(Podcast podcast) {
+        PodcastDTO dto = new PodcastDTO();
+        dto.setId(podcast.getId());
+        dto.setTitle(podcast.getTitle());
+        dto.setDescription(podcast.getDescription());
+        dto.setLength(podcast.getLength());
+        dto.setStatus(podcast.getStatus());
+        dto.setCreatedAt(podcast.getCreatedAt());
+        dto.setUpdatedAt(podcast.getUpdatedAt());
+        dto.setUserId(podcast.getUserId());
+        return dto;
+    }
+}
