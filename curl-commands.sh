@@ -34,14 +34,15 @@ body=$(echo "$response" | sed '$ d')
 handle_response $status "$body" "podcast"
 
 # Store podcast ID for later use
-podcast_id=$(echo "$body" | jq -r '.id')
+# podcast_id=$(echo "$body" | jq -r '.id')
+podcast_id=1
 
 # Create a context for the podcast
 echo -e "\n📋 Creating context..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/contexts \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": $podcast_id,
+    \"podcast_id\": \"1\",
     \"descriptionText\": \"Test context description\",
     \"sourceUrl\": \"https://example.com/source\",
     \"filePath\": \"/path/to/source.txt\",
@@ -56,7 +57,7 @@ echo -e "\n👤 Creating participant 1..."
 response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/participants \
   -H "Content-Type: application/json" \
   -d "{
-    \"podcastId\": $podcast_id,
+    \"podcastId\": \"1\",
     \"name\": \"John Doe\",
     \"gender\": \"Male\",
     \"age\": 30,
