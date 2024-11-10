@@ -1,4 +1,3 @@
-import React from 'react'
 import { Breadcrumb } from '../components/layout/Breadcrumb'
 
 export function SettingsPage() {
