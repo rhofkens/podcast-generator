@@ -1,11 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './styles/globals.css'
 import { TopNav } from './components/layout/TopNav'
 import { LeftNav } from './components/layout/LeftNav'
 import { PodcastListPage } from './pages/PodcastListPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { PodcastWizard } from './components/wizard/PodcastWizard'
 
 function App() {
   return (
@@ -16,7 +17,9 @@ function App() {
           <LeftNav />
           <main className="flex-1 bg-gray-50">
             <Routes>
-              <Route path="/" element={<PodcastListPage />} />
+              <Route path="/" element={<Navigate to="/podcasts" />} />
+              <Route path="/podcasts" element={<PodcastListPage />} />
+              <Route path="/podcasts/new" element={<PodcastWizard />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </main>
