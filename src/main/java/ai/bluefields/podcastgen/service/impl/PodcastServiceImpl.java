@@ -8,10 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,11 +25,11 @@ public class PodcastServiceImpl implements PodcastService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Podcast> getAllPodcasts() {
-        log.info("Fetching all podcasts");
+    public Page<Podcast> getAllPodcasts(Pageable pageable) {
+        log.info("Fetching all podcasts with pagination");
         try {
-            List<Podcast> podcasts = podcastRepository.findAll();
-            log.info("Successfully retrieved {} podcasts", podcasts.size());
+            Page<Podcast> podcasts = podcastRepository.findAll(pageable);
+            log.info("Successfully retrieved {} podcasts", podcasts.getContent().size());
             return podcasts;
         } catch (DataAccessException e) {
             log.error("Database error while fetching all podcasts: {}", e.getMessage(), e);
@@ -75,7 +76,7 @@ public class PodcastServiceImpl implements PodcastService {
     public Podcast updatePodcast(Long id, Podcast podcast) {
         log.info("Updating podcast with id: {}", id);
         try {
-            validatePodcast(podcast); // Validate first
+            validatePodcast(podcast);
             return podcastRepository.findById(id)
                 .map(existingPodcast -> {
                     updatePodcastFields(existingPodcast, podcast);
@@ -119,7 +120,6 @@ public class PodcastServiceImpl implements PodcastService {
         if (podcast.getUserId() == null || podcast.getUserId().trim().isEmpty()) {
             throw new IllegalArgumentException("Podcast userId cannot be empty");
         }
-        // Add more validation as needed
     }
 
     private void updatePodcastFields(Podcast existing, Podcast updated) {
@@ -129,31 +129,5 @@ public class PodcastServiceImpl implements PodcastService {
         existing.setLength(updated.getLength());
         existing.setStatus(updated.getStatus());
         existing.setUserId(updated.getUserId());
-        // Don't update createdAt
-        // modifiedAt is updated via @PreUpdate
     }
-}
-package ai.bluefields.podcastgen.service.impl;
-
-import ai.bluefields.podcastgen.model.Podcast;
-import ai.bluefields.podcastgen.repository.PodcastRepository;
-import ai.bluefields.podcastgen.service.PodcastService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service
-@RequiredArgsConstructor
-@Transactional
-public class PodcastServiceImpl implements PodcastService {
-    private final PodcastRepository podcastRepository;
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Podcast> getAllPodcasts(Pageable pageable) {
-        return podcastRepository.findAll(pageable);
-    }
-    // ... other methods ...
 }

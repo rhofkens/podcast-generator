@@ -1,10 +1,14 @@
 package ai.bluefields.podcastgen.controller;
 
+import ai.bluefields.podcastgen.dto.PodcastDTO;
+import ai.bluefields.podcastgen.dto.PageResponseDTO;
 import ai.bluefields.podcastgen.model.Podcast;
 import ai.bluefields.podcastgen.service.PodcastService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,24 +16,32 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/podcasts")
 @RequiredArgsConstructor
 @Validated
 public class PodcastController {
-
     private static final Logger log = LoggerFactory.getLogger(PodcastController.class);
     private final PodcastService podcastService;
 
     @GetMapping
-    public ResponseEntity<List<Podcast>> getAllPodcasts() {
-        log.info("REST request to get all podcasts");
+    public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
+        log.info("REST request to get all podcasts with pagination");
         try {
-            List<Podcast> podcasts = podcastService.getAllPodcasts();
-            log.info("Successfully retrieved {} podcasts", podcasts.size());
-            return ResponseEntity.ok(podcasts);
+            Page<Podcast> podcastPage = podcastService.getAllPodcasts(pageable);
+            
+            PageResponseDTO<PodcastDTO> response = new PageResponseDTO<>();
+            response.setContent(podcastPage.getContent().stream()
+                .map(this::convertToDTO)
+                .toList());
+            response.setTotalPages(podcastPage.getTotalPages());
+            response.setTotalElements(podcastPage.getTotalElements());
+            response.setSize(podcastPage.getSize());
+            response.setNumber(podcastPage.getNumber());
+            
+            log.info("Successfully retrieved {} podcasts", podcastPage.getContent().size());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error retrieving all podcasts: {}", e.getMessage(), e);
             throw e;
@@ -102,40 +114,6 @@ public class PodcastController {
             log.error("Error deleting podcast {}: {}", id, e.getMessage(), e);
             throw e;
         }
-    }
-}
-package ai.bluefields.podcastgen.controller;
-
-import ai.bluefields.podcastgen.dto.PodcastDTO;
-import ai.bluefields.podcastgen.dto.PageResponseDTO;
-import ai.bluefields.podcastgen.model.Podcast;
-import ai.bluefields.podcastgen.service.PodcastService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-@RestController
-@RequestMapping("/api/podcasts")
-@RequiredArgsConstructor
-public class PodcastController {
-    private final PodcastService podcastService;
-
-    @GetMapping
-    public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
-        Page<Podcast> podcastPage = podcastService.getAllPodcasts(pageable);
-        
-        PageResponseDTO<PodcastDTO> response = new PageResponseDTO<>();
-        response.setContent(podcastPage.getContent().stream()
-            .map(this::convertToDTO)
-            .toList());
-        response.setTotalPages(podcastPage.getTotalPages());
-        response.setTotalElements(podcastPage.getTotalElements());
-        response.setSize(podcastPage.getSize());
-        response.setNumber(podcastPage.getNumber());
-        
-        return ResponseEntity.ok(response);
     }
 
     private PodcastDTO convertToDTO(Podcast podcast) {
