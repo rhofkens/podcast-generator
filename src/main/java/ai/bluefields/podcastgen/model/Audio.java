@@ -29,7 +29,7 @@ public class Audio {
 
     private String format;
 
-    @Type(JsonNodeType.class)
+    @Type(ai.bluefields.podcastgen.config.hibernate.JsonNodeType.class)
     @Column(name = "quality_metrics", columnDefinition = "jsonb")
     private JsonNode qualityMetrics;
 
