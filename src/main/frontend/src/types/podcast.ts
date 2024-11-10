@@ -3,13 +3,13 @@ export interface Podcast {
   title: string
   description: string
   length: number
-  status: 'DRAFT' | 'PROCESSING' | 'COMPLETED' | 'ERROR'
+  status: string
   createdAt: string
   updatedAt: string
   userId: string
 }
 
-export interface PaginatedResponse<T> {
+export interface PageResponse<T> {
   content: T[]
   totalElements: number
   totalPages: number
@@ -17,4 +17,6 @@ export interface PaginatedResponse<T> {
   number: number
 }
 
-export interface PodcastsResponse extends PaginatedResponse<Podcast> {}
+export interface PodcastsResponse extends PageResponse<Podcast> {}
+
+export type PodcastStatus = 'DRAFT' | 'PROCESSING' | 'COMPLETED' | 'ERROR'

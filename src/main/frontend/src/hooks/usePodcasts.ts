@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Podcast, PodcastsResponse } from '../types/podcast'
+import { Podcast, PodcastsResponse, PageResponse } from '../types/podcast'
 
 export function usePodcasts(page: number = 0, size: number = 5) {
   const [loading, setLoading] = useState(true)
