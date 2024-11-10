@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.hibernate.annotations.Type;
 
 @Entity
 @Table(name = "audios")
@@ -28,6 +29,7 @@ public class Audio {
 
     private String format;
 
+    @Type(JsonNodeType.class)
     @Column(name = "quality_metrics", columnDefinition = "jsonb")
     private JsonNode qualityMetrics;
 
