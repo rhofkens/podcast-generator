@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function TopNav() {
   return (
     <header className="h-14 border-b flex items-center px-6 bg-white">

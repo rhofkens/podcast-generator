@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function LeftNav() {
   return (
     <nav className="w-64 border-r bg-white h-full">
