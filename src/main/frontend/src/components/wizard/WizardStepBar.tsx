@@ -22,11 +22,19 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
                       ? 'border-2 border-primary'
                       : 'border-2 border-gray-300'
                   }`}
+                  style={{ zIndex: 1, backgroundColor: index < currentStep ? 'var(--primary)' : 'white' }}
                 >
                   <span className="text-sm">{index + 1}</span>
                 </div>
                 {index !== steps.length - 1 && (
-                  <div className="absolute top-4 w-full h-0.5 -translate-y-1/2 bg-gray-300" />
+                  <div 
+                    className="absolute left-0 right-0 top-4 h-0.5 -translate-y-1/2 bg-gray-300" 
+                    style={{ 
+                      left: '50%', 
+                      width: '100%',
+                      zIndex: 0 
+                    }} 
+                  />
                 )}
               </div>
               <div className="mt-2">
