@@ -71,7 +71,7 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
       // Step 2: Create the context and associate it with the podcast
       const contextData = {
         descriptionText: data.contextDescription,
-        url: data.contextUrl || null,
+        sourceUrl: data.contextUrl || null,
         podcast: {
           id: podcast.id
         }
