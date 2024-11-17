@@ -9,6 +9,7 @@ interface Participant {
 }
 
 interface ParticipantsStepProps {
+  podcastId: string | null
   participants: Participant[]
   onChange: (participants: Participant[]) => void
   onNext: () => void

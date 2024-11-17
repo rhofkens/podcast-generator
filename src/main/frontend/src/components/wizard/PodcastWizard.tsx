@@ -87,6 +87,7 @@ export function PodcastWizard() {
       case 1:
         return (
           <ParticipantsStep
+            podcastId={podcastId}
             participants={participants}
             onChange={setParticipants}
             onNext={() => setCurrentStep(2)}
