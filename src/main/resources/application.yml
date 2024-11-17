@@ -19,6 +19,7 @@ spring:
     baseline-on-migrate: true
     ignore-missing-migrations: true
     ignore-missing-repeatable-migrations: true
+    validateOnMigrate: false
 
 server:
   port: 8080
