@@ -2,6 +2,32 @@ import { useState } from 'react'
 import { usePodcasts } from '../../hooks/usePodcasts'
 import { Podcast } from '../../types/podcast'
 
+function Pagination({ currentPage, totalPages, onPageChange }: { 
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void 
+}) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex justify-center gap-2 mt-4">
+      {[...Array(totalPages)].map((_, i) => (
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={`px-3 py-1 rounded ${
+            currentPage === i
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-white hover:bg-gray-50'
+          }`}
+        >
+          {i + 1}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function PodcastList() {
   const [currentPage, setCurrentPage] = useState(0)
   const { podcasts, loading, error, totalPages } = usePodcasts(currentPage)
@@ -40,23 +66,11 @@ export function PodcastList() {
         <PodcastCard key={podcast.id} podcast={podcast} />
       ))}
       
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-white hover:bg-gray-50'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   )
 }
