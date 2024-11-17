@@ -40,21 +40,23 @@ export function PodcastList() {
         <PodcastCard key={podcast.id} podcast={podcast} />
       ))}
       
-      <div className="flex justify-center gap-2 mt-4">
-        {[...Array(totalPages)].map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i)}
-            className={`px-3 py-1 rounded ${
-              currentPage === i
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-white hover:bg-gray-50'
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-white hover:bg-gray-50'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
