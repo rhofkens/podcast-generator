@@ -55,12 +55,14 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
             description: data.contextDescription,
             url: data.contextUrl || null
           },
-          status: 'DRAFT'
+          status: 'DRAFT',
+          userId: 'temp-user-id'  // Temporary user ID until auth is implemented
         }),
       })
 
       if (!response.ok) {
-        throw new Error(await response.text())
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create podcast');
       }
 
       const podcast = await response.json()
