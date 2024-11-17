@@ -36,10 +36,12 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   const [error, setError] = useState<string | null>(null)
 
   const handleNext = async () => {
+    console.log('handleNext called', { data });
     try {
       setIsSubmitting(true)
       setError(null)
       
+      console.log('Sending API request...');
       const response = await fetch('/api/podcasts', {
         method: 'POST',
         headers: {
@@ -74,6 +76,7 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   }
 
   const isValid = data.title && data.description && data.contextDescription
+  console.log('Form validity:', { isValid, data });
 
   return (
     <div className="p-6 space-y-8">
