@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { WizardStepBar } from './WizardStepBar'
 import { MetadataStep } from './steps/MetadataStep'
 import { ParticipantsStep } from './steps/ParticipantsStep'
@@ -37,6 +37,23 @@ interface Message {
 
 export function PodcastWizard() {
   const [currentStep, setCurrentStep] = useState(0)
+  const [podcastId, setPodcastId] = useState<string | null>(
+    localStorage.getItem('currentPodcastId')
+  )
+
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem('currentPodcastId')
+    }
+  }, [])
+
+  const handleStepComplete = (step: number) => {
+    if (step === 0) {
+      const newPodcastId = localStorage.getItem('currentPodcastId')
+      setPodcastId(newPodcastId)
+    }
+    setCurrentStep(step + 1)
+  }
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
@@ -64,7 +81,7 @@ export function PodcastWizard() {
           <MetadataStep
             data={metadata}
             onChange={handleMetadataChange}
-            onNext={() => setCurrentStep(1)}
+            onNext={() => handleStepComplete(0)}
           />
         )
       case 1:

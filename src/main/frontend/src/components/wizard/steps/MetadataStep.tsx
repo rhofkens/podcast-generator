@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 interface MetadataStepProps {
@@ -31,6 +31,47 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
     },
     maxFiles: 1
   })
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleNext = async () => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
+      
+      const response = await fetch('/api/podcasts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          length: data.length,
+          context: {
+            description: data.contextDescription,
+            url: data.contextUrl || null
+          },
+          status: 'DRAFT'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+
+      const podcast = await response.json()
+      localStorage.setItem('currentPodcastId', podcast.id.toString())
+      
+      onNext()
+    } catch (error) {
+      console.error('Error creating podcast:', error)
+      setError(error instanceof Error ? error.message : 'Failed to create podcast')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const isValid = data.title && data.description && data.contextDescription
 
@@ -112,14 +153,21 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
         </div>
       </section>
 
-      <div className="flex justify-end">
-        <button
-          onClick={onNext}
-          disabled={!isValid}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
+      <div className="flex flex-col gap-4">
+        {error && (
+          <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+            {error}
+          </div>
+        )}
+        <div className="flex justify-end">
+          <button
+            onClick={handleNext}
+            disabled={!isValid || isSubmitting}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+          >
+            {isSubmitting ? 'Creating...' : 'Next'}
+          </button>
+        </div>
       </div>
     </div>
   )
