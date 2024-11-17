@@ -77,7 +77,9 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
         }
       };
 
-      console.log('Creating context with data:', contextData);
+      // Verify the structure before sending
+      console.log('Context data before fetch:', contextData);
+      console.log('Stringified context data:', JSON.stringify(contextData));
       
       const contextResponse = await fetch('/api/contexts', {
         method: 'POST',
