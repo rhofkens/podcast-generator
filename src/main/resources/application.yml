@@ -18,6 +18,7 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     ignore-missing-migrations: true
+    ignore-missing-repeatable-migrations: true
 
 server:
   port: 8080
