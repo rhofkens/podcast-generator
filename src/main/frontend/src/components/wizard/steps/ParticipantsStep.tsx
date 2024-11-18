@@ -8,6 +8,7 @@ interface Participant {
   role: string
   roleDescription: string
   voiceCharacteristics: string
+  isNew?: boolean
 }
 
 interface ParticipantsStepProps {
