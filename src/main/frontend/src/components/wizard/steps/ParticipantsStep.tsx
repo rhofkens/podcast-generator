@@ -16,30 +16,120 @@ interface ParticipantsStepProps {
   onBack: () => void
 }
 
-export function ParticipantsStep({ participants, onChange, onNext, onBack }: ParticipantsStepProps) {
-  const addParticipant = () => {
-    onChange([
-      ...participants,
-      {
+export function ParticipantsStep({ podcastId, participants, onChange, onNext, onBack }: ParticipantsStepProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (podcastId) {
+      loadParticipants();
+    }
+  }, [podcastId]);
+
+  const loadParticipants = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch(`/api/participants/podcast/${podcastId}`);
+      if (!response.ok) {
+        throw new Error('Failed to load participants');
+      }
+      const data = await response.json();
+      onChange(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load participants');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const addParticipant = async () => {
+    try {
+      setError(null);
+      const newParticipant = {
         name: '',
         gender: '',
         age: 30,
         role: '',
         roleDescription: '',
-        voiceCharacteristics: ''
+        voiceCharacteristics: '',
+        podcast: {
+          id: parseInt(podcastId!)
+        }
+      };
+
+      const response = await fetch('/api/participants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newParticipant)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create participant');
       }
-    ])
-  }
 
-  const updateParticipant = (index: number, field: keyof Participant, value: any) => {
-    const updated = [...participants]
-    updated[index] = { ...updated[index], [field]: value }
-    onChange(updated)
-  }
+      const created = await response.json();
+      onChange([...participants, created]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create participant');
+    }
+  };
 
-  const removeParticipant = (index: number) => {
-    onChange(participants.filter((_, i) => i !== index))
-  }
+  const updateParticipant = async (index: number, field: keyof Participant, value: any) => {
+    try {
+      setError(null);
+      const participant = participants[index];
+      const updated = { ...participant, [field]: value };
+
+      if (participant.id) {
+        const response = await fetch(`/api/participants/${participant.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updated)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update participant');
+        }
+
+        const updatedParticipant = await response.json();
+        const newParticipants = [...participants];
+        newParticipants[index] = updatedParticipant;
+        onChange(newParticipants);
+      } else {
+        // Handle local-only updates for new participants
+        const newParticipants = [...participants];
+        newParticipants[index] = updated;
+        onChange(newParticipants);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update participant');
+    }
+  };
+
+  const removeParticipant = async (index: number) => {
+    try {
+      setError(null);
+      const participant = participants[index];
+
+      if (participant.id) {
+        const response = await fetch(`/api/participants/${participant.id}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete participant');
+        }
+      }
+
+      onChange(participants.filter((_, i) => i !== index));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete participant');
+    }
+  };
 
   const isValid = participants.length >= 2 && 
     participants.every(p => p.name && p.gender && p.role && p.roleDescription)
@@ -130,21 +220,33 @@ export function ParticipantsStep({ participants, onChange, onNext, onBack }: Par
         Add Participant
       </button>
 
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={onBack}
-          className="px-4 py-2 border rounded hover:bg-gray-50"
-        >
-          Back
-        </button>
-        <button
-          onClick={onNext}
-          disabled={!isValid}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 border rounded hover:bg-gray-50"
+          >
+            Back
+          </button>
+          <button
+            onClick={onNext}
+            disabled={!isValid || isLoading}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   )
 }
