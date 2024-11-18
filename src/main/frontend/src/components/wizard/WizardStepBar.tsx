@@ -30,7 +30,7 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
                   <div 
                     className="absolute left-0 right-0 top-4 h-0.5 -translate-y-1/2 bg-gray-300" 
                     style={{ 
-                      left: '50%', 
+                      left: '0%',
                       width: '100%',
                       zIndex: 0 
                     }} 
