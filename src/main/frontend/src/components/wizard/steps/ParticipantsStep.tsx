@@ -44,38 +44,19 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
       setIsLoading(false);
     }
   };
-  const addParticipant = async () => {
-    try {
-      setError(null);
-      const newParticipant = {
-        name: '',
-        gender: '',
-        age: 30,
-        role: '',
-        roleDescription: '',
-        voiceCharacteristics: '',
-        podcast: {
-          id: parseInt(podcastId!)
-        }
-      };
+  const addParticipant = () => {
+    // Only add to local state, no API call yet
+    const newParticipant = {
+      name: '',
+      gender: '',
+      age: 30,
+      role: '',
+      roleDescription: '',
+      voiceCharacteristics: '',
+      isNew: true // Flag to track unsaved participants
+    };
 
-      const response = await fetch('/api/participants', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newParticipant)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create participant');
-      }
-
-      const created = await response.json();
-      onChange([...participants, created]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create participant');
-    }
+    onChange([...participants, newParticipant]);
   };
 
   const updateParticipant = async (index: number, field: keyof Participant, value: any) => {
@@ -83,14 +64,28 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
       setError(null);
       const participant = participants[index];
       const updated = { ...participant, [field]: value };
+      
+      if (participant.isNew) {
+        // Just update local state for new participants
+        const newParticipants = [...participants];
+        newParticipants[index] = updated;
+        onChange(newParticipants);
+        return;
+      }
 
+      // Only make API call for existing participants
       if (participant.id) {
         const response = await fetch(`/api/participants/${participant.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(updated)
+          body: JSON.stringify({
+            ...updated,
+            podcast: {
+              id: parseInt(podcastId!)
+            }
+          })
         });
 
         if (!response.ok) {
@@ -101,14 +96,57 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
         const newParticipants = [...participants];
         newParticipants[index] = updatedParticipant;
         onChange(newParticipants);
-      } else {
-        // Handle local-only updates for new participants
-        const newParticipants = [...participants];
-        newParticipants[index] = updated;
-        onChange(newParticipants);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update participant');
+    }
+  };
+
+  const saveNewParticipants = async () => {
+    try {
+      setError(null);
+      const newParticipants = participants.filter(p => p.isNew);
+      
+      // Validate all new participants before saving
+      const invalidParticipants = newParticipants.filter(
+        p => !p.name || !p.gender || !p.role || !p.roleDescription
+      );
+      
+      if (invalidParticipants.length > 0) {
+        throw new Error('Please fill out all required fields for all participants');
+      }
+
+      // Save all new participants
+      const savedParticipants = await Promise.all(
+        newParticipants.map(participant =>
+          fetch('/api/participants', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ...participant,
+              podcast: {
+                id: parseInt(podcastId!)
+              }
+            })
+          }).then(res => {
+            if (!res.ok) throw new Error('Failed to save participant');
+            return res.json();
+          })
+        )
+      );
+
+      // Update state with saved participants
+      const updatedParticipants = participants.map(p => 
+        p.isNew ? savedParticipants.shift() : p
+      );
+      onChange(updatedParticipants);
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save participants');
+      return false;
     }
   };
 
@@ -241,7 +279,13 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
             Back
           </button>
           <button
-            onClick={onNext}
+            onClick={async () => {
+              if (participants.some(p => p.isNew)) {
+                const saved = await saveNewParticipants();
+                if (!saved) return;
+              }
+              onNext();
+            }}
             disabled={!isValid || isLoading}
             className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
           >
