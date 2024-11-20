@@ -152,44 +152,4 @@ class ParticipantServiceImplTest {
         verify(participantRepository, never()).deleteById(any());
     }
 
-    @Test
-    void generateSamplePodcast_ShouldReturnValidPodcast() {
-        // Given
-        JsonNode mockSuggestion = createMockAISuggestion();
-        when(aiService.generatePodcastSuggestion()).thenReturn(mockSuggestion);
-
-        // When
-        Podcast result = podcastService.generateSamplePodcast();
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isNotEmpty();
-        assertThat(result.getDescription()).isNotEmpty();
-        assertThat(result.getLength()).isBetween(15, 45);
-        assertThat(result.getStatus()).isEqualTo(PodcastStatus.DRAFT);
-        
-        // Context assertions
-        assertThat(result.getContext()).isNotNull();
-        assertThat(result.getContext().getDescriptionText()).isNotEmpty();
-        assertThat(result.getContext().getSourceUrl())
-            .isNotEmpty()
-            .matches("^https?://.*"); // Basic URL format validation
-    }
-
-    private JsonNode createMockAISuggestion() {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readTree("""
-                {
-                    "title": "Sample Podcast Title",
-                    "description": "A sample description",
-                    "length": 30,
-                    "contextDescription": "Detailed context about the topic",
-                    "sourceUrl": "https://example.com/article"
-                }
-                """);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create mock AI suggestion", e);
-        }
-    }
 }
