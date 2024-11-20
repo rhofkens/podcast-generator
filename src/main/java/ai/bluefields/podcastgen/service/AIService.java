@@ -1,6 +1,7 @@
 package ai.bluefields.podcastgen.service;
 
-import org.springframework.ai.client.AiClient;
+import org.springframework.ai.openai.OpenAiApi;
+import org.springframework.ai.openai.api.OpenAiApi.Completion;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AIService {
     
-    private final AiClient aiClient;
+    private final OpenAiApi openAiApi;
     private final ObjectMapper objectMapper;
     
     public JsonNode generatePodcastSuggestion() {
@@ -34,7 +35,8 @@ public class AIService {
             Make it interesting and creative, but keep it professional.
             """;
         
-        String aiResponse = aiClient.generate(prompt);
+        Completion completion = openAiApi.completion(prompt);
+        String aiResponse = completion.getChoices().get(0).getText();
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
