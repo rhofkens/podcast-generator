@@ -3,6 +3,8 @@ package ai.bluefields.podcastgen.service.impl;
 import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
 import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.repository.ParticipantRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
