@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Button } from "@/components/ui/button"
+import { Button } from "../../ui/button"
 import { Loader2 } from "lucide-react"
 
 interface MetadataStepProps {
