@@ -1,9 +1,13 @@
 package ai.bluefields.podcastgen.service.impl;
 
 import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
+import ai.bluefields.podcastgen.model.Context;
 import ai.bluefields.podcastgen.model.Podcast;
+import ai.bluefields.podcastgen.model.PodcastStatus;
 import ai.bluefields.podcastgen.repository.PodcastRepository;
+import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.PodcastService;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
