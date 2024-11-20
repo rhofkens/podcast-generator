@@ -1,6 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Loader2 } from "lucide-react"
 
 interface MetadataStepProps {
   data: {
