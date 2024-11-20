@@ -102,6 +102,19 @@ public class PodcastController {
         }
     }
 
+    @GetMapping("/sample")
+    public ResponseEntity<Podcast> getSamplePodcast() {
+        log.info("REST request to get sample podcast data");
+        try {
+            Podcast samplePodcast = podcastService.generateSamplePodcast();
+            log.info("Successfully generated sample podcast with title: {}", samplePodcast.getTitle());
+            return ResponseEntity.ok(samplePodcast);
+        } catch (Exception e) {
+            log.error("Error generating sample podcast: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePodcast(
             @PathVariable @Positive(message = "ID must be positive") Long id) {

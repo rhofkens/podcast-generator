@@ -11,4 +11,5 @@ public interface PodcastService {
     Podcast createPodcast(Podcast podcast);
     Podcast updatePodcast(Long id, Podcast podcast);
     void deletePodcast(Long id);
+    Podcast generateSamplePodcast();
 }

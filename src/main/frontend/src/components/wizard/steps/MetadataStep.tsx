@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
 
 interface MetadataStepProps {
   data: {
@@ -34,6 +36,35 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isLoadingSample, setIsLoadingSample] = useState(false)
+  const [sampleError, setSampleError] = useState<string | null>(null)
+
+  const loadSampleData = async () => {
+    try {
+      setIsLoadingSample(true)
+      setSampleError(null)
+      
+      const response = await fetch('/api/podcasts/sample')
+      if (!response.ok) {
+        throw new Error('Failed to load sample data')
+      }
+      
+      const sampleData = await response.json()
+      
+      onChange('title', sampleData.title)
+      onChange('description', sampleData.description)
+      onChange('length', sampleData.length)
+      if (sampleData.context) {
+        onChange('contextDescription', sampleData.context.descriptionText)
+        onChange('contextUrl', sampleData.context.sourceUrl)
+      }
+      
+    } catch (error) {
+      setSampleError(error instanceof Error ? error.message : 'Failed to load sample data')
+    } finally {
+      setIsLoadingSample(false)
+    }
+  }
 
   const handleNext = async () => {
     console.log('handleNext called', { data });
@@ -115,7 +146,23 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   return (
     <div className="p-6 space-y-8">
       <section>
-        <h3 className="text-lg font-semibold mb-4">Settings</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Settings</h3>
+          <Button
+            variant="outline"
+            onClick={loadSampleData}
+            disabled={isLoadingSample}
+            className="flex items-center gap-2"
+          >
+            {isLoadingSample && <Loader2 className="h-4 w-4 animate-spin" />}
+            Load Sample Data
+          </Button>
+        </div>
+        {sampleError && (
+          <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
+            {sampleError}
+          </div>
+        )}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
