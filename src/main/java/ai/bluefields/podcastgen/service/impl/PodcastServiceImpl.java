@@ -22,6 +22,7 @@ public class PodcastServiceImpl implements PodcastService {
     
     private static final Logger log = LoggerFactory.getLogger(PodcastServiceImpl.class);
     private final PodcastRepository podcastRepository;
+    private final AIService aiService;
 
     @Override
     @Transactional(readOnly = true)
@@ -129,5 +130,32 @@ public class PodcastServiceImpl implements PodcastService {
         existing.setLength(updated.getLength());
         existing.setStatus(updated.getStatus());
         existing.setUserId(updated.getUserId());
+    }
+
+    @Override
+    public Podcast generateSamplePodcast() {
+        log.info("Generating sample podcast");
+        try {
+            JsonNode suggestion = aiService.generatePodcastSuggestion();
+            
+            Podcast podcast = new Podcast();
+            podcast.setTitle(suggestion.get("title").asText());
+            podcast.setDescription(suggestion.get("description").asText());
+            podcast.setLength(suggestion.get("length").asInt());
+            podcast.setStatus(PodcastStatus.DRAFT);
+            podcast.setUserId("dev-user-123");
+
+            Context context = new Context();
+            context.setDescriptionText(suggestion.get("contextDescription").asText());
+            context.setSourceUrl(suggestion.get("sourceUrl").asText());
+            context.setPodcast(podcast);
+            podcast.setContext(context);
+
+            log.info("Successfully generated sample podcast with title: {}", podcast.getTitle());
+            return podcast;
+        } catch (Exception e) {
+            log.error("Error generating sample podcast: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate sample podcast", e);
+        }
     }
 }
