@@ -1,7 +1,8 @@
 package ai.bluefields.podcastgen.service;
 
-import org.springframework.ai.openai.OpenAiApi;
-import org.springframework.ai.openai.api.OpenAiApi.Completion;
+import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.ChatResponse;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,11 +12,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AIService {
     
-    private final OpenAiApi openAiApi;
+    private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     
     public JsonNode generatePodcastSuggestion() {
-        String prompt = """
+        String promptText = """
             Generate a creative podcast idea with the following JSON structure:
             {
                 "title": "engaging podcast title",
@@ -35,8 +36,9 @@ public class AIService {
             Make it interesting and creative, but keep it professional.
             """;
         
-        Completion completion = openAiApi.completion(prompt);
-        String aiResponse = completion.getChoices().get(0).getText();
+        Prompt prompt = new Prompt(promptText);
+        ChatResponse response = chatClient.call(prompt);
+        String aiResponse = response.getResult().getOutput().getContent();
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
