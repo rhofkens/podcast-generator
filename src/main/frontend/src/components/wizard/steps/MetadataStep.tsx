@@ -36,8 +36,12 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isLoadingSample, setIsLoadingSample] = useState(false)
+  const [isLoadingSample, setIsLoadingSample] = useState(true)
   const [sampleError, setSampleError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadSampleData()
+  }, [])
 
   const loadSampleData = async () => {
     try {
@@ -146,23 +150,18 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   return (
     <div className="p-6 space-y-8">
       <section>
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-4">
           <h3 className="text-lg font-semibold">Settings</h3>
-          <Button
-            variant="outline"
-            onClick={loadSampleData}
-            disabled={isLoadingSample}
-            className="flex items-center gap-2"
-          >
-            {isLoadingSample && <Loader2 className="h-4 w-4 animate-spin" />}
-            Load Sample Data
-          </Button>
         </div>
-        {sampleError && (
+        {isLoadingSample ? (
+          <div className="p-6 flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : sampleError ? (
           <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
             {sampleError}
           </div>
-        )}
+        ) : null}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
