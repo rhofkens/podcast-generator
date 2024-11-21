@@ -230,7 +230,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
       <div className="p-6">
         <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
           {error}
-        </div>
+        </motion.div>
         <div className="flex justify-between">
           <button
             onClick={onBack}
@@ -318,9 +318,12 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
           ))}
         </div>
       ) : (
-        <div 
+        <motion.div 
           ref={chatContainerRef}
           className="flex-1 overflow-y-auto bg-gray-100 rounded-lg p-4 space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
           <AnimatePresence>
             {messages.map((message, index) => {
