@@ -213,6 +213,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
+        >
           {messages.map((message, index) => (
             <div key={index} className="flex gap-4">
               <div className="w-48">
