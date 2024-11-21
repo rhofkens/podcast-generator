@@ -20,6 +20,7 @@ public class Transcript {
     @Column(name = "last_edited")
     private LocalDateTime lastEdited;
 
+    @JsonBackReference
     @OneToOne
     @JoinColumn(name = "podcast_id")
     private Podcast podcast;
