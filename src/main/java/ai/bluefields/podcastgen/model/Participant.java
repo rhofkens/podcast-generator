@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public class Participant {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "podcast_id")
     private Podcast podcast;
