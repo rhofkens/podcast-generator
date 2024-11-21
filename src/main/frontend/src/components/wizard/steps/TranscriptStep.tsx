@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatTime } from '../../../utils/timeFormat'
 import { cn } from '../../../lib/utils'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 interface Message {
   participantId: number
@@ -22,6 +22,8 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
   const [error, setError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const shouldReduceMotion = useReducedMotion()
+  const [highlightedMessage, setHighlightedMessage] = useState<number | null>(null)
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -53,27 +55,92 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
   const messageVariants = {
     hidden: (position: string) => ({
       opacity: 0,
-      x: position === 'left' ? -20 : 20,
-      scale: 0.9
+      x: shouldReduceMotion ? 0 : (position === 'left' ? -50 : 50),
+      y: shouldReduceMotion ? 0 : 20,
+      scale: 0.9,
     }),
     visible: {
       opacity: 1,
       x: 0,
+      y: 0,
       scale: 1,
       transition: {
         type: "spring",
         stiffness: 500,
-        damping: 40
+        damping: 30,
+        mass: 1,
       }
     },
     hover: {
       scale: 1.02,
+      y: -5,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    },
+    tap: {
+      scale: 0.98,
       transition: {
         type: "spring",
         stiffness: 400,
         damping: 10
       }
     }
+  }
+
+  const controlsVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    },
+    tap: {
+      scale: 0.95
+    }
+  }
+
+  const typingVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20
+      }
+    }
+  }
+
+  const getMessageGradient = (participantId: number) => {
+    const participantIndex = participants.findIndex(p => p.id === participantId)
+    const gradients = [
+      'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
+      'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+      'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200',
+      'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
+      'bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200'
+    ]
+    return gradients[participantIndex % gradients.length]
   }
 
   useEffect(() => {
