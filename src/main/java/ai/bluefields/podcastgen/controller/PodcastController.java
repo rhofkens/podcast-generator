@@ -115,6 +115,30 @@ public class PodcastController {
         }
     }
 
+    @GetMapping("/{id}/sample-participants")
+    public ResponseEntity<JsonNode> getSampleParticipants(@PathVariable Long id) {
+        log.info("REST request to get sample participants for podcast id: {}", id);
+        try {
+            return podcastService.getPodcastById(id)
+                .map(podcast -> {
+                    JsonNode participants = aiService.generateParticipantSuggestions(
+                        podcast.getTitle(),
+                        podcast.getDescription(),
+                        podcast.getContext() != null ? podcast.getContext().getDescriptionText() : ""
+                    );
+                    log.info("Successfully generated sample participants for podcast id: {}", id);
+                    return ResponseEntity.ok(participants);
+                })
+                .orElseGet(() -> {
+                    log.warn("Podcast not found with id: {}", id);
+                    return ResponseEntity.notFound().build();
+                });
+        } catch (Exception e) {
+            log.error("Error generating sample participants: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePodcast(
             @PathVariable @Positive(message = "ID must be positive") Long id) {

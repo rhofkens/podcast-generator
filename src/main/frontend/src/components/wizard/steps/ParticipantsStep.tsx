@@ -22,12 +22,55 @@ interface ParticipantsStepProps {
 export function ParticipantsStep({ podcastId, participants, onChange, onNext, onBack }: ParticipantsStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (podcastId) {
-      loadParticipants();
+      if (participants.length === 0) {
+        loadSampleParticipants();
+      } else {
+        loadParticipants();
+      }
     }
   }, [podcastId]);
+
+  const loadSampleParticipants = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/podcasts/${podcastId}/sample-participants`);
+      if (!response.ok) {
+        throw new Error('Failed to load sample participants');
+      }
+      
+      const data = await response.json();
+      const sampleParticipants = data.participants.map((p: any) => ({
+        name: p.name,
+        gender: p.gender.toLowerCase(),
+        age: p.age,
+        role: p.role,
+        roleDescription: p.roleDescription,
+        voiceCharacteristics: p.voiceCharacteristics,
+        isNew: true
+      }));
+      
+      onChange(sampleParticipants);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load sample participants');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFieldFocus = (index: number, field: keyof Participant) => {
+    setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
+  };
+
+  const isFieldEdited = (index: number, field: keyof Participant) => {
+    return editedFields.has(`${index}-${field}`);
+  };
 
   const loadParticipants = async () => {
     try {
@@ -196,7 +239,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                   type="text"
                   value={participant.name}
                   onChange={(e) => updateParticipant(index, 'name', e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'name') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'name')}
                 />
               </div>
               <div>
