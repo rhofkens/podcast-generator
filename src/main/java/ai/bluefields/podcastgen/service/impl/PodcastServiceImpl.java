@@ -34,7 +34,12 @@ public class PodcastServiceImpl implements PodcastService {
         log.info("Fetching all podcasts with pagination");
         try {
             Page<Podcast> podcasts = podcastRepository.findAllByOrderByCreatedAtDesc(pageable);
-            log.info("Successfully retrieved {} podcasts", podcasts.getContent().size());
+            if (podcasts != null) {
+                log.info("Successfully retrieved {} podcasts", podcasts.getContent().size());
+            } else {
+                log.warn("Repository returned null page of podcasts");
+                podcasts = Page.empty(pageable);
+            }
             return podcasts;
         } catch (DataAccessException e) {
             log.error("Database error while fetching all podcasts: {}", e.getMessage(), e);
