@@ -334,6 +334,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+      >
         <button
           onClick={onBack}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
