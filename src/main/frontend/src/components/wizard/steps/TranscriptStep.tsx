@@ -39,17 +39,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
     return participantIndex % 2 === 0 ? 'left' : 'right'
   }
 
-  const getMessageColor = (participantId: number) => {
-    const participantIndex = participants.findIndex(p => p.id === participantId)
-    const colors = [
-      'bg-blue-50 border-blue-200',
-      'bg-green-50 border-green-200',
-      'bg-purple-50 border-purple-200',
-      'bg-yellow-50 border-yellow-200',
-      'bg-pink-50 border-pink-200'
-    ]
-    return colors[participantIndex % colors.length]
-  }
 
   const messageVariants = {
     hidden: (position: string) => ({
