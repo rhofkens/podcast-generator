@@ -63,7 +63,7 @@ class PodcastServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Test Podcast");
-        verify(podcastRepository).findAll(pageable);
+        verify(podcastRepository).findAllByOrderByCreatedAtDesc(pageable);
     }
 
     @Test
