@@ -17,3 +17,8 @@ We use React with JSX and Tailwind CSS, shadcn/ui and Vite.
 
 We integrate Zitadel as the IDP.
 
+### 1.5.  AI and LLMs
+
+We use Spring AI https://spring.io/projects/spring-ai as the library to interact with LLMs.
+We use OpenAI GPT4o as the LLM.
+
