@@ -108,6 +108,12 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
     try {
       setError(null);
       const participant = participants[index];
+      
+      // When field is focused for the first time, clear the sample value
+      if (!isFieldEdited(index, field)) {
+        value = '';
+      }
+      
       const updated = { ...participant, [field]: value };
       
       if (participant.isNew) {
@@ -252,7 +258,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                 <select
                   value={participant.gender}
                   onChange={(e) => updateParticipant(index, 'gender', e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'gender') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'gender')}
                 >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
@@ -266,7 +276,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                   type="number"
                   value={participant.age}
                   onChange={(e) => updateParticipant(index, 'age', parseInt(e.target.value))}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'age') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'age')}
                   min={0}
                 />
               </div>
@@ -276,7 +290,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                   type="text"
                   value={participant.role}
                   onChange={(e) => updateParticipant(index, 'role', e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'role') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'role')}
                 />
               </div>
               <div className="col-span-2">
@@ -284,7 +302,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                 <textarea
                   value={participant.roleDescription}
                   onChange={(e) => updateParticipant(index, 'roleDescription', e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'roleDescription') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'roleDescription')}
                   rows={2}
                 />
               </div>
@@ -293,7 +315,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                 <textarea
                   value={participant.voiceCharacteristics}
                   onChange={(e) => updateParticipant(index, 'voiceCharacteristics', e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className={cn(
+                    "w-full p-2 border rounded",
+                    !isFieldEdited(index, 'voiceCharacteristics') && "italic text-gray-400"
+                  )}
+                  onFocus={() => handleFieldFocus(index, 'voiceCharacteristics')}
                   rows={2}
                 />
               </div>
