@@ -49,12 +49,18 @@ export function PodcastWizard() {
   }, [])
 
   const handleStepComplete = (step: number) => {
+    console.log('handleStepComplete called:', { step, currentStep })
     if (step === 0) {
       const newPodcastId = localStorage.getItem('currentPodcastId')
+      console.log('Setting new podcastId:', newPodcastId)
       setPodcastId(newPodcastId)
     }
     setCurrentStep(step + 1)
   }
+
+  useEffect(() => {
+    console.log('PodcastWizard step changed:', { currentStep })
+  }, [currentStep])
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
@@ -76,6 +82,8 @@ export function PodcastWizard() {
   }
 
   const renderStep = () => {
+    console.log('PodcastWizard renderStep:', { currentStep, podcastId, participants })
+    
     switch (currentStep) {
       case 0:
         return (
@@ -96,6 +104,12 @@ export function PodcastWizard() {
           />
         )
       case 2:
+        console.log('Rendering TranscriptStep with:', {
+          messages,
+          participants: participants.map((p, i) => ({ id: i, name: p.name })),
+          messagesLength: messages.length,
+          participantsLength: participants.length
+        })
         return (
           <TranscriptStep
             messages={messages}
