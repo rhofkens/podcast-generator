@@ -339,12 +339,13 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
                   animate="visible"
                   variants={messageVariants}
                   whileHover="hover"
+                  whileTap="tap"
                   layout
                 >
                   <motion.div 
                     className={cn(
                       "rounded-lg border p-4",
-                      colorClass,
+                      getMessageGradient(message.participantId),
                       position === 'left' ? 'rounded-tl-none' : 'rounded-tr-none'
                     )}
                   >
@@ -378,6 +379,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
                       minute: '2-digit' 
                     })}
                   </motion.div>
+                </motion.div>
                 </motion.div>
               )
             })}
