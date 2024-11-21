@@ -58,7 +58,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          podcastId: parseInt(podcastId),
           participants: participantsList
         })
       })
