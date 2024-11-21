@@ -33,7 +33,7 @@ public class PodcastServiceImpl implements PodcastService {
     public Page<Podcast> getAllPodcasts(Pageable pageable) {
         log.info("Fetching all podcasts with pagination");
         try {
-            Page<Podcast> podcasts = podcastRepository.findAll(pageable);
+            Page<Podcast> podcasts = podcastRepository.findAllByOrderByCreatedAtDesc(pageable);
             log.info("Successfully retrieved {} podcasts", podcasts.getContent().size());
             return podcasts;
         } catch (DataAccessException e) {
