@@ -50,7 +50,7 @@ public class AIServiceImpl implements AIService {
             Title: %s
             Description: %s
             Context: %s
-            Length: %d minutes
+            Target Duration: %d minutes (IMPORTANT: ensure total duration matches this exactly)
             
             Participants:
             %s
@@ -68,32 +68,71 @@ public class AIServiceImpl implements AIService {
             }
             
             Requirements:
-            - Create a natural flowing conversation between participants
-            - Use their expertise and roles appropriately
-            - Include relevant details from the context
-            - Make timing realistic (pauses, overlaps, etc.)
-            - Total duration should match podcast length
-            - Keep responses concise (4-5 sentences max per turn)
-            - Include some brief introductions at the start
-            - Add a wrap-up/conclusion at the end
-            - Strictly maintain each participant's voice characteristics in their dialogue
-            - Ensure speaking patterns and word choices match their voice profile
-            - Make voice personalities distinct and consistent throughout
+            1. Timing Requirements:
+               - Total duration MUST be exactly %d seconds
+               - Each segment should be 10-30 seconds
+               - Include natural pauses between segments (2-3 seconds)
+               - Track cumulative time to ensure total matches target
+            
+            2. Content Structure:
+               - Start with brief introductions (60-90 seconds total)
+               - Main discussion (70%% of total time)
+               - Wrap-up/conclusion (10%% of total time)
+               - Distribute speaking time evenly between participants
+            
+            3. Speaking Guidelines:
+               - Keep responses concise (4-5 sentences max per turn)
+               - Include relevant details from the context
+               - Make timing realistic for natural speech
+               - Maintain each participant's voice characteristics
+               - Ensure speaking patterns match voice profiles
+               - Make voice personalities distinct and consistent
+            
+            4. Technical Requirements:
+               - Ensure timeOffset values are sequential
+               - Duration must reflect realistic speaking pace
+               - Total of all durations plus pauses must equal %d seconds
+               - JSON must be valid and match the specified structure
             """,
             podcastTitle,
             podcastDescription,
             contextDescription,
             lengthInMinutes,
-            participantsDescription
+            participantsDescription,
+            lengthInMinutes * 60,
+            lengthInMinutes * 60
         );
         
-        Prompt prompt = new Prompt(promptText);
-        ChatResponse response = chatClient.call(prompt);
-        String aiResponse = response.getResult().getOutput().getContent();
+        log.debug("Generating transcript with prompt: {}", promptText);
+        
         try {
-            return objectMapper.readTree(aiResponse);
+            Prompt prompt = new Prompt(promptText);
+            ChatResponse response = chatClient.call(prompt);
+            String aiResponse = response.getResult().getOutput().getContent();
+            
+            log.debug("Received AI response: {}", aiResponse);
+            
+            JsonNode transcript = objectMapper.readTree(aiResponse);
+            
+            // Validate total duration
+            int totalDuration = 0;
+            JsonNode segments = transcript.get("transcript");
+            if (segments != null && segments.isArray()) {
+                for (JsonNode segment : segments) {
+                    totalDuration += segment.get("duration").asInt();
+                }
+            }
+            
+            int expectedDuration = lengthInMinutes * 60;
+            if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
+                log.warn("Generated transcript duration ({} seconds) significantly differs from target ({} seconds)", 
+                        totalDuration, expectedDuration);
+            }
+            
+            return transcript;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse AI response", e);
+            log.error("Failed to generate or parse transcript: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
         }
     }
 
