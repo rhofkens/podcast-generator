@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,15 +31,19 @@ public class Podcast {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonManagedReference
     @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Context context;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
+    @JsonManagedReference
     @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Transcript transcript;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Audio> audioOutputs;
 
