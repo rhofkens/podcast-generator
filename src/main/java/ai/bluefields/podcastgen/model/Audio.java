@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.hibernate.annotations.Type;
 
 @Entity
@@ -39,6 +40,7 @@ public class Audio {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "podcast_id")
     private Podcast podcast;
