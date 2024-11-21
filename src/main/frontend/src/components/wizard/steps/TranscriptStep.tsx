@@ -230,7 +230,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
       <div className="p-6">
         <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
           {error}
-        </motion.div>
+        </div>
         <div className="flex justify-between">
           <button
             onClick={onBack}
