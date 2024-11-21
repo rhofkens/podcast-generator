@@ -23,7 +23,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
   const [editMode, setEditMode] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
-  const [highlightedMessage, setHighlightedMessage] = useState<number | null>(null)
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -90,46 +89,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
     }
   }
 
-  const controlsVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.3,
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const buttonVariants = {
-    hover: {
-      scale: 1.05,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 10
-      }
-    },
-    tap: {
-      scale: 0.95
-    }
-  }
-
-  const typingVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    }
-  }
 
   const getMessageGradient = (participantId: number) => {
     const participantIndex = participants.findIndex(p => p.id === participantId)
@@ -328,7 +287,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
           <AnimatePresence>
             {messages.map((message, index) => {
               const position = getMessagePosition(message.participantId)
-              const colorClass = getMessageColor(message.participantId)
               
               return (
                 <motion.div
