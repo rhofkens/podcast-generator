@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { formatTime } from '../../../utils/timeFormat'
 
 interface Message {
   participantId: number
@@ -17,6 +18,18 @@ interface TranscriptStepProps {
 export function TranscriptStep({ messages, participants, onChange, onBack, onSubmit }: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editMode, setEditMode] = useState(false)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const getParticipantName = (participantId: number) => {
+    return participants.find(p => p.id === participantId)?.name || 'Unknown'
+  }
 
   useEffect(() => {
     console.log('TranscriptStep mounted/updated:', {
@@ -125,9 +138,32 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
   }
 
   return (
-    <div className="p-6">
-      <div className="bg-white rounded-lg border p-4 mb-6">
-        <div className="space-y-4">
+    <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
+      <div className="flex justify-between mb-4">
+        <button
+          onClick={() => setEditMode(!editMode)}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          {editMode ? 'View Mode' : 'Edit Mode'}
+        </button>
+        <div className="space-x-2">
+          <button
+            onClick={generateTranscript}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Regenerate
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
+          >
+            Generate Podcast
+          </button>
+        </div>
+      </div>
+
+      {editMode ? (
+        <div className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4">
           {messages.map((message, index) => (
             <div key={index} className="flex gap-4">
               <div className="w-48">
@@ -164,29 +200,36 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
             </div>
           ))}
         </div>
-      </div>
+      ) : (
+        <div 
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto bg-gray-100 rounded-lg p-4 space-y-4"
+        >
+          {messages.map((message, index) => (
+            <div key={index} className="flex flex-col max-w-[80%]">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-baseline mb-2">
+                  <span className="font-medium text-primary">
+                    {getParticipantName(message.participantId)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatTime(message.timing)}
+                  </span>
+                </div>
+                <p className="text-gray-800 whitespace-pre-wrap">{message.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <div className="flex justify-between">
+      <div className="flex justify-between mt-4">
         <button
           onClick={onBack}
-          className="px-4 py-2 border rounded hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Back
         </button>
-        <div className="space-x-2">
-          <button
-            onClick={generateTranscript}
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-          >
-            Regenerate
-          </button>
-          <button
-            onClick={onSubmit}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded"
-          >
-            Generate Podcast
-          </button>
-        </div>
       </div>
     </div>
   )
