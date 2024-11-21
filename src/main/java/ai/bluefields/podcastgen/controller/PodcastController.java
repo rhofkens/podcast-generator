@@ -1,8 +1,11 @@
 package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
+import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.service.AIService;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map;
+import java.util.List;
 import ai.bluefields.podcastgen.dto.PageResponseDTO;
 import ai.bluefields.podcastgen.model.Podcast;
 import ai.bluefields.podcastgen.service.PodcastService;
@@ -138,6 +141,38 @@ public class PodcastController {
                 });
         } catch (Exception e) {
             log.error("Error generating sample participants: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/{id}/generate-transcript")
+    public ResponseEntity<JsonNode> generateTranscript(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        log.info("REST request to generate transcript for podcast id: {}", id);
+        try {
+            return podcastService.getPodcastById(id)
+                .map(podcast -> {
+                    @SuppressWarnings("unchecked")
+                    List<Participant> participants = (List<Participant>) request.get("participants");
+                    
+                    JsonNode transcript = aiService.generateTranscript(
+                        podcast.getTitle(),
+                        podcast.getDescription(),
+                        podcast.getContext() != null ? podcast.getContext().getDescriptionText() : "",
+                        participants,
+                        podcast.getLength()
+                    );
+                    
+                    log.info("Successfully generated transcript for podcast id: {}", id);
+                    return ResponseEntity.ok(transcript);
+                })
+                .orElseGet(() -> {
+                    log.warn("Podcast not found with id: {}", id);
+                    return ResponseEntity.notFound().build();
+                });
+        } catch (Exception e) {
+            log.error("Error generating transcript: {}", e.getMessage(), e);
             throw e;
         }
     }
