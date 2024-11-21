@@ -7,6 +7,7 @@ import org.springframework.ai.chat.ChatResponse;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -15,6 +16,81 @@ public class AIServiceImpl implements AIService {
     
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
+
+    @Override
+    public JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
+        String participantsDescription = participants.stream()
+            .map(p -> String.format("""
+                Name: %s
+                Role: %s
+                Role Description: %s
+                Voice Profile:
+                  - Voice Characteristics: %s
+                  - Speaking Style: Match these voice qualities throughout the dialogue
+                  - Voice Pattern: Ensure dialogue reflects these speech characteristics
+                Speaking Instructions:
+                  - Maintain consistent voice personality
+                  - Use language patterns fitting their voice profile
+                  - Keep dialogue authentic to their speaking style
+                """, 
+                p.getName(), 
+                p.getRole(), 
+                p.getRoleDescription(), 
+                p.getVoiceCharacteristics()))
+            .collect(Collectors.joining("\n\n"));
+
+        String promptText = String.format("""
+            Generate a podcast transcript with the following details:
+            
+            Title: %s
+            Description: %s
+            Context: %s
+            Length: %d minutes
+            
+            Participants:
+            %s
+            
+            Generate a natural conversation transcript in JSON format:
+            {
+                "transcript": [
+                    {
+                        "speakerName": "participant name",
+                        "timeOffset": seconds from start,
+                        "duration": length in seconds,
+                        "text": "what they say"
+                    }
+                ]
+            }
+            
+            Requirements:
+            - Create a natural flowing conversation between participants
+            - Use their expertise and roles appropriately
+            - Include relevant details from the context
+            - Make timing realistic (pauses, overlaps, etc.)
+            - Total duration should match podcast length
+            - Keep responses concise (2-3 sentences max per turn)
+            - Include some brief introductions at the start
+            - Add a wrap-up/conclusion at the end
+            - Strictly maintain each participant's voice characteristics in their dialogue
+            - Ensure speaking patterns and word choices match their voice profile
+            - Make voice personalities distinct and consistent throughout
+            """,
+            podcastTitle,
+            podcastDescription,
+            contextDescription,
+            lengthInMinutes,
+            participantsDescription
+        );
+        
+        Prompt prompt = new Prompt(promptText);
+        ChatResponse response = chatClient.call(prompt);
+        String aiResponse = response.getResult().getOutput().getContent();
+        try {
+            return objectMapper.readTree(aiResponse);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse AI response", e);
+        }
+    }
 
     @Override
     public JsonNode generateParticipantSuggestions(String podcastTitle, String podcastDescription, String contextDescription) {
