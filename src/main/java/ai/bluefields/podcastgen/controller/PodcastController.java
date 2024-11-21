@@ -157,7 +157,7 @@ public class PodcastController {
                         podcast.getTitle(),
                         podcast.getDescription(),
                         podcast.getContext() != null ? podcast.getContext().getDescriptionText() : "",
-                        participants,
+                        request.getParticipants(),
                         podcast.getLength()
                     );
                     
