@@ -1,6 +1,7 @@
 package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
+import com.fasterxml.jackson.databind.JsonNode;
 import ai.bluefields.podcastgen.dto.PageResponseDTO;
 import ai.bluefields.podcastgen.model.Podcast;
 import ai.bluefields.podcastgen.service.PodcastService;
@@ -24,6 +25,7 @@ import jakarta.validation.constraints.Positive;
 public class PodcastController {
     private static final Logger log = LoggerFactory.getLogger(PodcastController.class);
     private final PodcastService podcastService;
+    private final AIService aiService;
 
     @GetMapping
     public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
