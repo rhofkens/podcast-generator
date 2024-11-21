@@ -19,18 +19,27 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Only generate if no messages exist yet
-    if (messages.length === 0) {
+    console.log('TranscriptStep mounted/updated:', {
+      messagesLength: messages.length,
+      participantsLength: participants.length,
+      shouldGenerate: messages.length === 0 && participants.length >= 2
+    })
+    
+    // Only generate if no messages exist yet and we have participants
+    if (messages.length === 0 && participants.length >= 2) {
+      console.log('Starting automatic transcript generation')
       generateTranscript()
     }
-  }, []) // Empty dependency array means this runs once on mount
+  }, [messages.length, participants.length, onChange]) // Include onChange as it's used in generateTranscript
 
   const generateTranscript = async () => {
+    console.log('Generating transcript...')
     try {
       setIsGenerating(true)
       setError(null)
 
       const podcastId = localStorage.getItem('currentPodcastId')
+      console.log('Retrieved podcastId:', podcastId)
       if (!podcastId) {
         throw new Error('No podcast ID found')
       }
