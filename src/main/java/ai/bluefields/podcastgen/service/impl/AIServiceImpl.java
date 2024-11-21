@@ -73,7 +73,7 @@ public class AIServiceImpl implements AIService {
             - Include relevant details from the context
             - Make timing realistic (pauses, overlaps, etc.)
             - Total duration should match podcast length
-            - Keep responses concise (2-3 sentences max per turn)
+            - Keep responses concise (4-5 sentences max per turn)
             - Include some brief introductions at the start
             - Add a wrap-up/conclusion at the end
             - Strictly maintain each participant's voice characteristics in their dialogue
