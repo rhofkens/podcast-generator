@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { formatTime } from '../../../utils/timeFormat'
+import { cn } from '../../../lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
   participantId: number
@@ -29,6 +31,49 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
 
   const getParticipantName = (participantId: number) => {
     return participants.find(p => p.id === participantId)?.name || 'Unknown'
+  }
+
+  const getMessagePosition = (participantId: number) => {
+    const participantIndex = participants.findIndex(p => p.id === participantId)
+    return participantIndex % 2 === 0 ? 'left' : 'right'
+  }
+
+  const getMessageColor = (participantId: number) => {
+    const participantIndex = participants.findIndex(p => p.id === participantId)
+    const colors = [
+      'bg-blue-50 border-blue-200',
+      'bg-green-50 border-green-200',
+      'bg-purple-50 border-purple-200',
+      'bg-yellow-50 border-yellow-200',
+      'bg-pink-50 border-pink-200'
+    ]
+    return colors[participantIndex % colors.length]
+  }
+
+  const messageVariants = {
+    hidden: (position: string) => ({
+      opacity: 0,
+      x: position === 'left' ? -20 : 20,
+      scale: 0.9
+    }),
+    visible: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 40
+      }
+    },
+    hover: {
+      scale: 1.02,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    }
   }
 
   useEffect(() => {
@@ -163,7 +208,11 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
       </div>
 
       {editMode ? (
-        <div className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4">
+        <motion.div 
+          className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
           {messages.map((message, index) => (
             <div key={index} className="flex gap-4">
               <div className="w-48">
@@ -203,27 +252,88 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
       ) : (
         <div 
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto bg-gray-100 rounded-lg p-4 space-y-4"
+          className="flex-1 overflow-y-auto bg-gray-100 rounded-lg p-4 space-y-6"
         >
-          {messages.map((message, index) => (
-            <div key={index} className="flex flex-col max-w-[80%]">
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex justify-between items-baseline mb-2">
-                  <span className="font-medium text-primary">
-                    {getParticipantName(message.participantId)}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatTime(message.timing)}
-                  </span>
-                </div>
-                <p className="text-gray-800 whitespace-pre-wrap">{message.content}</p>
-              </div>
-            </div>
-          ))}
+          <AnimatePresence>
+            {messages.map((message, index) => {
+              const position = getMessagePosition(message.participantId)
+              const colorClass = getMessageColor(message.participantId)
+              
+              return (
+                <motion.div
+                  key={index}
+                  className={cn(
+                    "flex flex-col max-w-[80%]",
+                    position === 'right' ? 'ml-auto' : ''
+                  )}
+                  custom={position}
+                  initial="hidden"
+                  animate="visible"
+                  variants={messageVariants}
+                  whileHover="hover"
+                  layout
+                >
+                  <motion.div 
+                    className={cn(
+                      "rounded-lg border p-4",
+                      colorClass,
+                      position === 'left' ? 'rounded-tl-none' : 'rounded-tr-none'
+                    )}
+                  >
+                    <div className="flex justify-between items-baseline mb-2">
+                      <motion.span 
+                        className="font-medium text-primary"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        {getParticipantName(message.participantId)}
+                      </motion.span>
+                      <span className="text-xs text-gray-500">
+                        {formatTime(message.timing)}
+                      </span>
+                    </div>
+                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {message.content}
+                    </p>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className={cn(
+                      "text-xs text-gray-400 mt-1",
+                      position === 'right' ? 'text-right' : 'text-left'
+                    )}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {new Date(message.timing * 1000).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </motion.div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+          
+          {isGenerating && (
+            <motion.div
+              className="flex items-center space-x-2 p-3 bg-gray-200 rounded-lg max-w-[100px]"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100" />
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
+            </motion.div>
+          )}
         </div>
       )}
 
-      <div className="flex justify-between mt-4">
+      <motion.div 
+        className="flex justify-between mt-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         <button
           onClick={onBack}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
