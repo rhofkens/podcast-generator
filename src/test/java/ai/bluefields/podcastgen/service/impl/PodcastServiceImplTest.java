@@ -56,7 +56,7 @@ class PodcastServiceImplTest {
     void getAllPodcasts_ShouldReturnPageOfPodcasts() {
         List<Podcast> podcastList = List.of(podcast);
         Page<Podcast> podcastPage = new PageImpl<>(podcastList, pageable, 1);
-        when(podcastRepository.findAll(any(Pageable.class))).thenReturn(podcastPage);
+        when(podcastRepository.findAllByOrderByCreatedAtDesc(any(Pageable.class))).thenReturn(podcastPage);
 
         Page<Podcast> result = podcastService.getAllPodcasts(pageable);
 
