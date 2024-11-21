@@ -63,7 +63,7 @@ public class AIService {
             {
                 "title": "engaging podcast title",
                 "description": "brief compelling description (max 200 chars)",
-                "length": number between 15-45,
+                "length": number between 3-10,
                 "contextDescription": "detailed context about the podcast topic and goals (max 500 chars)",
                 "sourceUrl": "URL to a real, existing webpage that provides background information relevant to this podcast topic. Must be a real, valid URL to an existing website with relevant content."
             }
