@@ -276,10 +276,10 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
 
       {editMode ? (
         <motion.div 
-          className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4 shadow-sm"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
         >
           {messages.map((message, index) => (
             <div key={index} className="flex gap-4">
@@ -320,7 +320,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
       ) : (
         <motion.div 
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto bg-gray-100 rounded-lg p-4 space-y-6"
+          className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg p-4 space-y-6 shadow-inner"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
