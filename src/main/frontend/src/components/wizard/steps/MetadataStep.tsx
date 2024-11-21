@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from 'react'
+import { cn } from '../../../lib/utils'
 import { useDropzone } from 'react-dropzone'
 
 interface MetadataStepProps {
@@ -15,6 +16,19 @@ interface MetadataStepProps {
 }
 
 export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
+  const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
+  
+  const handleInputChange = (field: string, value: any) => {
+    setEditedFields(prev => new Set([...prev, field]))
+    onChange(field, value)
+  }
+
+  const handleFieldFocus = (field: string) => {
+    if (!editedFields.has(field)) {
+      onChange(field, '')
+      setEditedFields(prev => new Set([...prev, field]))
+    }
+  }
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) {
       onChange('contextFile', acceptedFiles[0])
@@ -166,17 +180,25 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
             <input
               type="text"
               value={data.title}
-              onChange={(e) => onChange('title', e.target.value)}
-              className="w-full p-2 border rounded"
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              className={cn(
+                "w-full p-2 border rounded",
+                !editedFields.has('title') && "italic text-gray-400"
+              )}
+              onFocus={() => handleFieldFocus('title')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={data.description}
-              onChange={(e) => onChange('description', e.target.value)}
-              className="w-full p-2 border rounded"
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              className={cn(
+                "w-full p-2 border rounded",
+                !editedFields.has('description') && "italic text-gray-400"
+              )}
               rows={3}
+              onFocus={() => handleFieldFocus('description')}
             />
           </div>
           <div>
@@ -184,9 +206,13 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
             <input
               type="number"
               value={data.length}
-              onChange={(e) => onChange('length', parseInt(e.target.value))}
-              className="w-full p-2 border rounded"
+              onChange={(e) => handleInputChange('length', parseInt(e.target.value))}
+              className={cn(
+                "w-full p-2 border rounded",
+                !editedFields.has('length') && "italic text-gray-400"
+              )}
               min={1}
+              onFocus={() => handleFieldFocus('length')}
             />
           </div>
         </div>
@@ -199,9 +225,13 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
               value={data.contextDescription}
-              onChange={(e) => onChange('contextDescription', e.target.value)}
-              className="w-full p-2 border rounded"
+              onChange={(e) => handleInputChange('contextDescription', e.target.value)}
+              className={cn(
+                "w-full p-2 border rounded",
+                !editedFields.has('contextDescription') && "italic text-gray-400"
+              )}
               rows={4}
+              onFocus={() => handleFieldFocus('contextDescription')}
             />
           </div>
           <div>
@@ -209,8 +239,12 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
             <input
               type="url"
               value={data.contextUrl}
-              onChange={(e) => onChange('contextUrl', e.target.value)}
-              className="w-full p-2 border rounded"
+              onChange={(e) => handleInputChange('contextUrl', e.target.value)}
+              className={cn(
+                "w-full p-2 border rounded",
+                !editedFields.has('contextUrl') && "italic text-gray-400"
+              )}
+              onFocus={() => handleFieldFocus('contextUrl')}
             />
           </div>
           <div>
