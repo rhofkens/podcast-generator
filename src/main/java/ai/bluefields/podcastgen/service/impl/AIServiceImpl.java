@@ -94,6 +94,8 @@ public class AIServiceImpl implements AIService {
         }
     }
 
+    private static final Logger log = LoggerFactory.getLogger(AIServiceImpl.class);
+
     @Override
     public JsonNode generateParticipantSuggestions(String podcastTitle, String podcastDescription, String contextDescription) {
         String promptText = String.format("""
@@ -121,19 +123,32 @@ public class AIServiceImpl implements AIService {
             
             Make the participants diverse but relevant to the topic. Their roles and expertise should complement each other 
             and create an interesting dynamic for the podcast discussion.
+            
+            IMPORTANT: Response must be valid JSON only, no additional text or explanations.
             """, 
             podcastTitle,
             podcastDescription,
             contextDescription
         );
         
-        Prompt prompt = new Prompt(promptText);
-        ChatResponse response = chatClient.call(prompt);
-        String aiResponse = response.getResult().getOutput().getContent();
+        log.debug("Generating participant suggestions with prompt: {}", promptText);
+        
         try {
-            return objectMapper.readTree(aiResponse);
+            Prompt prompt = new Prompt(promptText);
+            ChatResponse response = chatClient.call(prompt);
+            String aiResponse = response.getResult().getOutput().getContent();
+            
+            log.debug("Received AI response: {}", aiResponse);
+            
+            try {
+                return objectMapper.readTree(aiResponse);
+            } catch (Exception e) {
+                log.error("Failed to parse AI response as JSON: {}", aiResponse, e);
+                throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse AI response", e);
+            log.error("Error during AI participant generation: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate participants: " + e.getMessage(), e);
         }
     }
     
