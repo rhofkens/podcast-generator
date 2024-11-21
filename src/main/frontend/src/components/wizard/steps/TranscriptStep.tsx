@@ -35,13 +35,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
         throw new Error('No podcast ID found')
       }
 
-      // Get podcast details first
-      const podcastResponse = await fetch(`/api/podcasts/${podcastId}`)
-      if (!podcastResponse.ok) {
-        throw new Error('Failed to fetch podcast details')
-      }
-      const podcast = await podcastResponse.json()
-
       // Get participants
       const participantsResponse = await fetch(`/api/participants/podcast/${podcastId}`)
       if (!participantsResponse.ok) {
