@@ -316,7 +316,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
       ) : (
         <motion.div 
           ref={chatContainerRef}
@@ -398,7 +398,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
               <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
             </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
       <motion.div 
