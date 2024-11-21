@@ -380,7 +380,6 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
                     })}
                   </motion.div>
                 </motion.div>
-                </motion.div>
               )
             })}
           </AnimatePresence>
@@ -411,7 +410,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
         >
           Back
         </button>
-      </div>
+      </motion.div>
     </div>
   )
 }
