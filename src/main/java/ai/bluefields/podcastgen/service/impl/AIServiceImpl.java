@@ -97,8 +97,6 @@ public class AIServiceImpl implements AIService {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(AIServiceImpl.class);
-
     @Override
     public JsonNode generateParticipantSuggestions(String podcastTitle, String podcastDescription, String contextDescription) {
         String promptText = String.format("""
