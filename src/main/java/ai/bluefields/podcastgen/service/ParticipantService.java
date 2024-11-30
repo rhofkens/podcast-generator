@@ -11,4 +11,6 @@ public interface ParticipantService {
     Participant createParticipant(Participant participant);
     Participant updateParticipant(Long id, Participant participant);
     void deleteParticipant(Long id);
+    Participant generateVoicePreview(Long id);
+    Participant createVoiceFromPreview(Long id);
 }

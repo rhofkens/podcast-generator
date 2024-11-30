@@ -34,6 +34,12 @@ public class Participant {
     @Column(name = "synthetic_voice_id")
     private String syntheticVoiceId;
 
+    @Column(name = "voice_preview_id")
+    private String voicePreviewId;
+
+    @Column(name = "voice_preview_url") 
+    private String voicePreviewUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

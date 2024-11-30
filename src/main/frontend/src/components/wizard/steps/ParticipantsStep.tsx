@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react'
 import { cn } from '../../../lib/utils'
 
 interface Participant {
-  id?: number
-  name: string
-  gender: string
-  age: number
-  role: string
-  roleDescription: string
-  voiceCharacteristics: string
-  isNew?: boolean
+  id?: number;
+  name: string;
+  gender: string;
+  age: number;
+  role: string;
+  roleDescription: string;
+  voiceCharacteristics: string;
+  voicePreviewId?: string;
+  voicePreviewUrl?: string;
+  syntheticVoiceId?: string;
+  isNew?: boolean;
+  isGeneratingVoice?: boolean;
 }
 
 interface ParticipantsStepProps {

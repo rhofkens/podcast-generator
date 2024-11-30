@@ -21,6 +21,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private static final Logger log = LoggerFactory.getLogger(ParticipantServiceImpl.class);
     private final ParticipantRepository participantRepository;
+    private final AIService aiService;
 
     @Override
     @Transactional(readOnly = true)
