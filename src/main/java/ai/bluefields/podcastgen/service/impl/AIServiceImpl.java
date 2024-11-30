@@ -231,4 +231,38 @@ public class AIServiceImpl implements AIService {
             throw new RuntimeException("Failed to parse AI response", e);
         }
     }
+
+    @Override
+    public JsonNode createVoiceFromPreview(String name, String previewId) {
+        log.info("Creating voice from preview ID: {} for name: {}", previewId, name);
+        
+        try {
+            // Create request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("name", name);
+            requestBody.put("preview_voice_id", previewId);
+            
+            // Set up headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("xi-api-key", "${elevenlabs.api.key}"); // Use configuration property
+            
+            // Create HTTP entity
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            
+            // Make API call to ElevenLabs using the correct endpoint
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.elevenlabs.io/v1/text-to-voice/create-voice",
+                requestEntity,
+                String.class
+            );
+            
+            // Parse and return response
+            return objectMapper.readTree(response.getBody());
+        } catch (Exception e) {
+            log.error("Failed to create voice from preview: {}", e.getMessage(), e);
+            throw new RuntimeException("Voice creation failed", e);
+        }
+    }
 }
