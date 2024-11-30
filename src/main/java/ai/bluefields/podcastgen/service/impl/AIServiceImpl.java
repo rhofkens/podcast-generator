@@ -232,6 +232,43 @@ public class AIServiceImpl implements AIService {
         }
     }
 
+
+    @Override
+    public JsonNode generateVoicePreview(String gender, int age, String voiceCharacteristics) {
+        log.info("Generating voice preview for gender: {}, age: {}", gender, age);
+
+        try {
+            // Create request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("gender", gender.toUpperCase());
+            requestBody.put("age", age);
+            requestBody.put("text", "This is a preview of how this voice will sound in the podcast.");
+            requestBody.put("description", voiceCharacteristics);
+
+            // Set up headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("xi-api-key", "${elevenlabs.api.key}"); // Use configuration property
+
+            // Create HTTP entity
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            // Make API call to ElevenLabs using the correct endpoint
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    "https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview",
+                    requestEntity,
+                    String.class
+            );
+
+            // Parse and return response
+            return objectMapper.readTree(response.getBody());
+        } catch (Exception e) {
+            log.error("Failed to generate voice preview: {}", e.getMessage(), e);
+            throw new RuntimeException("Voice preview generation failed", e);
+        }
+    }
+
     @Override
     public JsonNode createVoiceFromPreview(String name, String previewId) {
         log.info("Creating voice from preview ID: {} for name: {}", previewId, name);
