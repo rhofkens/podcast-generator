@@ -236,31 +236,44 @@ public class AIServiceImpl implements AIService {
     @Override
     public JsonNode generateVoicePreview(String gender, int age, String voiceCharacteristics) {
         log.info("Generating voice preview for gender: {}, age: {}", gender, age);
-
+        
         try {
+            // Compose voice description from participant attributes
+            String voiceDescription = String.format(
+                "A %d year old %s voice with the following characteristics: %s",
+                age,
+                gender.toLowerCase(),
+                voiceCharacteristics
+            );
+
+            // Sample text that's at least 150 characters
+            String sampleText = """
+                Hello everyone! I'm excited to share my thoughts on this topic. 
+                Let me walk you through my perspective and experience. 
+                I believe this discussion will be both informative and engaging for our listeners. 
+                I look forward to exploring these ideas together.""";
+
             // Create request body
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("gender", gender.toUpperCase());
-            requestBody.put("age", age);
-            requestBody.put("text", "This is a preview of how this voice will sound in the podcast.");
-            requestBody.put("description", voiceCharacteristics);
-
+            requestBody.put("text", sampleText);
+            requestBody.put("voice_description", voiceDescription);
+            
             // Set up headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("xi-api-key", "${elevenlabs.api.key}"); // Use configuration property
-
+            
             // Create HTTP entity
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-            // Make API call to ElevenLabs using the correct endpoint
+            
+            // Make API call to ElevenLabs
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview",
-                    requestEntity,
-                    String.class
+                "https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview",
+                requestEntity,
+                String.class
             );
-
+            
             // Parse and return response
             return objectMapper.readTree(response.getBody());
         } catch (Exception e) {
