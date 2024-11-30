@@ -26,6 +26,10 @@ spring:
       model: gpt-4
       temperature: 0.7
 
+elevenlabs:
+  api:
+    key: ${ELEVENLABS_API_KEY}
+
 server:
   port: 8080
   servlet:

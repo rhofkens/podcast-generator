@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,9 @@ public class AIServiceImpl implements AIService {
     
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
+    
+    @Value("${elevenlabs.api.key}")
+    private String elevenLabsApiKey;
 
     @Override
     public JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
@@ -258,10 +262,10 @@ public class AIServiceImpl implements AIService {
             requestBody.put("text", sampleText);
             requestBody.put("voice_description", voiceDescription);
             
-            // Set up headers
+            // Set up headers with actual API key
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("xi-api-key", "${elevenlabs.api.key}"); // Use configuration property
+            headers.set("xi-api-key", elevenLabsApiKey);
             
             // Create HTTP entity
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
@@ -292,10 +296,10 @@ public class AIServiceImpl implements AIService {
             requestBody.put("name", name);
             requestBody.put("preview_voice_id", previewId);
             
-            // Set up headers
+            // Set up headers with actual API key
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("xi-api-key", "${elevenlabs.api.key}"); // Use configuration property
+            headers.set("xi-api-key", elevenLabsApiKey);
             
             // Create HTTP entity
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
