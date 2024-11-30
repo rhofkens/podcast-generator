@@ -70,7 +70,7 @@ public class AIServiceImpl implements AIService {
             Requirements:
             1. Timing Requirements:
                - Total duration MUST be exactly %d seconds
-               - Each segment should be 10-30 seconds
+               - Each segment should be 10-30 seconds.  This means 30-100 words per segment.  Make sure to adhere to these limits!
                - Include natural pauses between segments (2-3 seconds)
                - Track cumulative time to ensure total matches target
             
@@ -81,7 +81,7 @@ public class AIServiceImpl implements AIService {
                - Distribute speaking time evenly between participants
             
             3. Speaking Guidelines:
-               - Keep responses concise (4-5 sentences max per turn)
+               - Keep responses concise
                - Include relevant details from the context
                - Make timing realistic for natural speech
                - Maintain each participant's voice characteristics
