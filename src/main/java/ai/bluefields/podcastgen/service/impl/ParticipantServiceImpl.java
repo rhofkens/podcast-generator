@@ -3,6 +3,7 @@ package ai.bluefields.podcastgen.service.impl;
 import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
 import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.repository.ParticipantRepository;
+import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.ParticipantService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -140,5 +141,61 @@ public class ParticipantServiceImpl implements ParticipantService {
         existing.setVoiceCharacteristics(updated.getVoiceCharacteristics());
         existing.setSyntheticVoiceId(updated.getSyntheticVoiceId());
         existing.setPodcast(updated.getPodcast());
+    }
+
+    @Override
+    public Participant generateVoicePreview(Long id) {
+        log.info("Generating voice preview for participant id: {}", id);
+        try {
+            return participantRepository.findById(id)
+                .map(participant -> {
+                    JsonNode previewResult = aiService.generateVoicePreview(
+                        participant.getGender(),
+                        participant.getAge(),
+                        participant.getVoiceCharacteristics()
+                    );
+                    
+                    participant.setVoicePreviewId(previewResult.get("preview_id").asText());
+                    participant.setVoicePreviewUrl(previewResult.get("preview_url").asText());
+                    
+                    return participantRepository.save(participant);
+                })
+                .orElseThrow(() -> {
+                    log.warn("Participant not found with id: {}", id);
+                    return new ResourceNotFoundException("Participant", "id", id);
+                });
+        } catch (Exception e) {
+            log.error("Error generating voice preview for participant {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to generate voice preview", e);
+        }
+    }
+
+    @Override
+    public Participant createVoiceFromPreview(Long id) {
+        log.info("Creating voice from preview for participant id: {}", id);
+        try {
+            return participantRepository.findById(id)
+                .map(participant -> {
+                    if (participant.getVoicePreviewId() == null) {
+                        throw new IllegalStateException("No voice preview exists for this participant");
+                    }
+                    
+                    JsonNode voiceResult = aiService.createVoiceFromPreview(
+                        participant.getName(),
+                        participant.getVoicePreviewId()
+                    );
+                    
+                    participant.setSyntheticVoiceId(voiceResult.get("voice_id").asText());
+                    
+                    return participantRepository.save(participant);
+                })
+                .orElseThrow(() -> {
+                    log.warn("Participant not found with id: {}", id);
+                    return new ResourceNotFoundException("Participant", "id", id);
+                });
+        } catch (Exception e) {
+            log.error("Error creating voice from preview for participant {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Failed to create voice from preview", e);
+        }
     }
 }

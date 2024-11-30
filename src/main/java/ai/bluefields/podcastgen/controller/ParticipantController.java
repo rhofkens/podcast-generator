@@ -117,4 +117,30 @@ public class ParticipantController {
             throw e;
         }
     }
+
+    @PostMapping("/{id}/generate-voice-preview")
+    public ResponseEntity<Participant> generateVoicePreview(@PathVariable Long id) {
+        log.info("REST request to generate voice preview for participant id: {}", id);
+        try {
+            Participant result = participantService.generateVoicePreview(id);
+            log.info("Successfully generated voice preview for participant id: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error generating voice preview: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/{id}/create-voice")
+    public ResponseEntity<Participant> createVoiceFromPreview(@PathVariable Long id) {
+        log.info("REST request to create voice from preview for participant id: {}", id);
+        try {
+            Participant result = participantService.createVoiceFromPreview(id);
+            log.info("Successfully created voice for participant id: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error creating voice: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 }
