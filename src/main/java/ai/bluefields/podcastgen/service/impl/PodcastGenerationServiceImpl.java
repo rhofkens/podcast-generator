@@ -104,17 +104,44 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     }
 
     private void generateVoicesForParticipants(Podcast podcast) {
-        // TODO: Implement voice generation for each participant
-        // This will use the AIService to generate voices
+        // TODO: This is a temporary implementation for testing purposes only.
+        // TODO: Implement actual voice generation using AIService for each participant
+        try {
+            // Simulate processing time between 5-8 seconds
+            long sleepTime = 5000 + (long)(Math.random() * 3000);
+            Thread.sleep(sleepTime);
+            log.debug("Generated voices for participants in {} ms", sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Voice generation was interrupted", e);
+        }
     }
 
     private void generateAudioSegments(Podcast podcast) {
-        // TODO: Implement audio segment generation
-        // This will use the AIService to generate audio for each transcript segment
+        // TODO: This is a temporary implementation for testing purposes only.
+        // TODO: Implement actual audio segment generation using AIService for each transcript segment
+        try {
+            // Simulate processing time between 5-8 seconds
+            long sleepTime = 5000 + (long)(Math.random() * 3000);
+            Thread.sleep(sleepTime);
+            log.debug("Generated audio segments in {} ms", sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Audio segment generation was interrupted", e);
+        }
     }
 
     private void stitchAudioSegments(Podcast podcast) {
-        // TODO: Implement audio stitching
-        // This will combine all segments into final audio file
+        // TODO: This is a temporary implementation for testing purposes only.
+        // TODO: Implement actual audio stitching to combine all segments into final audio file
+        try {
+            // Simulate processing time between 5-8 seconds
+            long sleepTime = 5000 + (long)(Math.random() * 3000);
+            Thread.sleep(sleepTime);
+            log.debug("Stitched audio segments in {} ms", sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Audio stitching was interrupted", e);
+        }
     }
 }
