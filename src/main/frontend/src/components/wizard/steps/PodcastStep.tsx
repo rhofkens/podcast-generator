@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '../../../lib/utils'
+import { PodcastGenerationWebSocket } from '../../../utils/websocket'
 
 interface GenerationStatus {
   status: string
@@ -23,57 +24,57 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
   const [reconnectAttempts, setReconnectAttempts] = useState(0)
   const MAX_RECONNECT_ATTEMPTS = 3
 
-  const connectWebSocket = useCallback(() => {
-    if (!podcastId || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return
-
-    const ws = new WebSocket(`ws://${window.location.host}/ws/podcast-generation/${podcastId}`)
-    
-    ws.onopen = () => {
-      console.log('WebSocket connected')
-      setReconnectAttempts(0) // Reset attempts on successful connection
-    }
-
-    ws.onmessage = (event) => {
-      try {
-        const data: GenerationStatus = JSON.parse(event.data)
-        setStatus(data.status)
-        setProgress(data.progress)
-        setMessages(prev => [...prev, data.message])
-
-        if (data.status === 'COMPLETED') {
-          ws.close()
-        }
-      } catch (err) {
-        console.error('Error parsing WebSocket message:', err)
-      }
-    }
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
-      setError('Failed to connect to generation status updates')
-    }
-
-    ws.onclose = () => {
-      console.log('WebSocket closed')
-      // Only attempt reconnect if we're still generating
-      if (isGenerating && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        setReconnectAttempts(prev => prev + 1)
-        setTimeout(() => connectWebSocket(), 2000 * (reconnectAttempts + 1)) // Exponential backoff
-      }
-    }
-
-    setWebSocket(ws)
-  }, [podcastId, reconnectAttempts, isGenerating])
-
   useEffect(() => {
-    connectWebSocket()
+    if (!podcastId) {
+      setError('No podcast ID found')
+      return
+    }
 
-    return () => {
-      if (webSocket) {
-        webSocket.close()
+    let ws: PodcastGenerationWebSocket | null = null
+
+    const startGeneration = async () => {
+      try {
+        // Start podcast generation
+        const response = await fetch(`/api/podcasts/${podcastId}/generate`, {
+          method: 'POST'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to start podcast generation')
+        }
+
+        // Initialize WebSocket connection
+        ws = new PodcastGenerationWebSocket(podcastId)
+        
+        ws.onMessage((data) => {
+          setStatus(data.status)
+          setProgress(data.progress)
+          setMessages(prev => [...prev, data.message])
+          
+          if (data.status === 'COMPLETED') {
+            onComplete()
+          } else if (data.status === 'ERROR') {
+            setError(data.message || 'An error occurred during generation')
+          }
+        })
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start generation')
+        setIsGenerating(false)
       }
     }
-  }, [connectWebSocket])
+
+    if (isGenerating) {
+      startGeneration()
+    }
+
+    // Cleanup
+    return () => {
+      if (ws) {
+        ws.close()
+      }
+    }
+  }, [podcastId, isGenerating])
 
   const startGeneration = async () => {
     if (!podcastId) {
