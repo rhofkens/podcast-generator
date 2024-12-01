@@ -21,6 +21,7 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
         message: null
     });
     const [error, setError] = useState<string | null>(null);
+    const [consoleMessages, setConsoleMessages] = useState<string[]>([]);
 
     useEffect(() => {
         if (!podcastId) {
@@ -51,6 +52,9 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                         message: data.message
                     });
                     
+                    // Add message to console log
+                    setConsoleMessages(prev => [...prev, `[${data.status}] ${data.message}`]);
+                    
                     if (data.status === 'COMPLETED') {
                         onComplete();
                     } else if (data.status === 'ERROR') {
@@ -77,6 +81,16 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
         <div className="p-6">
             <div className="max-w-2xl mx-auto">
                 <h2 className="text-2xl font-bold mb-4">Generating Podcast</h2>
+                
+                <div className="mb-4">
+                    <div className="bg-black text-green-400 font-mono p-4 rounded-lg h-64 overflow-y-auto">
+                        {consoleMessages.map((message, index) => (
+                            <div key={index} className="whitespace-pre-wrap">
+                                {`> ${message}`}
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 
                 {error ? (
                     <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
