@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { PodcastGenerationWebSocket } from '../../../utils/websocket';
-import { AudioPlayer } from '../AudioPlayer';
+import { AudioPlayer } from '../../AudioPlayer';
 
 interface PodcastStepProps {
     podcastId: string | null;
@@ -53,53 +53,57 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
         startGeneration();
     };
 
-    useEffect(() => {
+    const startGeneration = async () => {
         if (!podcastId) {
             setError('No podcast ID found');
-            return;
+            return null;
         }
 
+        try {
+            const response = await fetch(`/api/podcasts/${podcastId}/generate`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to start podcast generation');
+            }
+
+            const ws = new PodcastGenerationWebSocket(podcastId);
+            
+            ws.onMessage((data) => {
+                setGenerationState({
+                    status: data.status,
+                    progress: data.progress,
+                    message: data.message,
+                    audioUrl: data.audioUrl
+                });
+                
+                setConsoleMessages(prev => [...prev, `[${data.status}] ${data.message}`]);
+                
+                if (data.status === 'COMPLETED') {
+                    onComplete();
+                } else if (data.status === 'ERROR') {
+                    setError(data.message || 'An error occurred during generation');
+                }
+            });
+
+            return ws;
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to start generation');
+            return null;
+        }
+    };
+
+    useEffect(() => {
         let ws: PodcastGenerationWebSocket | null = null;
 
-        const startGeneration = async () => {
-            try {
-                // Start podcast generation
-                const response = await fetch(`/api/podcasts/${podcastId}/generate`, {
-                    method: 'POST'
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to start podcast generation');
-                }
-
-                // Initialize WebSocket connection
-                ws = new PodcastGenerationWebSocket(podcastId);
-                
-                ws.onMessage((data) => {
-                    setGenerationState({
-                        status: data.status,
-                        progress: data.progress,
-                        message: data.message
-                    });
-                    
-                    // Add message to console log
-                    setConsoleMessages(prev => [...prev, `[${data.status}] ${data.message}`]);
-                    
-                    if (data.status === 'COMPLETED') {
-                        onComplete();
-                    } else if (data.status === 'ERROR') {
-                        setError(data.message || 'An error occurred during generation');
-                    }
-                });
-
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to start generation');
-            }
+        const initializeGeneration = async () => {
+            ws = await startGeneration();
         };
 
-        startGeneration();
+        initializeGeneration();
 
-        // Cleanup
         return () => {
             if (ws) {
                 ws.close();
