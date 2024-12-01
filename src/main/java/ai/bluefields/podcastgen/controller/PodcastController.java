@@ -30,6 +30,7 @@ public class PodcastController {
     private static final Logger log = LoggerFactory.getLogger(PodcastController.class);
     private final PodcastService podcastService;
     private final AIService aiService;
+    private final PodcastGenerationService podcastGenerationService;
 
     @GetMapping
     public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
@@ -184,6 +185,30 @@ public class PodcastController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("Error deleting podcast {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/{id}/generate")
+    public ResponseEntity<Void> generatePodcast(@PathVariable Long id) {
+        log.info("REST request to generate podcast with id: {}", id);
+        try {
+            podcastGenerationService.generatePodcast(id);
+            return ResponseEntity.accepted().build();
+        } catch (Exception e) {
+            log.error("Error starting podcast generation for {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/{id}/generation-status")
+    public ResponseEntity<Podcast> getGenerationStatus(@PathVariable Long id) {
+        log.info("REST request to get generation status for podcast id: {}", id);
+        try {
+            Podcast podcast = podcastGenerationService.getGenerationStatus(id);
+            return ResponseEntity.ok(podcast);
+        } catch (Exception e) {
+            log.error("Error getting generation status for podcast {}: {}", id, e.getMessage(), e);
             throw e;
         }
     }
