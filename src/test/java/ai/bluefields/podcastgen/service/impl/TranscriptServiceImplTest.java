@@ -3,6 +3,8 @@ package ai.bluefields.podcastgen.service.impl;
 import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
 import ai.bluefields.podcastgen.model.Transcript;
 import ai.bluefields.podcastgen.repository.TranscriptRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +31,27 @@ class TranscriptServiceImplTest {
     private TranscriptServiceImpl transcriptService;
 
     private Transcript transcript;
+    private ObjectMapper objectMapper;
+    private JsonNode testContent;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        objectMapper = new ObjectMapper();
+        testContent = objectMapper.readTree("""
+            {
+                "messages": [
+                    {
+                        "participantId": 1,
+                        "content": "Test Content",
+                        "timing": 0
+                    }
+                ]
+            }
+            """);
+
         transcript = new Transcript();
         transcript.setId(1L);
-        transcript.setContent("Test Content");
+        transcript.setContent(testContent);
     }
 
     @Test
@@ -44,7 +61,8 @@ class TranscriptServiceImplTest {
         List<Transcript> result = transcriptService.getAllTranscripts();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getContent()).isEqualTo("Test Content");
+        assertThat(result.get(0).getContent().get("messages").get(0).get("content").asText())
+            .isEqualTo("Test Content");
         verify(transcriptRepository).findAll();
     }
 
@@ -55,7 +73,8 @@ class TranscriptServiceImplTest {
         Optional<Transcript> result = transcriptService.getTranscriptById(1L);
 
         assertThat(result).isPresent();
-        assertThat(result.get().getContent()).isEqualTo("Test Content");
+        assertThat(result.get().getContent().get("messages").get(0).get("content").asText())
+            .isEqualTo("Test Content");
         verify(transcriptRepository).findById(1L);
     }
 
@@ -66,7 +85,8 @@ class TranscriptServiceImplTest {
         List<Transcript> result = transcriptService.getTranscriptsByPodcastId(1L);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getContent()).isEqualTo("Test Content");
+        assertThat(result.get(0).getContent().get("messages").get(0).get("content").asText())
+            .isEqualTo("Test Content");
         verify(transcriptRepository).findByPodcastId(1L);
     }
 
@@ -76,7 +96,8 @@ class TranscriptServiceImplTest {
 
         Transcript result = transcriptService.createTranscript(transcript);
 
-        assertThat(result.getContent()).isEqualTo("Test Content");
+        assertThat(result.getContent().get("messages").get(0).get("content").asText())
+            .isEqualTo("Test Content");
         verify(transcriptRepository).save(transcript);
     }
 
@@ -87,7 +108,8 @@ class TranscriptServiceImplTest {
 
         Transcript result = transcriptService.updateTranscript(1L, transcript);
 
-        assertThat(result.getContent()).isEqualTo("Test Content");
+        assertThat(result.getContent().get("messages").get(0).get("content").asText())
+            .isEqualTo("Test Content");
         verify(transcriptRepository).findById(1L);
         verify(transcriptRepository).save(transcript);
     }
