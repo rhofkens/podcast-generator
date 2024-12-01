@@ -55,4 +55,9 @@ public class Audio {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public String getUrl() {
+        // Return URL path for accessing the audio file through the API
+        return filePath != null ? "/api/audio/" + filePath : null;
+    }
 }
