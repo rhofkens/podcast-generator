@@ -121,7 +121,7 @@ export function PodcastWizard() {
             participants={participants.map((p, i) => ({ id: i, name: p.name }))}
             onChange={setMessages}
             onBack={() => setCurrentStep(1)}
-            onSubmit={handleSubmit}
+            onNext={() => setCurrentStep(3)}
           />
         )
       case 3:

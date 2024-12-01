@@ -14,7 +14,7 @@ interface TranscriptStepProps {
   participants: Array<{ id: number; name: string }>
   onChange: (messages: Message[]) => void
   onBack: () => void
-  onSubmit: () => void
+  onNext: () => void
 }
 
 export function TranscriptStep({ messages, participants, onChange, onBack, onSubmit }: TranscriptStepProps) {
@@ -206,20 +206,12 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
         >
           {editMode ? 'View Mode' : 'Edit Mode'}
         </button>
-        <div className="space-x-2">
-          <button
-            onClick={generateTranscript}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Regenerate
-          </button>
-          <button
-            onClick={onSubmit}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90"
-          >
-            Generate Podcast
-          </button>
-        </div>
+        <button
+          onClick={generateTranscript}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Regenerate
+        </button>
       </div>
 
       {editMode ? (
@@ -359,6 +351,36 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Back
+        </button>
+        <button
+          onClick={async () => {
+            try {
+              const podcastId = localStorage.getItem('currentPodcastId')
+              if (!podcastId) {
+                throw new Error('No podcast ID found')
+              }
+
+              const response = await fetch(`/api/podcasts/${podcastId}/transcript`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ messages })
+              })
+
+              if (!response.ok) {
+                throw new Error('Failed to save transcript')
+              }
+
+              onNext()
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Failed to save transcript')
+            }
+          }}
+          disabled={messages.length === 0 || isGenerating}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+        >
+          Next
         </button>
       </motion.div>
     </div>
