@@ -22,3 +22,12 @@ We integrate Zitadel as the IDP.
 We use Spring AI https://spring.io/projects/spring-ai as the library to interact with LLMs.
 We use OpenAI GPT4o as the LLM.
 
+### 1.6. Text to speech
+
+We use the elevenlabs.io text to voice API for TTS: https://elevenlabs.io/docs/api-reference/text-to-speech
+We generate our own custom voices with the voice design API: https://elevenlabs.io/docs/api-reference/ttv-create-previews
+We will generate multiple audio segments with speakers taking turns, so we will 
+have to stitch the segments together. The best practice with elevenlabs API is 
+documented on this page https://elevenlabs.io/docs/developer-guides/how-to-use-request-stitching
+
+

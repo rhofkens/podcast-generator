@@ -27,14 +27,16 @@
 6. system creates a prompt to define two participants with a well defined role and a voice definition
 7. system add two defined participants to the podcast
 8. user validates and, if needed edits the participant metadata, role and voice definition.  User can add new participants or delete participants
-9. user saves particpants
-10. system creates prompt to generate podcast transcript with these particpants
-11. system displays the transcript
-12. user validates and, if needed, edits the transcripts
-13. user saves transcript
-14. system generates mp3 files for each section in the transcript using a TTS service.  
-15. system stitches all mp3 files together to create one mp3 file and attaches this to the podcast
-16. user plays podcast.  User sees podcast sound wave rendering over time.
-17. system plays mp3
-18. user downloads mp3
+9. the system generates a voice for each participant.
+10. the user can validate the voice and regenerate a voice if needed.
+11. user saves participants and their voices, which will be used later to generate the podcast.
+12. system creates prompt to generate podcast transcript with these particpants
+13. system displays the transcript
+14. user validates and, if needed, edits the transcripts
+15. user saves transcript 
+16. system generates mp3 files for each section in the transcript using a TTS service. 
+17. system stitches all mp3 files together to create one mp3 file and attaches this to the podcast 
+18. user plays podcast.  User sees podcast sound wave rendering over time. 
+19. system plays mp3 
+20. user downloads mp3
 
