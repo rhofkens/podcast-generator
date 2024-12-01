@@ -3,6 +3,7 @@ import { WizardStepBar } from './WizardStepBar'
 import { MetadataStep } from './steps/MetadataStep'
 import { ParticipantsStep } from './steps/ParticipantsStep'
 import { TranscriptStep } from './steps/TranscriptStep'
+import { PodcastStep } from './steps/PodcastStep'
 
 const STEPS = [
   {

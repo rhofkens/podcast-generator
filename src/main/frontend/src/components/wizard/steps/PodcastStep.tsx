@@ -153,3 +153,162 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
     </div>
   )
 }
+import { useState, useEffect } from 'react'
+import { cn } from '../../../lib/utils'
+
+interface PodcastStepProps {
+  podcastId: string | null
+  onBack: () => void
+  onComplete: () => void
+}
+
+export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps) {
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<string>('')
+  const [progress, setProgress] = useState(0)
+  const [messages, setMessages] = useState<string[]>([])
+  const [webSocket, setWebSocket] = useState<WebSocket | null>(null)
+
+  useEffect(() => {
+    if (!podcastId) return
+
+    // Initialize WebSocket connection
+    const ws = new WebSocket(`ws://${window.location.host}/ws/podcast-generation/${podcastId}`)
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected')
+    }
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      setStatus(data.status)
+      setProgress(data.progress)
+      setMessages(prev => [...prev, data.message])
+    }
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error)
+      setError('Failed to connect to generation status updates')
+    }
+
+    setWebSocket(ws)
+
+    return () => {
+      ws.close()
+    }
+  }, [podcastId])
+
+  const startGeneration = async () => {
+    if (!podcastId) return
+
+    try {
+      setIsGenerating(true)
+      setError(null)
+      
+      const response = await fetch(`/api/podcasts/${podcastId}/generate`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to start podcast generation')
+      }
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start generation')
+      setIsGenerating(false)
+    }
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="bg-white p-6 rounded-lg border">
+        <h3 className="text-lg font-semibold mb-4">Generate Podcast</h3>
+        
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm mb-1">
+            <span>Progress</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className={cn(
+                "h-2.5 rounded-full transition-all duration-500",
+                status === 'ERROR' ? 'bg-red-500' : 'bg-primary'
+              )}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Status display */}
+        <div className="mb-6">
+          <div className="text-sm font-medium mb-2">Status</div>
+          <div className={cn(
+            "px-3 py-2 rounded",
+            status === 'ERROR' ? 'bg-red-50 text-red-700' :
+            status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
+            'bg-blue-50 text-blue-700'
+          )}>
+            {status || 'Ready to generate'}
+          </div>
+        </div>
+
+        {/* Console-like log */}
+        <div className="mb-6">
+          <div className="text-sm font-medium mb-2">Generation Log</div>
+          <div className="bg-gray-900 text-gray-100 p-4 rounded font-mono text-sm h-48 overflow-y-auto">
+            {messages.length === 0 ? (
+              <div className="text-gray-500">No messages yet...</div>
+            ) : (
+              messages.map((msg, i) => (
+                <div key={i} className="mb-1">
+                  {msg}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 border rounded hover:bg-gray-50"
+            disabled={isGenerating}
+          >
+            Back
+          </button>
+
+          {status === 'COMPLETED' ? (
+            <button
+              onClick={onComplete}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
+            >
+              View Podcast
+            </button>
+          ) : (
+            <button
+              onClick={startGeneration}
+              disabled={isGenerating}
+              className={cn(
+                "px-4 py-2 rounded text-white",
+                isGenerating ? 
+                  "bg-gray-400 cursor-not-allowed" : 
+                  "bg-primary hover:bg-primary/90"
+              )}
+            >
+              {isGenerating ? 'Generating...' : 'Generate Podcast'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
