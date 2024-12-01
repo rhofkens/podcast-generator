@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { PodcastGenerationWebSocket } from '../../../utils/websocket';
+import { AudioPlayer } from '../AudioPlayer';
 
 interface PodcastStepProps {
     podcastId: string | null;
@@ -12,6 +13,7 @@ interface GenerationState {
     status: string;
     progress: number;
     message: string | null;
+    audioUrl?: string;
 }
 
 export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps) {
@@ -22,6 +24,34 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
     });
     const [error, setError] = useState<string | null>(null);
     const [consoleMessages, setConsoleMessages] = useState<string[]>([]);
+    const [isCancelling, setIsCancelling] = useState(false);
+
+    const handleCancel = async () => {
+        setIsCancelling(true);
+        try {
+            await fetch(`/api/podcasts/${podcastId}/generate/cancel`, {
+                method: 'POST'
+            });
+            onBack();
+        } catch (error) {
+            setError('Failed to cancel generation');
+            setIsCancelling(false);
+        }
+    };
+
+    const handleContinueInBackground = () => {
+        onComplete();
+    };
+
+    const handleRegenerate = async () => {
+        setConsoleMessages([]);
+        setGenerationState({
+            status: '',
+            progress: 0,
+            message: null
+        });
+        startGeneration();
+    };
 
     useEffect(() => {
         if (!podcastId) {
@@ -82,7 +112,7 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
             <div className="max-w-2xl mx-auto">
                 <h2 className="text-2xl font-bold mb-4">Generating Podcast</h2>
                 
-                <div className="mb-4">
+                <div className="mb-6">
                     <div className="bg-black text-green-400 font-mono p-4 rounded-lg h-64 overflow-y-auto">
                         {consoleMessages.map((message, index) => (
                             <div key={index} className="whitespace-pre-wrap">
@@ -91,32 +121,29 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                         ))}
                     </div>
                 </div>
-                
-                {error ? (
-                    <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
+
+                {!error && (
+                    <div className="relative h-8 bg-gray-200 rounded-full mb-6">
+                        <div 
+                            className="h-full bg-primary rounded-full transition-all duration-500"
+                            style={{ width: `${generationState.progress}%` }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
+                            {`${Math.round(generationState.progress)}%`}
+                        </div>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-6">
                         {error}
                     </div>
-                ) : (
-                    <>
-                        <div className="mb-4">
-                            <div className="h-2 bg-gray-200 rounded-full">
-                                <div 
-                                    className="h-2 bg-primary rounded-full transition-all duration-500"
-                                    style={{ width: `${generationState.progress}%` }}
-                                />
-                            </div>
-                        </div>
-                        
-                        <p className="text-gray-600 mb-4">
-                            {generationState.status || 'Starting generation...'}
-                        </p>
-                        
-                        {generationState.message && (
-                            <p className="text-sm text-gray-500">
-                                {generationState.message}
-                            </p>
-                        )}
-                    </>
+                )}
+
+                {generationState.status === 'COMPLETED' && generationState.audioUrl && (
+                    <div className="mb-6">
+                        <AudioPlayer audioUrl={generationState.audioUrl} />
+                    </div>
                 )}
 
                 <div className="flex justify-between">
@@ -126,6 +153,33 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                     >
                         Back
                     </button>
+
+                    <div className="flex gap-4">
+                        {generationState.status === 'COMPLETED' ? (
+                            <button
+                                onClick={handleRegenerate}
+                                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                            >
+                                Regenerate
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleCancel}
+                                    disabled={isCancelling}
+                                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                                >
+                                    {isCancelling ? 'Cancelling...' : 'Cancel'}
+                                </button>
+                                <button
+                                    onClick={handleContinueInBackground}
+                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                >
+                                    Continue in Background
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

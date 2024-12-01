@@ -81,9 +81,13 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         podcast.setGenerationMessage(message);
         podcastRepository.save(podcast);
 
-        // Send WebSocket update
-        webSocketHandler.sendUpdate(podcast.getId().toString(), 
-            new GenerationStatus(status.toString(), progress, message));
+        GenerationStatus update = new GenerationStatus(
+            status.toString(), 
+            progress, 
+            message,
+            status == PodcastGenerationStatus.COMPLETED ? podcast.getAudioUrl() : null
+        );
+        webSocketHandler.sendUpdate(podcast.getId().toString(), update);
     }
 
     private void updateGenerationStatus(Long podcastId, PodcastGenerationStatus status, 
@@ -91,6 +95,12 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         Podcast podcast = podcastRepository.findById(podcastId)
             .orElseThrow(() -> new RuntimeException("Podcast not found"));
         updateGenerationStatus(podcast, status, progress, message);
+    }
+
+    @Override
+    public void cancelGeneration(Long podcastId) {
+        updateGenerationStatus(podcastId, PodcastGenerationStatus.CANCELLED, 0, 
+            "Generation cancelled by user");
     }
 
     private void generateVoicesForParticipants(Podcast podcast) {
