@@ -85,7 +85,10 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
     
     try {
       // Set loading state
-      updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: true };
+      updatedParticipants[index] = { 
+        ...updatedParticipants[index], 
+        isGeneratingVoice: true 
+      };
       onChange(updatedParticipants);
 
       // If participant is new, save it first
@@ -111,11 +114,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
         const savedParticipant = await response.json();
         console.log('Participant saved:', savedParticipant);
         
-        // Update the local participant with saved data
-        updatedParticipants[index] = { ...savedParticipant, isGeneratingVoice: true };
-        onChange(updatedParticipants);
-        
-        participant = savedParticipant;
+        // Update the local participant with saved data while preserving loading state
+        participant = {
+          ...savedParticipant,
+          isGeneratingVoice: true
+        };
       }
 
       console.log('Generating voice preview for participant:', participant);
@@ -131,19 +134,23 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
         throw new Error(`Failed to generate voice preview: ${response.statusText}`);
       }
 
-      const updatedParticipant = await response.json();
-      console.log('Received voice preview response:', updatedParticipant);
+      const serverResponse = await response.json();
+      console.log('Received voice preview response:', serverResponse);
       
-      // Update the participant with the preview data and clear loading state
+      // Merge the server response with existing participant data and clear loading state
       updatedParticipants[index] = {
-        ...updatedParticipant,
-        isGeneratingVoice: false
+        ...updatedParticipants[index],  // Keep existing data
+        ...serverResponse,              // Update with server response
+        isGeneratingVoice: false,       // Clear loading state
+        isNew: false                    // Clear new flag if present
       };
+      
+      console.log('Updated participant state:', updatedParticipants[index]);
       onChange(updatedParticipants);
 
     } catch (error) {
       console.error('Error in saveAndGenerateVoicePreview:', error);
-      // Always clear loading state on error
+      // Preserve existing participant data while clearing loading state
       updatedParticipants[index] = { 
         ...updatedParticipants[index], 
         isGeneratingVoice: false 
