@@ -30,6 +30,10 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    console.log('Participants state changed:', participants);
+  }, [participants]);
+
+  useEffect(() => {
     if (podcastId) {
       if (participants.length === 0) {
         loadSampleParticipants();
@@ -438,13 +442,17 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
                 </div>
                 
                 {participant.voicePreviewUrl && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-2">Voice Preview</h4>
-                    <audio controls className="w-full">
-                      <source src={participant.voicePreviewUrl} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                  </div>
+                    <div className="mt-4">
+                        <h4 className="text-sm font-medium mb-2">Voice Preview</h4>
+                        <audio 
+                            controls 
+                            className="w-full"
+                            key={participant.voicePreviewUrl}
+                        >
+                            <source src={participant.voicePreviewUrl} type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
                 )}
               </div>
             </div>
