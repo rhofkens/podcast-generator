@@ -245,6 +245,15 @@ public class AIServiceImpl implements AIService {
     }
 
 
+    private void validateJson(String json) {
+        try {
+            objectMapper.readTree(json);
+        } catch (Exception e) {
+            log.error("Invalid JSON generated: {}", json);
+            throw new IllegalStateException("Generated invalid JSON: " + e.getMessage(), e);
+        }
+    }
+
     @Override
     public JsonNode generateVoicePreview(String gender, int age, String voiceCharacteristics) {
         log.info("Generating voice preview for gender: {}, age: {}", gender, age);
@@ -259,29 +268,28 @@ public class AIServiceImpl implements AIService {
             );
 
             // Sample text that's at least 150 characters
-            String sampleText = """
-                Hello everyone! I'm excited to share my thoughts on this topic. 
-                Let me walk you through my perspective and experience. 
-                I believe this discussion will be both informative and engaging for our listeners. 
-                I look forward to exploring these ideas together.""";
+            String sampleText = "Hello everyone! I'm excited to share my thoughts on this topic. " +
+                "Let me walk you through my perspective and experience. " +
+                "I believe this discussion will be both informative and engaging for our listeners. " +
+                "I look forward to exploring these ideas together.";
 
-            // Create request body as a JSON string
-            String requestBody = String.format("""
-                {
-                  "voice_description": "%s",
-                  "text": "%s"
-                }""", 
-                voiceDescription.replace("\"", "\\\""), 
-                sampleText.replace("\"", "\\\"")
-            );
+            // Create request body using ObjectNode
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("voice_description", voiceDescription);
+            requestBody.put("text", sampleText);
+
+            // Convert to JSON string and validate
+            String requestJson = objectMapper.writeValueAsString(requestBody);
+            validateJson(requestJson);
+            log.debug("Request JSON: {}", requestJson);
 
             // Set up headers with API key
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("xi-api-key", elevenLabsApiKey);
             
-            // Create HTTP entity
-            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+            // Create HTTP entity with the JSON string
+            HttpEntity<String> requestEntity = new HttpEntity<>(requestJson, headers);
             
             // Make API call to ElevenLabs
             RestTemplate restTemplate = new RestTemplate();
@@ -290,6 +298,9 @@ public class AIServiceImpl implements AIService {
                 requestEntity,
                 String.class
             );
+            
+            // Log response for debugging
+            log.debug("ElevenLabs API Response: {}", response.getBody());
             
             // Parse response
             JsonNode responseJson = objectMapper.readTree(response.getBody());
@@ -330,7 +341,7 @@ public class AIServiceImpl implements AIService {
             
         } catch (Exception e) {
             log.error("Failed to generate voice preview: {}", e.getMessage(), e);
-            throw new RuntimeException("Voice preview generation failed", e);
+            throw new RuntimeException("Voice preview generation failed: " + e.getMessage(), e);
         }
     }
 
