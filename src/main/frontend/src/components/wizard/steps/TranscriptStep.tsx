@@ -360,12 +360,17 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
                 throw new Error('No podcast ID found')
               }
 
-              const response = await fetch(`/api/podcasts/${podcastId}/transcript`, {
+              const response = await fetch(`/api/transcripts`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ messages })
+                body: JSON.stringify({
+                  podcast: {
+                    id: parseInt(podcastId)
+                  },
+                  messages: messages
+                })
               })
 
               if (!response.ok) {
