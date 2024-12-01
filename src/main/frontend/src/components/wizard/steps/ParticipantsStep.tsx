@@ -82,85 +82,82 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
   };
 
   const saveAndGenerateVoicePreview = async (participant: Participant, index: number) => {
-    console.log('saveAndGenerateVoicePreview called:', { participant, index });
+    console.log('Starting voice preview generation for:', participant.name);
     
-    // Create a copy of participants array to modify
-    const updatedParticipants = [...participants];
-    
-    try {
-      // Set loading state
-      updatedParticipants[index] = { 
-        ...updatedParticipants[index], 
-        isGeneratingVoice: true 
-      };
-      onChange(updatedParticipants);
+    // Create a new array with the updated loading state
+    const updatedParticipants = participants.map((p, i) => 
+        i === index ? { ...p, isGeneratingVoice: true } : p
+    );
+    onChange(updatedParticipants);
 
-      // If participant is new, save it first
-      if (!participant.id) {
-        console.log('Saving new participant first...');
-        const response = await fetch('/api/participants', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...participant,
-            podcast: {
-              id: parseInt(podcastId!)
+    try {
+        // If participant is new, save it first
+        if (!participant.id) {
+            console.log('Saving new participant first...');
+            const response = await fetch('/api/participants', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...participant,
+                    podcast: {
+                        id: parseInt(podcastId!)
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save participant');
             }
-          })
+
+            const savedParticipant = await response.json();
+            console.log('Participant saved:', savedParticipant);
+            participant = savedParticipant;
+        }
+
+        // Generate voice preview
+        console.log('Generating voice preview for participant:', participant.id);
+        const response = await fetch(`/api/participants/${participant.id}/generate-voice-preview`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
         });
 
         if (!response.ok) {
-          throw new Error('Failed to save participant');
+            throw new Error(`Failed to generate voice preview: ${response.statusText}`);
         }
 
-        const savedParticipant = await response.json();
-        console.log('Participant saved:', savedParticipant);
-        
-        // Update the local participant with saved data while preserving loading state
-        participant = {
-          ...savedParticipant,
-          isGeneratingVoice: true
-        };
-      }
+        const updatedParticipant = await response.json();
+        console.log('Voice preview generated:', updatedParticipant);
 
-      console.log('Generating voice preview for participant:', participant);
+        // Create final updated state
+        const finalParticipants = participants.map((p, i) => 
+            i === index 
+                ? { 
+                    ...p,
+                    ...updatedParticipant,
+                    isGeneratingVoice: false,
+                    isNew: false
+                } 
+                : p
+        );
 
-      const response = await fetch(`/api/participants/${participant.id}/generate-voice-preview`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to generate voice preview: ${response.statusText}`);
-      }
-
-      const serverResponse = await response.json();
-      console.log('Received voice preview response:', serverResponse);
-      
-      // Merge the server response with existing participant data and clear loading state
-      updatedParticipants[index] = {
-        ...updatedParticipants[index],  // Keep existing data
-        ...serverResponse,              // Update with server response
-        isGeneratingVoice: false,       // Clear loading state
-        isNew: false                    // Clear new flag if present
-      };
-      
-      console.log('Updated participant state:', updatedParticipants[index]);
-      onChange(updatedParticipants);
+        console.log('Updating participants state with:', finalParticipants[index]);
+        onChange(finalParticipants);
 
     } catch (error) {
-      console.error('Error in saveAndGenerateVoicePreview:', error);
-      // Preserve existing participant data while clearing loading state
-      updatedParticipants[index] = { 
-        ...updatedParticipants[index], 
-        isGeneratingVoice: false 
-      };
-      onChange(updatedParticipants);
-      setError(error instanceof Error ? error.message : 'Failed to generate voice preview');
+        console.error('Error in voice preview generation:', error);
+        
+        // Reset loading state while preserving other participant data
+        const errorParticipants = participants.map((p, i) => 
+            i === index ? { ...p, isGeneratingVoice: false } : p
+        );
+        onChange(errorParticipants);
+        
+        // Show error to user
+        setError(error instanceof Error ? error.message : 'Failed to generate voice preview');
     }
   };
 
@@ -320,7 +317,7 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
     <div className="p-6">
       <div className="space-y-6 mb-6">
         {participants.map((participant, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg border">
+          <div key={participant.id || `new-${index}`} className="bg-white p-4 rounded-lg border">
             <div className="flex justify-between items-start mb-4">
               <h4 className="text-lg font-semibold">Participant {index + 1}</h4>
               <button
@@ -418,28 +415,44 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
               <div className="col-span-2 mt-4">
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => saveAndGenerateVoicePreview(participant, index)}
-                    disabled={participant.isGeneratingVoice}
-                    className={cn(
-                      "px-4 py-2 rounded-md text-sm font-medium",
-                      participant.isGeneratingVoice
-                        ? "bg-gray-200 cursor-not-allowed"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    )}
+                      onClick={() => saveAndGenerateVoicePreview(participant, index)}
+                      disabled={!!participant.isGeneratingVoice}
+                      className={cn(
+                          "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                          !!participant.isGeneratingVoice
+                              ? "bg-gray-200 cursor-not-allowed"
+                              : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      )}
                   >
-                    {participant.isGeneratingVoice ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Generating...
-                      </span>
-                    ) : participant.voicePreviewUrl ? (
-                      "Regenerate Voice Preview"
-                    ) : (
-                      "Generate Voice Preview"
-                    )}
+                      {!!participant.isGeneratingVoice ? (
+                          <span className="flex items-center space-x-2">
+                              <svg 
+                                  className="animate-spin h-5 w-5" 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  fill="none" 
+                                  viewBox="0 0 24 24"
+                              >
+                                  <circle 
+                                      className="opacity-25" 
+                                      cx="12" 
+                                      cy="12" 
+                                      r="10" 
+                                      stroke="currentColor" 
+                                      strokeWidth="4"
+                                  ></circle>
+                                  <path 
+                                      className="opacity-75" 
+                                      fill="currentColor" 
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                              </svg>
+                              <span>Generating...</span>
+                          </span>
+                      ) : participant.voicePreviewUrl ? (
+                          "Regenerate Voice Preview"
+                      ) : (
+                          "Generate Voice Preview"
+                      )}
                   </button>
                 </div>
                 
