@@ -15,7 +15,12 @@ import org.springframework.ai.chat.ChatResponse;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.UUID;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +38,9 @@ public class AIServiceImpl implements AIService {
     
     @Value("${elevenlabs.api.key}")
     private String elevenLabsApiKey;
+
+    @Value("${app.uploads.voice-previews-path}")
+    private String voicePreviewsPath;
 
     @Override
     public JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
@@ -275,7 +283,7 @@ public class AIServiceImpl implements AIService {
             // Create HTTP entity
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
             
-            // Make API call to ElevenLabs using the correct endpoint
+            // Make API call to ElevenLabs
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.postForEntity(
                 "https://api.elevenlabs.io/v1/text-to-voice/create-previews",
@@ -283,8 +291,43 @@ public class AIServiceImpl implements AIService {
                 String.class
             );
             
-            // Parse and return response
-            return objectMapper.readTree(response.getBody());
+            // Parse response
+            JsonNode responseJson = objectMapper.readTree(response.getBody());
+            JsonNode previews = responseJson.get("previews");
+            
+            if (previews == null || !previews.isArray() || previews.size() == 0) {
+                throw new RuntimeException("No voice previews received from API");
+            }
+            
+            // Get the first preview
+            JsonNode firstPreview = previews.get(0);
+            String audioBase64 = firstPreview.get("audio_base_64").asText();
+            String generatedVoiceId = firstPreview.get("generated_voice_id").asText();
+            
+            // Decode base64 and save as audio file
+            byte[] audioData = Base64.getDecoder().decode(audioBase64);
+            
+            // Create directory if it doesn't exist
+            Files.createDirectories(Paths.get(voicePreviewsPath));
+            
+            // Generate unique filename
+            String filename = String.format("voice-preview-%s-%s.mp3", 
+                UUID.randomUUID().toString(),
+                generatedVoiceId);
+            
+            Path filePath = Paths.get(voicePreviewsPath, filename);
+            Files.write(filePath, audioData);
+            
+            // Create URL for the saved file
+            String fileUrl = String.format("/api/uploads/voice-previews/%s", filename);
+            
+            // Create response with file URL and preview ID
+            ObjectNode result = objectMapper.createObjectNode();
+            result.put("preview_id", generatedVoiceId);
+            result.put("preview_url", fileUrl);
+            
+            return result;
+            
         } catch (Exception e) {
             log.error("Failed to generate voice preview: {}", e.getMessage(), e);
             throw new RuntimeException("Voice preview generation failed", e);

@@ -35,6 +35,11 @@ server:
   servlet:
     context-path: /
 
+app:
+  uploads:
+    base-path: uploads
+    voice-previews-path: ${app.uploads.base-path}/voice-previews
+
 logging:
   level:
     ai.bluefields.podcastgen: DEBUG
