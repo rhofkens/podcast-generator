@@ -257,23 +257,28 @@ public class AIServiceImpl implements AIService {
                 I believe this discussion will be both informative and engaging for our listeners. 
                 I look forward to exploring these ideas together.""";
 
-            // Create request body
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("text", sampleText);
-            requestBody.put("voice_description", voiceDescription);
-            
-            // Set up headers with actual API key
+            // Create request body as a JSON string
+            String requestBody = String.format("""
+                {
+                  "voice_description": "%s",
+                  "text": "%s"
+                }""", 
+                voiceDescription.replace("\"", "\\\""), 
+                sampleText.replace("\"", "\\\"")
+            );
+
+            // Set up headers with API key
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("xi-api-key", elevenLabsApiKey);
             
             // Create HTTP entity
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
             
-            // Make API call to ElevenLabs
+            // Make API call to ElevenLabs using the correct endpoint
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.postForEntity(
-                "https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview",
+                "https://api.elevenlabs.io/v1/text-to-voice/create-previews",
                 requestEntity,
                 String.class
             );
