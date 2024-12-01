@@ -80,7 +80,14 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
   const saveAndGenerateVoicePreview = async (participant: Participant, index: number) => {
     console.log('saveAndGenerateVoicePreview called:', { participant, index });
     
+    // Create a copy of participants array to modify
+    const updatedParticipants = [...participants];
+    
     try {
+      // Set loading state
+      updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: true };
+      onChange(updatedParticipants);
+
       // If participant is new, save it first
       if (!participant.id) {
         console.log('Saving new participant first...');
@@ -104,19 +111,14 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
         const savedParticipant = await response.json();
         console.log('Participant saved:', savedParticipant);
         
-        // Update the participants array with the saved participant
-        const updatedParticipants = [...participants];
-        updatedParticipants[index] = savedParticipant;
+        // Update the local participant with saved data
+        updatedParticipants[index] = { ...savedParticipant, isGeneratingVoice: true };
         onChange(updatedParticipants);
         
         participant = savedParticipant;
       }
 
       console.log('Generating voice preview for participant:', participant);
-      // Update local state to show loading
-      const updatedParticipants = [...participants];
-      updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: true };
-      onChange(updatedParticipants);
 
       const response = await fetch(`/api/participants/${participant.id}/generate-voice-preview`, {
         method: 'POST',
@@ -132,20 +134,20 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
       const updatedParticipant = await response.json();
       console.log('Received voice preview response:', updatedParticipant);
       
-      // Update the participant with the preview data
+      // Update the participant with the preview data and clear loading state
       updatedParticipants[index] = {
-        ...updatedParticipants[index],
-        voicePreviewId: updatedParticipant.voicePreviewId,
-        voicePreviewUrl: updatedParticipant.voicePreviewUrl,
+        ...updatedParticipant,
         isGeneratingVoice: false
       };
       onChange(updatedParticipants);
 
     } catch (error) {
       console.error('Error in saveAndGenerateVoicePreview:', error);
-      // Reset generating state
-      const updatedParticipants = [...participants];
-      updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: false };
+      // Always clear loading state on error
+      updatedParticipants[index] = { 
+        ...updatedParticipants[index], 
+        isGeneratingVoice: false 
+      };
       onChange(updatedParticipants);
       setError(error instanceof Error ? error.message : 'Failed to generate voice preview');
     }
