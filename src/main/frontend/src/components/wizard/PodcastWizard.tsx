@@ -81,10 +81,6 @@ export function PodcastWizard() {
     setMetadata(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async () => {
-    // TODO: Implement API calls to create podcast
-    console.log('Submitting podcast:', { metadata, participants, messages })
-  }
 
   const renderStep = () => {
     console.log('PodcastWizard renderStep:', { currentStep, podcastId, participants })

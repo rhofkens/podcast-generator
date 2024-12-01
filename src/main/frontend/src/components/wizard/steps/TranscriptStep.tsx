@@ -17,7 +17,7 @@ interface TranscriptStepProps {
   onNext: () => void
 }
 
-export function TranscriptStep({ messages, participants, onChange, onBack, onSubmit }: TranscriptStepProps) {
+export function TranscriptStep({ messages, participants, onChange, onBack, onNext }: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
@@ -372,7 +372,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onSub
                 throw new Error('Failed to save transcript')
               }
 
-              onNext()
+              onNext()  // Use onNext from props
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Failed to save transcript')
             }
