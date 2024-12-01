@@ -5,6 +5,7 @@ import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.repository.ParticipantRepository;
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.ParticipantService;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

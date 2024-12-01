@@ -300,7 +300,7 @@ public class AIServiceImpl implements AIService {
             );
             
             // Log response for debugging
-            log.debug("ElevenLabs API Response: {}", response.getBody());
+            //log.debug("ElevenLabs API Response: {}", response.getBody());
             
             // Parse response
             JsonNode responseJson = objectMapper.readTree(response.getBody());
