@@ -1,6 +1,7 @@
 package ai.bluefields.podcastgen.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,8 +16,9 @@ public class Transcript {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    @Type(ai.bluefields.podcastgen.config.hibernate.JsonNodeType.class)
+    @Column(name = "content", columnDefinition = "jsonb")
+    private JsonNode content;
 
     @Column(name = "last_edited")
     private LocalDateTime lastEdited;

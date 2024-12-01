@@ -369,7 +369,13 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
                   podcast: {
                     id: parseInt(podcastId)
                   },
-                  messages: messages
+                  content: {
+                    messages: messages.map(msg => ({
+                      participantId: msg.participantId,
+                      content: msg.content,
+                      timing: msg.timing
+                    }))
+                  }
                 })
               })
 
