@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { PodcastGenerationWebSocket } from '../../../utils/websocket';
-import { AudioPlayer } from '../../AudioPlayer';
+import { AudioPlayer } from '../../../components/AudioPlayer';
 
 interface PodcastStepProps {
     podcastId: string | null;
