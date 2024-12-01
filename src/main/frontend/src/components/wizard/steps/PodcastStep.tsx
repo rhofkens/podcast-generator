@@ -133,7 +133,9 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                             style={{ width: `${generationState.progress}%` }}
                         />
                         <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
-                            {`${Math.round(generationState.progress)}%`}
+                            <span className={generationState.progress > 50 ? "text-white" : "text-black"}>
+                                {`${Math.round(generationState.progress)}%`}
+                            </span>
                         </div>
                     </div>
                 )}
