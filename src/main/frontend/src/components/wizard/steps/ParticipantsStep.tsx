@@ -77,14 +77,48 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
     return editedFields.has(`${index}-${field}`);
   };
 
-  const generateVoicePreview = async (participantId: number, index: number) => {
+  const saveAndGenerateVoicePreview = async (participant: Participant, index: number) => {
+    console.log('saveAndGenerateVoicePreview called:', { participant, index });
+    
     try {
+      // If participant is new, save it first
+      if (!participant.id) {
+        console.log('Saving new participant first...');
+        const response = await fetch('/api/participants', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...participant,
+            podcast: {
+              id: parseInt(podcastId!)
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save participant');
+        }
+
+        const savedParticipant = await response.json();
+        console.log('Participant saved:', savedParticipant);
+        
+        // Update the participants array with the saved participant
+        const updatedParticipants = [...participants];
+        updatedParticipants[index] = savedParticipant;
+        onChange(updatedParticipants);
+        
+        participant = savedParticipant;
+      }
+
+      console.log('Generating voice preview for participant:', participant);
       // Update local state to show loading
       const updatedParticipants = [...participants];
       updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: true };
       onChange(updatedParticipants);
 
-      const response = await fetch(`/api/participants/${participantId}/generate-voice-preview`, {
+      const response = await fetch(`/api/participants/${participant.id}/generate-voice-preview`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,10 +126,11 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate voice preview');
+        throw new Error(`Failed to generate voice preview: ${response.statusText}`);
       }
 
       const updatedParticipant = await response.json();
+      console.log('Received voice preview response:', updatedParticipant);
       
       // Update the participant with the preview data
       updatedParticipants[index] = {
@@ -107,12 +142,12 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
       onChange(updatedParticipants);
 
     } catch (error) {
-      console.error('Error generating voice preview:', error);
+      console.error('Error in saveAndGenerateVoicePreview:', error);
       // Reset generating state
       const updatedParticipants = [...participants];
       updatedParticipants[index] = { ...updatedParticipants[index], isGeneratingVoice: false };
       onChange(updatedParticipants);
-      setError('Failed to generate voice preview');
+      setError(error instanceof Error ? error.message : 'Failed to generate voice preview');
     }
   };
 
@@ -370,8 +405,8 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
               <div className="col-span-2 mt-4">
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => participant.id && generateVoicePreview(participant.id, index)}
-                    disabled={!participant.id || participant.isGeneratingVoice}
+                    onClick={() => saveAndGenerateVoicePreview(participant, index)}
+                    disabled={participant.isGeneratingVoice}
                     className={cn(
                       "px-4 py-2 rounded-md text-sm font-medium",
                       participant.isGeneratingVoice
