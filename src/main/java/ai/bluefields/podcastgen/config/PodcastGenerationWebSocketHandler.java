@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.config;
 
+import ai.bluefields.podcastgen.model.GenerationStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
