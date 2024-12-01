@@ -16,6 +16,10 @@ const STEPS = [
   {
     title: 'Transcript',
     description: 'Review content'
+  },
+  {
+    title: 'Podcast',
+    description: 'Generate audio'
   }
 ]
 
@@ -117,6 +121,16 @@ export function PodcastWizard() {
             onChange={setMessages}
             onBack={() => setCurrentStep(1)}
             onSubmit={handleSubmit}
+          />
+        )
+      case 3:
+        return (
+          <PodcastStep
+            podcastId={podcastId}
+            onBack={() => setCurrentStep(2)}
+            onComplete={() => {
+              window.location.href = '/podcasts'
+            }}
           />
         )
       default:
