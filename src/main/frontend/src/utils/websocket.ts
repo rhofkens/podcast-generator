@@ -29,34 +29,3 @@ export class PodcastGenerationWebSocket {
         }
     }
 }
-export class PodcastGenerationWebSocket {
-    private ws: WebSocket;
-    private messageHandler: ((data: any) => void) | null = null;
-
-    constructor(podcastId: string) {
-        this.ws = new WebSocket(`ws://${window.location.host}/api/ws/podcast-generation/${podcastId}`);
-        
-        this.ws.onmessage = (event) => {
-            if (this.messageHandler) {
-                try {
-                    const data = JSON.parse(event.data);
-                    this.messageHandler(data);
-                } catch (error) {
-                    console.error('Failed to parse WebSocket message:', error);
-                }
-            }
-        };
-
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-    }
-
-    onMessage(handler: (data: any) => void) {
-        this.messageHandler = handler;
-    }
-
-    close() {
-        this.ws.close();
-    }
-}
