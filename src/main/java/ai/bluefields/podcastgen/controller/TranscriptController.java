@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import ai.bluefields.podcastgen.dto.TranscriptCreateRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -71,9 +72,13 @@ public class TranscriptController {
     }
 
     @PostMapping
-    public ResponseEntity<Transcript> createTranscript(@Valid @RequestBody Transcript transcript) {
+    public ResponseEntity<Transcript> createTranscript(@Valid @RequestBody TranscriptCreateRequest request) {
         log.info("REST request to create new transcript");
         try {
+            Transcript transcript = new Transcript();
+            transcript.setPodcast(request.getPodcast());
+            transcript.setContent(request.getContent());
+            
             Transcript result = transcriptService.createTranscript(transcript);
             log.info("Successfully created transcript with id: {}", result.getId());
             return new ResponseEntity<>(result, HttpStatus.CREATED);
