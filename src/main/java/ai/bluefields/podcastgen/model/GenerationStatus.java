@@ -11,4 +11,5 @@ public class GenerationStatus {
     private String status;
     private int progress;
     private String message;
+    private String audioUrl;
 }

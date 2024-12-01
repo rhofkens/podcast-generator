@@ -17,5 +17,11 @@ public interface PodcastGenerationService {
      * @return Current podcast with status information
      */
     Podcast getGenerationStatus(Long podcastId);
+
+    /**
+     * Cancels an ongoing podcast generation
+     * @param podcastId ID of the podcast to cancel
+     */
+    void cancelGeneration(Long podcastId);
 }
 

@@ -73,4 +73,11 @@ public class Podcast {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public String getAudioUrl() {
+        if (audioOutputs != null && !audioOutputs.isEmpty()) {
+            return audioOutputs.get(audioOutputs.size() - 1).getUrl();
+        }
+        return null;
+    }
 }

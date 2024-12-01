@@ -6,5 +6,6 @@ public enum PodcastGenerationStatus {
     GENERATING_SEGMENTS,
     STITCHING,
     COMPLETED,
-    ERROR
+    ERROR,
+    CANCELLED
 }
