@@ -52,6 +52,16 @@ public class Podcast {
     
     @Column(name = "user_id", nullable = false)
     private String userId;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "generation_status")
+    private PodcastGenerationStatus generationStatus;
+
+    @Column(name = "generation_progress")
+    private Integer generationProgress;
+
+    @Column(name = "generation_message")
+    private String generationMessage;
 
     @PrePersist
     protected void onCreate() {
