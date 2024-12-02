@@ -36,6 +36,18 @@ public class AIServiceImpl implements AIService {
     @Value("${elevenlabs.api.key}")
     private String elevenLabsApiKey;
 
+    @Value("${elevenlabs.api.voice-settings.stability:0.5}")
+    private double voiceStability;
+
+    @Value("${elevenlabs.api.voice-settings.similarity-boost:0.75}")
+    private double similarityBoost;
+
+    @Value("${elevenlabs.api.language-code:en}")
+    private String languageCode;
+
+    @Value("${elevenlabs.api.model-id:eleven_multilingual_v2}")
+    private String modelId;
+
     @Value("${app.uploads.voice-previews-path}")
     private String voicePreviewsPath;
 
@@ -386,7 +398,13 @@ public class AIServiceImpl implements AIService {
         try {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("text", text);
-            requestBody.put("model_id", "eleven_multilingual_v2");
+            requestBody.put("model_id", modelId);
+            requestBody.put("language_code", languageCode);
+            
+            ObjectNode voiceSettings = objectMapper.createObjectNode();
+            voiceSettings.put("stability", voiceStability);
+            voiceSettings.put("similarity_boost", similarityBoost);
+            requestBody.set("voice_settings", voiceSettings);
             
             if (previousRequestIds != null && !previousRequestIds.isEmpty()) {
                 requestBody.set("previous_request_ids", 

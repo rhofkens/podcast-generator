@@ -29,6 +29,11 @@ spring:
 elevenlabs:
   api:
     key: ${ELEVENLABS_API_KEY}
+    voice-settings:
+      stability: 0.5
+      similarity-boost: 0.75
+    language-code: en
+    model-id: eleven_multilingual_v2
 
 server:
   port: 8080
