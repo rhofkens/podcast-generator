@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.service.impl;
 
+import ai.bluefields.podcastgen.config.AppProperties;
 import ai.bluefields.podcastgen.config.PodcastGenerationWebSocketHandler;
 import ai.bluefields.podcastgen.model.*;
 import ai.bluefields.podcastgen.repository.PodcastRepository;
