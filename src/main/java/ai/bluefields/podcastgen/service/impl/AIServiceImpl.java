@@ -351,22 +351,26 @@ public class AIServiceImpl implements AIService {
         
         try {
             // Create request body
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("name", name);
-            requestBody.put("preview_voice_id", previewId);
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("voice_name", name);
+            requestBody.put("voice_description", "Generated voice for podcast participant " + name);
+            requestBody.put("generated_voice_id", previewId);
             
-            // Set up headers with actual API key
+            // Set up headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("xi-api-key", elevenLabsApiKey);
             
             // Create HTTP entity
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<String> requestEntity = new HttpEntity<>(
+                objectMapper.writeValueAsString(requestBody), 
+                headers
+            );
             
             // Make API call to ElevenLabs using the correct endpoint
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.postForEntity(
-                "https://api.elevenlabs.io/v1/text-to-voice/create-voice",
+                "https://api.elevenlabs.io/v1/text-to-voice/create-voice-from-preview",
                 requestEntity,
                 String.class
             );
