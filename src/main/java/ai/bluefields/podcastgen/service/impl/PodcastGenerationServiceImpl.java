@@ -276,52 +276,57 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             audio.setPodcast(podcast);
             audio.setFilePath(String.format("podcasts/%d/output/%s", podcast.getId(), outputFileName));
             
-            // Combine all segments
-            try (AudioInputStream combined = null) {
-                List<AudioInputStream> audioStreams = new ArrayList<>();
+            List<AudioInputStream> audioStreams = new ArrayList<>();
+            
+            // Open all segment files
+            for (String segmentPath : podcast.getAudioSegmentPaths()) {
+                Path fullPath = Paths.get(appProperties.getUploadsBasePath(), segmentPath);
+                AudioInputStream segment = AudioSystem.getAudioInputStream(fullPath.toFile());
+                audioStreams.add(segment);
+            }
+            
+            // Combine streams
+            if (!audioStreams.isEmpty()) {
+                AudioInputStream combinedStream = new SequenceAudioInputStream(
+                    audioStreams.get(0).getFormat(),
+                    audioStreams
+                );
                 
-                // Open all segment files
-                for (String segmentPath : podcast.getAudioSegmentPaths()) {
-                    Path fullPath = Paths.get(appProperties.getUploadsBasePath(), segmentPath);
-                    AudioInputStream segment = AudioSystem.getAudioInputStream(fullPath.toFile());
-                    audioStreams.add(segment);
-                }
+                // Write combined stream to output file
+                AudioSystem.write(combinedStream, AudioFileFormat.Type.WAVE, outputPath.toFile());
                 
-                // Combine streams
-                if (!audioStreams.isEmpty()) {
-                    AudioInputStream combined = new SequenceAudioInputStream(
-                        audioStreams.get(0).getFormat(),
-                        audioStreams
-                    );
-                    
-                    // Write combined stream to output file
-                    AudioSystem.write(combined, AudioFileFormat.Type.WAVE, outputPath.toFile());
-                    
-                    // Set file size and duration
-                    audio.setFileSize(Files.size(outputPath));
-                    audio.setDuration(calculateDuration(outputPath));
-                    
-                    // Add quality metrics
-                    ObjectNode metrics = new ObjectMapper().createObjectNode();
-                    metrics.put("segmentCount", podcast.getAudioSegmentPaths().size());
-                    metrics.put("totalSize", audio.getFileSize());
-                    metrics.put("format", audio.getFormat());
-                    audio.setQualityMetrics(metrics);
-                    
-                    // Add to podcast's audio outputs
-                    if (podcast.getAudioOutputs() == null) {
-                        podcast.setAudioOutputs(new ArrayList<>());
-                    }
-                    podcast.getAudioOutputs().add(audio);
-                    
-                    // Save podcast to persist the new audio
-                    podcastRepository.save(podcast);
-                    
-                    log.info("Successfully stitched audio segments for podcast {}. Output: {}", 
-                        podcast.getId(), outputPath);
-                } else {
-                    throw new RuntimeException("No audio segments found to stitch");
+                // Close the combined stream
+                combinedStream.close();
+                
+                // Set file size and duration
+                audio.setFileSize(Files.size(outputPath));
+                audio.setDuration(calculateDuration(outputPath));
+                
+                // Add quality metrics
+                ObjectNode metrics = new ObjectMapper().createObjectNode();
+                metrics.put("segmentCount", podcast.getAudioSegmentPaths().size());
+                metrics.put("totalSize", audio.getFileSize());
+                metrics.put("format", audio.getFormat());
+                audio.setQualityMetrics(metrics);
+                
+                // Add to podcast's audio outputs
+                if (podcast.getAudioOutputs() == null) {
+                    podcast.setAudioOutputs(new ArrayList<>());
                 }
+                podcast.getAudioOutputs().add(audio);
+                
+                // Save podcast to persist the new audio
+                podcastRepository.save(podcast);
+                
+                log.info("Successfully stitched audio segments for podcast {}. Output: {}", 
+                    podcast.getId(), outputPath);
+            } else {
+                throw new RuntimeException("No audio segments found to stitch");
+            }
+            
+            // Close all input streams
+            for (AudioInputStream stream : audioStreams) {
+                stream.close();
             }
             
         } catch (Exception e) {
