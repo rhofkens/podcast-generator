@@ -382,4 +382,55 @@ public class AIServiceImpl implements AIService {
             throw new RuntimeException("Voice creation failed", e);
         }
     }
+
+    @Override
+    public JsonNode generateAudioSegment(String text, String voiceId, List<String> previousRequestIds,
+            String previousText, String nextText) {
+        try {
+            ObjectNode requestBody = objectMapper.createObjectNode();
+            requestBody.put("text", text);
+            requestBody.put("model_id", "eleven_multilingual_v2");
+            
+            if (previousRequestIds != null && !previousRequestIds.isEmpty()) {
+                requestBody.set("previous_request_ids", 
+                    objectMapper.valueToTree(previousRequestIds.subList(0, 
+                        Math.min(previousRequestIds.size(), 3))));
+            }
+            
+            if (previousText != null) {
+                requestBody.put("previous_text", previousText);
+            }
+            
+            if (nextText != null) {
+                requestBody.put("next_text", nextText);
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("xi-api-key", elevenLabsApiKey);
+            
+            HttpEntity<String> requestEntity = new HttpEntity<>(
+                objectMapper.writeValueAsString(requestBody), 
+                headers
+            );
+            
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                String.format("https://api.elevenlabs.io/v1/text-to-speech/%s", voiceId),
+                HttpMethod.POST,
+                requestEntity,
+                byte[].class
+            );
+            
+            // Return response metadata including request-id
+            ObjectNode result = objectMapper.createObjectNode();
+            result.put("request_id", response.getHeaders().getFirst("request-id"));
+            result.put("audio_data", Base64.getEncoder().encodeToString(response.getBody()));
+            
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to generate audio segment: {}", e.getMessage(), e);
+            throw new RuntimeException("Audio generation failed", e);
+        }
+    }
 }

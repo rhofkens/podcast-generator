@@ -10,4 +10,6 @@ public interface AIService {
     JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes);
     JsonNode generateVoicePreview(String gender, int age, String voiceCharacteristics);
     JsonNode createVoiceFromPreview(String name, String previewId);
+    JsonNode generateAudioSegment(String text, String voiceId, List<String> previousRequestIds, 
+        String previousText, String nextText);
 }

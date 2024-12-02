@@ -166,17 +166,58 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     }
 
     private void generateAudioSegments(Podcast podcast) {
-        // TODO: This is a temporary implementation for testing purposes only.
-        // TODO: Implement actual audio segment generation using AIService for each transcript segment
-        try {
-            // Simulate processing time between 5-8 seconds
-            long sleepTime = 5000 + (long)(Math.random() * 3000);
-            Thread.sleep(sleepTime);
-            log.debug("Generated audio segments in {} ms", sleepTime);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Audio segment generation was interrupted", e);
+        log.info("Generating audio segments for podcast {}", podcast.getId());
+        
+        List<String> previousRequestIds = new ArrayList<>();
+        List<byte[]> audioSegments = new ArrayList<>();
+        JsonNode transcript = podcast.getTranscript();
+        JsonNode segments = transcript.get("transcript");
+
+        for (int i = 0; i < segments.size(); i++) {
+            JsonNode segment = segments.get(i);
+            String speakerName = segment.get("speakerName").asText();
+            String text = segment.get("text").asText();
+            
+            // Find participant for this speaker
+            Participant speaker = podcast.getParticipants().stream()
+                .filter(p -> p.getName().equals(speakerName))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Speaker not found: " + speakerName));
+            
+            // Get previous and next text for better prosody
+            String previousText = i > 0 ? segments.get(i-1).get("text").asText() : null;
+            String nextText = i < segments.size()-1 ? segments.get(i+1).get("text").asText() : null;
+            
+            try {
+                JsonNode response = aiService.generateAudioSegment(
+                    text,
+                    speaker.getSyntheticVoiceId(),
+                    previousRequestIds,
+                    previousText,
+                    nextText
+                );
+                
+                // Store request ID for next iteration
+                previousRequestIds.add(response.get("request_id").asText());
+                
+                // Store audio data
+                byte[] audioData = Base64.getDecoder().decode(response.get("audio_data").asText());
+                audioSegments.add(audioData);
+                
+                // Update progress
+                updateGenerationStatus(podcast, PodcastGenerationStatus.GENERATING_SEGMENTS,
+                    40 + (40 * i / segments.size()),
+                    String.format("Generated audio for segment %d of %d", i + 1, segments.size()));
+                
+            } catch (Exception e) {
+                log.error("Failed to generate audio for segment {}: {}", i, e.getMessage(), e);
+                throw new RuntimeException("Failed to generate audio segments", e);
+            }
         }
+        
+        // Store the segments for later stitching
+        podcast.setAudioSegments(audioSegments);
+        podcastRepository.save(podcast);
     }
 
     private void stitchAudioSegments(Podcast podcast) {
