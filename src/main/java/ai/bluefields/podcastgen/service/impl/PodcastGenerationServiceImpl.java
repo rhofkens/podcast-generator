@@ -104,17 +104,50 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     }
 
     private void generateVoicesForParticipants(Podcast podcast) {
-        // TODO: This is a temporary implementation for testing purposes only.
-        // TODO: Implement actual voice generation using AIService for each participant
-        try {
-            // Simulate processing time between 5-8 seconds
-            long sleepTime = 5000 + (long)(Math.random() * 3000);
-            Thread.sleep(sleepTime);
-            log.debug("Generated voices for participants in {} ms", sleepTime);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Voice generation was interrupted", e);
+        log.info("Generating voices for {} participants in podcast {}", 
+            podcast.getParticipants().size(), podcast.getId());
+        
+        for (Participant participant : podcast.getParticipants()) {
+            try {
+                // Skip if voice already generated
+                if (participant.getSyntheticVoiceId() != null) {
+                    log.debug("Participant {} already has synthetic voice {}", 
+                        participant.getName(), participant.getSyntheticVoiceId());
+                    continue;
+                }
+
+                // Check if we have a preview ID
+                if (participant.getVoicePreviewId() == null) {
+                    log.error("Participant {} has no voice preview ID", participant.getName());
+                    throw new RuntimeException("Voice preview ID missing for participant " + 
+                        participant.getName());
+                }
+
+                // Create persistent voice from preview
+                JsonNode voiceResponse = aiService.createVoiceFromPreview(
+                    participant.getName(), 
+                    participant.getVoicePreviewId()
+                );
+
+                // Extract voice ID from response
+                String voiceId = voiceResponse.get("voice_id").asText();
+                
+                // Update participant with synthetic voice ID
+                participant.setSyntheticVoiceId(voiceId);
+                
+                log.info("Generated synthetic voice {} for participant {}", 
+                    voiceId, participant.getName());
+
+            } catch (Exception e) {
+                log.error("Failed to generate voice for participant {}: {}", 
+                    participant.getName(), e.getMessage(), e);
+                throw new RuntimeException("Voice generation failed for participant " + 
+                    participant.getName(), e);
+            }
         }
+
+        // Save updated participants
+        podcastRepository.save(podcast);
     }
 
     private void generateAudioSegments(Podcast podcast) {
