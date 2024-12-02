@@ -172,9 +172,19 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         log.info("Generating audio segments for podcast {}", podcast.getId());
         
         List<String> previousRequestIds = new ArrayList<>();
-        List<byte[]> audioSegments = new ArrayList<>();
+        List<String> segmentPaths = new ArrayList<>();
         JsonNode transcript = podcast.getTranscript().getContent();
         JsonNode segments = transcript.get("transcript");
+
+        // Create directory for segments
+        String segmentsDir = String.format("%s/podcasts/%d/segments", 
+            appProperties.getUploadsBasePath(), 
+            podcast.getId());
+        try {
+            Files.createDirectories(Paths.get(segmentsDir));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create segments directory", e);
+        }
 
         for (int i = 0; i < segments.size(); i++) {
             JsonNode segment = segments.get(i);
@@ -203,9 +213,16 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 // Store request ID for next iteration
                 previousRequestIds.add(response.get("request_id").asText());
                 
-                // Store audio data
+                // Save audio segment to file
+                String segmentFileName = String.format("segment_%03d.mp3", i);
+                Path segmentPath = Paths.get(segmentsDir, segmentFileName);
                 byte[] audioData = Base64.getDecoder().decode(response.get("audio_data").asText());
-                audioSegments.add(audioData);
+                Files.write(segmentPath, audioData);
+                
+                // Store relative path
+                segmentPaths.add(String.format("podcasts/%d/segments/%s", 
+                    podcast.getId(), 
+                    segmentFileName));
                 
                 // Update progress
                 updateGenerationStatus(podcast, PodcastGenerationStatus.GENERATING_SEGMENTS,
@@ -218,8 +235,8 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             }
         }
         
-        // Store the segments for later stitching
-        podcast.setAudioSegments(audioSegments);
+        // Store the segment paths
+        podcast.setAudioSegmentPaths(segmentPaths);
         podcastRepository.save(podcast);
     }
 

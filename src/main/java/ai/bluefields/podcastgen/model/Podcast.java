@@ -43,6 +43,14 @@ public class Podcast {
     @OneToOne(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private Transcript transcript;
 
+    @ElementCollection
+    @CollectionTable(
+        name = "podcast_audio_segments",
+        joinColumns = @JoinColumn(name = "podcast_id")
+    )
+    @Column(name = "segment_path")
+    private List<String> audioSegmentPaths;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "podcast", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Audio> audioOutputs;

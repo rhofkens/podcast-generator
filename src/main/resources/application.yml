@@ -39,6 +39,7 @@ app:
   uploads:
     base-path: uploads
     voice-previews-path: ${app.uploads.base-path}/voice-previews
+    podcasts-path: ${app.uploads.base-path}/podcasts
 
 logging:
   level:
