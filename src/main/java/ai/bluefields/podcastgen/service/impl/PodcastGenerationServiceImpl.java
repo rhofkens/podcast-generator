@@ -293,9 +293,20 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 long totalBytes = 0;
                 int totalDuration = 0;
                 
+                // Get total number of segments for progress calculation
+                int totalSegments = podcast.getAudioSegmentPaths().size();
+                int currentSegment = 0;
+                
                 // Process each segment
                 for (String segmentPath : podcast.getAudioSegmentPaths()) {
+                    currentSegment++;
                     Path fullPath = Paths.get(appProperties.getUploadsBasePath(), segmentPath);
+                    
+                    // Calculate progress percentage (80-95% range for stitching)
+                    int progressPercentage = 80 + (15 * currentSegment / totalSegments);
+                    updateGenerationStatus(podcast, PodcastGenerationStatus.STITCHING, progressPercentage,
+                        String.format("Stitching audio segment %d of %d...", currentSegment, totalSegments));
+                    
                     try (AudioInputStream inputStream = AudioSystem.getAudioInputStream(fullPath.toFile())) {
                         AudioFormat format = inputStream.getFormat();
                         int bytesRead;
@@ -311,7 +322,14 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                         float frameRate = format.getFrameRate();
                         totalDuration += (int)(frameLength / frameRate);
                     }
+                    
+                    log.debug("Completed stitching segment {} of {} for podcast {}", 
+                        currentSegment, totalSegments, podcast.getId());
                 }
+                
+                // Update status to finalizing
+                updateGenerationStatus(podcast, PodcastGenerationStatus.STITCHING, 95,
+                    "Finalizing audio file...");
                 
                 // Set file size and duration
                 audio.setFileSize(totalBytes);
@@ -319,7 +337,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 
                 // Add quality metrics
                 ObjectNode metrics = new ObjectMapper().createObjectNode();
-                metrics.put("segmentCount", podcast.getAudioSegmentPaths().size());
+                metrics.put("segmentCount", totalSegments);
                 metrics.put("totalSize", totalBytes);
                 metrics.put("format", audio.getFormat());
                 audio.setQualityMetrics(metrics);
@@ -333,6 +351,10 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 // Save podcast to persist the new audio
                 podcastRepository.save(podcast);
                 
+                // Final success status update
+                updateGenerationStatus(podcast, PodcastGenerationStatus.COMPLETED, 100,
+                    "Podcast generation completed successfully!");
+                
                 log.info("Successfully stitched audio segments for podcast {}. Output: {}", 
                     podcast.getId(), outputPath);
             }
@@ -340,6 +362,8 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         } catch (Exception e) {
             log.error("Failed to stitch audio segments for podcast {}: {}", 
                 podcast.getId(), e.getMessage(), e);
+            updateGenerationStatus(podcast, PodcastGenerationStatus.ERROR, 0,
+                "Failed to stitch audio segments: " + e.getMessage());
             throw new RuntimeException("Failed to stitch audio segments: " + e.getMessage(), e);
         }
     }
