@@ -31,11 +31,16 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     public CompletableFuture<Void> generatePodcast(Long podcastId) {
         log.info("Starting podcast generation for podcast id: {}", podcastId);
         
+        // Fetch podcast with participants eagerly before async execution
+        Podcast podcast = podcastRepository.findById(podcastId)
+            .orElseThrow(() -> new RuntimeException("Podcast not found"));
+        
+        // Force initialization of participants collection
+        podcast.getParticipants().size();
+        
         return CompletableFuture.runAsync(() -> {
             try {
-                Podcast podcast = podcastRepository.findById(podcastId)
-                    .orElseThrow(() -> new RuntimeException("Podcast not found"));
-
+                // Use the already fetched podcast
                 // Update initial status
                 updateGenerationStatus(podcast, PodcastGenerationStatus.QUEUED, 0, 
                     "Starting podcast generation...");
