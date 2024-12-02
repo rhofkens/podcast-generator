@@ -23,8 +23,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import javax.sound.sampled.*;
-import java.nio.file.*;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -283,10 +288,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             audio.setFilePath(String.format("podcasts/%d/output/%s", podcast.getId(), outputFileName));
             
             // Create output file
-            try (AudioOutputStream outputStream = new AudioOutputStream(
-                    new FileOutputStream(outputPath.toFile()),
-                    AudioFileFormat.Type.WAVE)) {
-                
+            try (FileOutputStream outputStream = new FileOutputStream(outputPath.toFile())) {
                 byte[] buffer = new byte[4096];
                 long totalBytes = 0;
                 int totalDuration = 0;
