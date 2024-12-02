@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -170,7 +173,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         
         List<String> previousRequestIds = new ArrayList<>();
         List<byte[]> audioSegments = new ArrayList<>();
-        JsonNode transcript = podcast.getTranscript();
+        JsonNode transcript = podcast.getTranscript().getContent();
         JsonNode segments = transcript.get("transcript");
 
         for (int i = 0; i < segments.size(); i++) {
