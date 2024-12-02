@@ -99,6 +99,27 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
         let ws: PodcastGenerationWebSocket | null = null;
 
         const initializeGeneration = async () => {
+            if (!podcastId) return;
+
+            // Fetch initial status
+            try {
+                const response = await fetch(`/api/podcasts/${podcastId}`);
+                if (response.ok) {
+                    const podcast = await response.json();
+                    if (podcast.generationStatus) {
+                        setGenerationState({
+                            status: podcast.generationStatus,
+                            progress: podcast.generationProgress || 0,
+                            message: podcast.generationMessage
+                        });
+                        setConsoleMessages([`[${podcast.generationStatus}] ${podcast.generationMessage}`]);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch initial status:', error);
+            }
+
+            // Start generation and connect WebSocket
             ws = await startGeneration();
         };
 

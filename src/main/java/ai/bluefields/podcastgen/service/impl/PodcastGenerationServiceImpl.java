@@ -39,10 +39,18 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         podcast.getParticipants().size();
         podcast.getAudioOutputs().size();
         
+        // Set initial status without sending WebSocket update
+        podcast.setGenerationStatus(PodcastGenerationStatus.QUEUED);
+        podcast.setGenerationProgress(0);
+        podcast.setGenerationMessage("Starting podcast generation...");
+        podcastRepository.save(podcast);
+        
         return CompletableFuture.runAsync(() -> {
             try {
-                // Use the already fetched podcast
-                // Update initial status
+                // Small delay to ensure WebSocket connection is established
+                Thread.sleep(1000);
+                
+                // Now send the QUEUED status via WebSocket
                 updateGenerationStatus(podcast, PodcastGenerationStatus.QUEUED, 0, 
                     "Starting podcast generation...");
 
