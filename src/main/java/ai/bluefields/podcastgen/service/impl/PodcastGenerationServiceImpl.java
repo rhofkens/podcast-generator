@@ -30,6 +30,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     private final PodcastRepository podcastRepository;
     private final AIService aiService;
     private final PodcastGenerationWebSocketHandler webSocketHandler;
+    private final AppProperties appProperties;
     private final Executor executor = Executors.newFixedThreadPool(5);
 
     @Override
