@@ -48,11 +48,31 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
   }, [messages])
 
   const getParticipantName = (participantId: number) => {
-    return participants.find(p => p.id === participantId)?.name || 'Unknown'
+    console.log('Looking up participant name for ID:', participantId, 'in participants:', participants)
+    const participant = participants.find(p => p.id === participantId)
+    if (!participant) {
+      console.warn(`No participant found for ID: ${participantId}`, {
+        searchId: participantId,
+        availableParticipants: participants
+      })
+      return 'Unknown'
+    }
+    return participant.name
   }
 
   const getMessagePosition = (participantId: number) => {
-    const participantIndex = participants.findIndex(p => p.id === participantId)
+    // Get the actual participant
+    const participant = participants.find(p => p.id === participantId)
+    if (!participant) {
+      console.warn(`No participant found for ID: ${participantId}`, {
+        searchId: participantId,
+        availableParticipants: participants
+      })
+      return 'left'
+    }
+    
+    // Get the index of this participant in the original participants array
+    const participantIndex = participants.indexOf(participant)
     return participantIndex % 2 === 0 ? 'left' : 'right'
   }
 
@@ -97,11 +117,18 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
 
 
   const getMessageGradient = (participantId: number) => {
-    const participantIndex = participants.findIndex(p => p.id === participantId)
-    if (participantIndex === -1) {
-      console.warn(`No participant found for ID: ${participantId}`)
+    // Get the actual participant
+    const participant = participants.find(p => p.id === participantId)
+    if (!participant) {
+      console.warn(`No participant found for ID: ${participantId}`, {
+        searchId: participantId,
+        availableParticipants: participants
+      })
       return 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200' // default gradient
     }
+    
+    // Get the index of this participant in the original participants array
+    const participantIndex = participants.indexOf(participant)
     
     const gradients = [
       'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
@@ -116,6 +143,8 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
 
   useEffect(() => {
     console.log('TranscriptStep mounted/updated:', {
+      messages,
+      participants,
       messagesLength: messages.length,
       participantsLength: participants.length,
       shouldGenerate: messages.length === 0 && participants.length >= 2
@@ -147,6 +176,9 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       }
       const participantsList = await participantsResponse.json() as Participant[]
 
+      // Log the participants we're sending
+      console.log('Sending participants for transcript generation:', participantsList)
+
       // Generate transcript
       const transcriptResponse = await fetch(`/api/podcasts/${podcastId}/generate-transcript`, {
         method: 'POST',
@@ -154,7 +186,13 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          participants: participantsList
+          participants: participantsList.map(p => ({
+            id: p.id,
+            name: p.name,
+            role: p.role,
+            roleDescription: p.roleDescription,
+            voiceCharacteristics: p.voiceCharacteristics
+          }))
         })
       })
 
