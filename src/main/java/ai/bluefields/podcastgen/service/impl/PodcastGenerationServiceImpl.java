@@ -202,7 +202,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
 
         // Create directory for segments
         String segmentsDir = String.format("%s/podcasts/%d/segments", 
-            appProperties.getUploadsBasePath(), 
+            appProperties.getBasePath(), 
             podcast.getId());
         try {
             Files.createDirectories(Paths.get(segmentsDir));
@@ -270,7 +270,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         try {
             // Create directory for final output
             String outputDir = String.format("%s/podcasts/%d/output", 
-                appProperties.getUploadsBasePath(), 
+                appProperties.getBasePath(), 
                 podcast.getId());
             Files.createDirectories(Paths.get(outputDir));
             

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AppProperties {
-    private String uploadsBasePath;
+    private String basePath;
     private String voicePreviewsPath;
     private String podcastsPath;
 }
