@@ -3,6 +3,23 @@ import { formatTime } from '../../../utils/timeFormat'
 import { cn } from '../../../lib/utils'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
+interface Participant {
+  id: number
+  name: string
+  gender: string
+  age: number
+  role: string
+  roleDescription: string
+  voiceCharacteristics: string
+}
+
+interface TranscriptEntry {
+  speakerName: string
+  timeOffset: number
+  duration: number
+  text: string
+}
+
 interface Message {
   participantId: number
   content: string
@@ -122,7 +139,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       if (!participantsResponse.ok) {
         throw new Error('Failed to fetch participants')
       }
-      const participantsList = await participantsResponse.json()
+      const participantsList = await participantsResponse.json() as Participant[]
 
       // Generate transcript
       const transcriptResponse = await fetch(`/api/podcasts/${podcastId}/generate-transcript`, {
@@ -139,12 +156,12 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
         throw new Error('Failed to generate transcript')
       }
 
-      const transcriptData = await transcriptResponse.json()
+      const transcriptData = await transcriptResponse.json() as { transcript: TranscriptEntry[] }
       console.log('Transcript data:', transcriptData)
 
       // Map participants by name (case-insensitive)
-      const participantsByName = new Map(
-        participantsList.map(p => [p.name.toLowerCase(), p])
+      const participantsByName = new Map<string, Participant>(
+        participantsList.map((p: Participant) => [p.name.toLowerCase(), p])
       )
 
       // Convert the transcript data to messages format
