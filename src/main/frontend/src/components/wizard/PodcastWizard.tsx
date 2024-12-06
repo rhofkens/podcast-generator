@@ -107,20 +107,24 @@ export function PodcastWizard() {
       case 2:
         console.log('Rendering TranscriptStep with:', {
           messages,
-          participants: participants.map(p => ({ 
-            id: p.id,
-            name: p.name 
-          })),
+          participants: participants
+            .filter((p): p is Participant & { id: number } => p.id !== undefined)
+            .map(p => ({ 
+              id: p.id,
+              name: p.name 
+            })),
           messagesLength: messages.length,
           participantsLength: participants.length
         })
         return (
           <TranscriptStep
             messages={messages}
-            participants={participants.map(p => ({ 
-              id: p.id,
-              name: p.name 
-            }))}
+            participants={participants
+              .filter((p): p is Participant & { id: number } => p.id !== undefined)
+              .map(p => ({ 
+                id: p.id,
+                name: p.name 
+              }))}
             onChange={setMessages}
             onBack={() => setCurrentStep(1)}
             onNext={() => setCurrentStep(3)}
