@@ -305,7 +305,8 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
           <AnimatePresence>
             {messages.map((message, index) => {
               const position = getMessagePosition(message.participantId)
-              
+              const speakerName = getParticipantName(message.participantId)
+            
               return (
                 <motion.div
                   key={index}
@@ -333,7 +334,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
                         className="font-medium text-primary"
                         whileHover={{ scale: 1.05 }}
                       >
-                        {getParticipantName(message.participantId)}
+                        {speakerName}
                       </motion.span>
                       <span className="text-xs text-gray-500">
                         {formatTime(message.timing)}
@@ -343,7 +344,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
                       {message.content}
                     </p>
                   </motion.div>
-                  
+                
                   <motion.div 
                     className={cn(
                       "text-xs text-gray-400 mt-1",
