@@ -140,13 +140,22 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       }
 
       const transcriptData = await transcriptResponse.json()
-      
-      // Convert the transcript data to messages format
-      const newMessages = transcriptData.transcript.map((entry: any) => ({
-        participantId: participants.find(p => p.name === entry.speakerName)?.id || participants[0].id,
-        content: entry.text,
-        timing: entry.timeOffset
-      }))
+    
+      // Convert the transcript data to messages format with correct participant IDs
+      const newMessages = transcriptData.transcript.map((entry: any) => {
+        // Find the participant by name to get the correct ID
+        const participant = participantsList.find(
+          (p: any) => p.name === entry.speakerName
+        )
+        if (!participant) {
+          throw new Error(`Could not find participant with name: ${entry.speakerName}`)
+        }
+        return {
+          participantId: participant.id,  // Use the actual participant ID from the database
+          content: entry.text,
+          timing: entry.timeOffset
+        }
+      })
 
       onChange(newMessages)
 
