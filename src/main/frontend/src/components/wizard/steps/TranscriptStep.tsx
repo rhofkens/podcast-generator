@@ -98,6 +98,11 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
 
   const getMessageGradient = (participantId: number) => {
     const participantIndex = participants.findIndex(p => p.id === participantId)
+    if (participantIndex === -1) {
+      console.warn(`No participant found for ID: ${participantId}`)
+      return 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200' // default gradient
+    }
+    
     const gradients = [
       'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
       'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
@@ -105,6 +110,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
       'bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200'
     ]
+    
     return gradients[participantIndex % gradients.length]
   }
 
