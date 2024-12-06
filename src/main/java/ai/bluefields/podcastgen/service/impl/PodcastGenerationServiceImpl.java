@@ -198,7 +198,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         List<String> previousRequestIds = new ArrayList<>();
         List<String> segmentPaths = new ArrayList<>();
         JsonNode transcript = podcast.getTranscript().getContent();
-        JsonNode segments = transcript.get("transcript");
+        JsonNode messages = transcript.get("messages");  // Changed from "transcript" to "messages"
 
         // Create directory for segments
         String segmentsDir = String.format("%s/podcasts/%d/segments", 
@@ -210,24 +210,24 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             throw new RuntimeException("Failed to create segments directory", e);
         }
 
-        for (int i = 0; i < segments.size(); i++) {
-            JsonNode segment = segments.get(i);
-            String speakerName = segment.get("speakerName").asText();
-            String text = segment.get("text").asText();
+        for (int i = 0; i < messages.size(); i++) {
+            JsonNode message = messages.get(i);
+            Long participantId = message.get("participantId").asLong(); // Get participantId instead of speakerName
+            String content = message.get("content").asText();          // Get content instead of text
             
-            // Find participant for this speaker
+            // Find participant for this ID
             Participant speaker = podcast.getParticipants().stream()
-                .filter(p -> p.getName().equals(speakerName))
+                .filter(p -> p.getId().equals(participantId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Speaker not found: " + speakerName));
+                .orElseThrow(() -> new RuntimeException("Participant not found with ID: " + participantId));
             
             // Get previous and next text for better prosody
-            String previousText = i > 0 ? segments.get(i-1).get("text").asText() : null;
-            String nextText = i < segments.size()-1 ? segments.get(i+1).get("text").asText() : null;
+            String previousText = i > 0 ? messages.get(i-1).get("content").asText() : null;
+            String nextText = i < messages.size()-1 ? messages.get(i+1).get("content").asText() : null;
             
             try {
                 JsonNode response = aiService.generateAudioSegment(
-                    text,
+                    content,  // Use content instead of text
                     speaker.getSyntheticVoiceId(),
                     previousRequestIds,
                     previousText,
@@ -250,8 +250,8 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 
                 // Update progress
                 updateGenerationStatus(podcast, PodcastGenerationStatus.GENERATING_SEGMENTS,
-                    40 + (40 * i / segments.size()),
-                    String.format("Generated audio for segment %d of %d", i + 1, segments.size()));
+                    40 + (40 * i / messages.size()),
+                    String.format("Generated audio for segment %d of %d", i + 1, messages.size()));
                 
             } catch (Exception e) {
                 log.error("Failed to generate audio for segment {}: {}", i, e.getMessage(), e);
