@@ -399,7 +399,6 @@ public class AIServiceImpl implements AIService {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("text", text);
             requestBody.put("model_id", modelId);
-            requestBody.put("language_code", languageCode);
             
             ObjectNode voiceSettings = objectMapper.createObjectNode();
             voiceSettings.put("stability", voiceStability);
