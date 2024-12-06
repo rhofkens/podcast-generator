@@ -196,9 +196,9 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
         log.info("Generating audio segments for podcast {}", podcast.getId());
         
         List<String> previousRequestIds = new ArrayList<>();
-        List<String> segmentPaths = new ArrayList<>();
+        ArrayList<String> segmentPaths = new ArrayList<>();  // Changed to ArrayList explicitly
         JsonNode transcript = podcast.getTranscript().getContent();
-        JsonNode messages = transcript.get("messages");  // Changed from "transcript" to "messages"
+        JsonNode messages = transcript.get("messages");
 
         // Create directory for segments
         String segmentsDir = String.format("%s/podcasts/%d/segments", 
@@ -259,8 +259,8 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             }
         }
         
-        // Store the segment paths
-        podcast.setAudioSegmentPaths(segmentPaths);
+        // Store the segment paths in order
+        podcast.setAudioSegmentPaths(new ArrayList<>(segmentPaths));  // Ensure we're using ArrayList
         podcastRepository.save(podcast);
     }
 

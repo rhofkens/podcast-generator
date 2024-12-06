@@ -48,6 +48,7 @@ public class Podcast {
         name = "podcast_audio_segments",
         joinColumns = @JoinColumn(name = "podcast_id")
     )
+    @OrderColumn(name = "segment_index")
     @Column(name = "segment_path")
     private List<String> audioSegmentPaths;
 
