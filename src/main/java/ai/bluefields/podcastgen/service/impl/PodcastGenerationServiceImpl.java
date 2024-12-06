@@ -300,7 +300,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                 // Process each segment
                 for (String segmentPath : podcast.getAudioSegmentPaths()) {
                     currentSegment++;
-                    Path fullPath = Paths.get(appProperties.getUploadsBasePath(), segmentPath);
+                    Path fullPath = Paths.get(appProperties.getBasePath(), segmentPath);
                     
                     // Calculate progress percentage (80-95% range for stitching)
                     int progressPercentage = 80 + (15 * currentSegment / totalSegments);
