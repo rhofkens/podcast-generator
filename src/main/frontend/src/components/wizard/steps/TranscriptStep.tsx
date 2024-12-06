@@ -140,22 +140,28 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       }
 
       const transcriptData = await transcriptResponse.json()
-    
-      // Convert the transcript data to messages format with correct participant IDs
-      const newMessages = transcriptData.transcript.map((entry: any) => {
-        // Find the participant by name to get the correct ID
-        const participant = participantsList.find(
-          (p: any) => p.name === entry.speakerName
-        )
-        if (!participant) {
-          throw new Error(`Could not find participant with name: ${entry.speakerName}`)
-        }
-        return {
-          participantId: participant.id,  // Use the actual participant ID from the database
-          content: entry.text,
-          timing: entry.timeOffset
-        }
+      console.log('Transcript data:', transcriptData)
+
+      // Since we have exactly two participants, let's map them to the two speakers
+      // Get unique speaker names from transcript
+      const speakerNames = [...new Set(transcriptData.transcript.map((entry: any) => entry.speakerName))]
+      
+      // Create a mapping between AI-generated names and our participant IDs
+      const speakerToParticipant = new Map()
+      speakerNames.forEach((speakerName: string, index: number) => {
+        speakerToParticipant.set(speakerName, participantsList[index].id)
       })
+
+      console.log('Speaker mapping:', Object.fromEntries(speakerToParticipant))
+
+      // Convert the transcript data to messages format
+      const newMessages = transcriptData.transcript.map((entry: any) => ({
+        participantId: speakerToParticipant.get(entry.speakerName),
+        content: entry.text,
+        timing: entry.timeOffset
+      }))
+
+      console.log('Generated messages:', newMessages)
 
       onChange(newMessages)
 
