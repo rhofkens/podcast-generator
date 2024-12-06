@@ -165,7 +165,7 @@ export function TranscriptStep({ messages, participants, onChange, onBack, onNex
       )
 
       // Convert the transcript data to messages format
-      const newMessages = transcriptData.transcript.map((entry: any) => {
+      const newMessages = transcriptData.transcript.map((entry: TranscriptEntry) => {
         const participant = participantsByName.get(entry.speakerName.toLowerCase())
         if (!participant) {
           console.warn(`No participant found for speaker: ${entry.speakerName}`)
