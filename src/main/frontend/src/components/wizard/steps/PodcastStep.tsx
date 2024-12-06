@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PodcastGenerationWebSocket } from '../../../utils/websocket';
 import { AudioPlayer } from '../../../components/AudioPlayer';
 
@@ -17,6 +17,7 @@ interface GenerationState {
 }
 
 export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps) {
+    const consoleRef = useRef<HTMLDivElement>(null);
     const [generationState, setGenerationState] = useState<GenerationState>({
         status: '',
         progress: 0,
@@ -96,6 +97,16 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
     };
 
     useEffect(() => {
+        setConsoleMessages([]);
+    }, []);
+
+    useEffect(() => {
+        if (consoleRef.current) {
+            consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+        }
+    }, [consoleMessages]);
+
+    useEffect(() => {
         let ws: PodcastGenerationWebSocket | null = null;
 
         const initializeGeneration = async () => {
@@ -138,7 +149,10 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                 <h2 className="text-2xl font-bold mb-4">Generating Podcast</h2>
                 
                 <div className="mb-6">
-                    <div className="bg-black text-green-400 font-mono p-4 rounded-lg h-64 overflow-y-auto">
+                    <div 
+                        ref={consoleRef}
+                        className="bg-black text-green-400 font-mono p-4 rounded-lg h-64 overflow-y-auto"
+                    >
                         {consoleMessages.map((message, index) => (
                             <div key={index} className="whitespace-pre-wrap">
                                 {`> ${message}`}
