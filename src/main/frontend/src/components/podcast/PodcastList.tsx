@@ -1,12 +1,12 @@
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '../AudioPlayer'
-import { 
+import type { Podcast } from '../../types/podcast'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import {
   AlertDialog,
@@ -47,7 +47,14 @@ function formatStatus(status: string) {
          status.slice(1).toLowerCase().replace(/_/g, ' ')
 }
 
-function PodcastCard({ podcast }: { podcast: Podcast }) {
+interface PodcastCardProps {
+  podcast: Podcast & {
+    generationStatus?: string;
+    audioUrl?: string;
+  }
+}
+
+function PodcastCard({ podcast }: PodcastCardProps) {
   const navigate = useNavigate()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -83,20 +90,20 @@ function PodcastCard({ podcast }: { podcast: Podcast }) {
             <span>{Math.floor(podcast.length / 60)} minutes</span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              {getStatusIcon(podcast.generationStatus)}
+              {getStatusIcon(podcast.generationStatus || '')}
               <span className={
-                podcast.generationStatus.toLowerCase() === 'error' 
+                podcast.generationStatus?.toLowerCase() === 'error' 
                   ? 'text-red-600' 
-                  : podcast.generationStatus.toLowerCase() === 'completed'
+                  : podcast.generationStatus?.toLowerCase() === 'completed'
                     ? 'text-green-600'
                     : ''
               }>
-                {formatStatus(podcast.generationStatus)}
+                {formatStatus(podcast.generationStatus || '')}
               </span>
             </span>
           </div>
           
-          {podcast.generationStatus.toLowerCase() === 'completed' && podcast.audioUrl && (
+          {podcast.generationStatus?.toLowerCase() === 'completed' && podcast.audioUrl && (
             <div className="mt-4">
               <AudioPlayer audioUrl={podcast.audioUrl} />
             </div>
