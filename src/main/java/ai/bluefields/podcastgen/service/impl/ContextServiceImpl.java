@@ -123,4 +123,22 @@ public class ContextServiceImpl implements ContextService {
         existing.setProcessedContent(updated.getProcessedContent());
         existing.setPodcast(updated.getPodcast());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Context> getContextByPodcastId(Long podcastId) {
+        log.info("Fetching context for podcast id: {}", podcastId);
+        try {
+            Optional<Context> context = contextRepository.findByPodcastId(podcastId);
+            if (context.isPresent()) {
+                log.info("Found context for podcast id: {}", podcastId);
+            } else {
+                log.warn("No context found for podcast id: {}", podcastId);
+            }
+            return context;
+        } catch (DataAccessException e) {
+            log.error("Database error while fetching context for podcast {}: {}", podcastId, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch context for podcast", e);
+        }
+    }
 }
