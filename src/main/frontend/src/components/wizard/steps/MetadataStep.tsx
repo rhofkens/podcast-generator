@@ -52,8 +52,11 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   const [sampleError, setSampleError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadSampleData()
-  }, [])
+    // Only load sample data if fields are empty (not in edit mode)
+    if (!data.title && !data.description && !data.contextDescription) {
+      loadSampleData()
+    }
+  }, [data.title, data.description, data.contextDescription])
 
   const loadSampleData = async () => {
     try {

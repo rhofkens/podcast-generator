@@ -92,13 +92,13 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
 
           setInitialData({
             metadata: {
-              title: podcastData.title,
-              description: podcastData.description,
-              length: podcastData.length,
-              contextDescription: contextData.descriptionText,
-              contextUrl: contextData.sourceUrl,
+              title: podcastData.title || '',
+              description: podcastData.description || '',
+              length: podcastData.length || 30,
+              contextDescription: contextData?.descriptionText || '',
+              contextUrl: contextData?.sourceUrl || undefined,
             },
-            participants: participantsData,
+            participants: participantsData || [],
             messages: transcriptData?.content?.messages || transcriptData?.messages || []
           })
         } catch (error) {
