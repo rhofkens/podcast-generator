@@ -152,6 +152,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
             data={metadata}
             onChange={handleMetadataChange}
             onNext={() => handleStepComplete(0)}
+            editMode={editMode}
           />
         )
       case 1:

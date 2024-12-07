@@ -13,19 +13,22 @@ interface MetadataStepProps {
   }
   onChange: (field: string, value: any) => void
   onNext: () => void
+  editMode?: boolean
 }
 
-export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
+export function MetadataStep({ data, onChange, onNext, editMode = false }: MetadataStepProps) {
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    // If data is pre-filled, mark those fields as edited
-    if (data.title) setEditedFields(prev => new Set([...prev, 'title']))
-    if (data.description) setEditedFields(prev => new Set([...prev, 'description']))
-    if (data.length) setEditedFields(prev => new Set([...prev, 'length']))
-    if (data.contextDescription) setEditedFields(prev => new Set([...prev, 'contextDescription']))
-    if (data.contextUrl) setEditedFields(prev => new Set([...prev, 'contextUrl']))
-  }, []) // Empty dependency array so it only runs once on mount
+    // Only mark fields as edited if we're in edit mode
+    if (editMode) {
+      if (data.title) setEditedFields(prev => new Set([...prev, 'title']))
+      if (data.description) setEditedFields(prev => new Set([...prev, 'description']))
+      if (data.length) setEditedFields(prev => new Set([...prev, 'length']))
+      if (data.contextDescription) setEditedFields(prev => new Set([...prev, 'contextDescription']))
+      if (data.contextUrl) setEditedFields(prev => new Set([...prev, 'contextUrl']))
+    }
+  }, [editMode]) // Only run when editMode changes
   
   const handleInputChange = (field: string, value: any) => {
     setEditedFields(prev => new Set([...prev, field]))
@@ -61,8 +64,8 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
   const [sampleError, setSampleError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Only load sample data if fields are empty (not in edit mode)
-    if (!data.title && !data.description && !data.contextDescription) {
+    // Only load sample data if fields are empty and we're not in edit mode
+    if (!editMode && !data.title && !data.description && !data.contextDescription) {
       loadSampleData()
     } else {
       // Make sure we stop the loading spinner if we have data
@@ -90,14 +93,8 @@ export function MetadataStep({ data, onChange, onNext }: MetadataStepProps) {
         onChange('contextUrl', sampleData.context.sourceUrl)
       }
 
-      // Mark all filled fields as edited
-      setEditedFields(new Set([
-        'title',
-        'description',
-        'length',
-        'contextDescription',
-        ...(sampleData.context?.sourceUrl ? ['contextUrl'] : [])
-      ]))
+      // Don't mark sample data as edited
+      setEditedFields(new Set())
       
     } catch (error) {
       setSampleError(error instanceof Error ? error.message : 'Failed to load sample data')
