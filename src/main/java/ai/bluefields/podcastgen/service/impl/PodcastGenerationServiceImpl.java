@@ -304,6 +304,8 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
             audio.setPodcast(podcast);
             audio.setFilePath(String.format("podcasts/%d/output/%s", podcast.getId(), outputFileName));
             audio.setFileSize((long) stitchedAudio.length);
+            audio.setCreatedAt(LocalDateTime.now());
+            audio.setUpdatedAt(LocalDateTime.now());
             
             // Add quality metrics
             ObjectNode metrics = new ObjectMapper().createObjectNode();
