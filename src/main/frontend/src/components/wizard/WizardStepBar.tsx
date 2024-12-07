@@ -14,6 +14,18 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
           {steps.map((step, index) => (
             <li key={step.title} className={`relative ${index !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
               <div className="flex items-center">
+                {/* Add connecting line first with lower z-index */}
+                {index !== steps.length - 1 && (
+                  <div 
+                    className="absolute top-4 h-0.5 bg-gray-300" 
+                    style={{ 
+                      left: '2rem',
+                      right: '0',
+                      zIndex: 0 
+                    }} 
+                  />
+                )}
+                {/* Number circle with higher z-index */}
                 <div
                   className={`relative flex h-8 w-8 items-center justify-center rounded-full ${
                     index < currentStep
@@ -23,21 +35,12 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
                       : 'border-2 border-gray-300 text-gray-500'
                   }`}
                   style={{ 
-                    zIndex: 1
+                    zIndex: 1,
+                    backgroundColor: index < currentStep ? 'var(--primary)' : 'white'
                   }}
                 >
-                  <span className="text-sm">{index + 1}</span>
+                  <span className="relative z-10 text-sm">{index + 1}</span>
                 </div>
-                {index !== steps.length - 1 && (
-                  <div 
-                    className="absolute left-0 right-0 top-4 h-0.5 -translate-y-1/2 bg-gray-300" 
-                    style={{ 
-                      left: '0%',
-                      width: '100%',
-                      zIndex: 0 
-                    }} 
-                  />
-                )}
               </div>
               <div className="mt-2">
                 <span className="text-sm font-medium">{step.title}</span>
