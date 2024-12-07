@@ -54,19 +54,6 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
     id || localStorage.getItem('currentPodcastId')
   )
   const [isLoading, setIsLoading] = useState(editMode)
-  const [initialData, setInitialData] = useState<{
-    metadata: {
-      title: string;
-      description: string;
-      length: number;
-      contextDescription: string;
-      contextUrl?: string;
-      contextFile?: File;
-    };
-    participants: Participant[];
-    messages: Message[];
-  } | null>(null)
-
   useEffect(() => {
     if (editMode && id) {
       setPodcastId(id)
