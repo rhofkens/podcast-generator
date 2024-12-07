@@ -45,7 +45,6 @@ export function TranscriptStep({
 }: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [editMode, setEditMode] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
 
@@ -289,18 +288,14 @@ export function TranscriptStep({
   return (
     <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
       <div className="flex justify-between mb-4">
-        <button
-          onClick={() => setEditMode(!editMode)}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          {editMode ? 'View Mode' : 'Edit Mode'}
-        </button>
-        <button
-          onClick={generateTranscript}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Regenerate
-        </button>
+        {editMode && (
+          <button
+            onClick={generateTranscript}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Regenerate
+          </button>
+        )}
       </div>
 
       {editMode ? (
