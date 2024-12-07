@@ -17,14 +17,22 @@ interface Participant {
 }
 
 interface ParticipantsStepProps {
-  podcastId: string | null
-  participants: Participant[]
-  onChange: (participants: Participant[]) => void
-  onNext: () => void
-  onBack: () => void
+  podcastId: string | null;
+  participants: Participant[];
+  onChange: (participants: Participant[]) => void;
+  onNext: () => void;
+  onBack: () => void;
+  editMode?: boolean;
 }
 
-export function ParticipantsStep({ podcastId, participants, onChange, onNext, onBack }: ParticipantsStepProps) {
+export function ParticipantsStep({ 
+  podcastId, 
+  participants, 
+  onChange, 
+  onNext, 
+  onBack,
+  editMode = false 
+}: ParticipantsStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
@@ -35,13 +43,13 @@ export function ParticipantsStep({ podcastId, participants, onChange, onNext, on
 
   useEffect(() => {
     if (podcastId) {
-      if (participants.length === 0) {
+      if (!editMode && participants.length === 0) {
         loadSampleParticipants();
-      } else {
+      } else if (editMode) {
         loadParticipants();
       }
     }
-  }, [podcastId]);
+  }, [podcastId, editMode]);
 
   const loadSampleParticipants = async () => {
     try {

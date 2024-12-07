@@ -27,14 +27,22 @@ interface Message {
 }
 
 interface TranscriptStepProps {
-  messages: Message[]
-  participants: Array<{ id: number; name: string }>
-  onChange: (messages: Message[]) => void
-  onBack: () => void
-  onNext: () => void
+  messages: Message[];
+  participants: Array<{ id: number; name: string }>;
+  onChange: (messages: Message[]) => void;
+  onBack: () => void;
+  onNext: () => void;
+  editMode?: boolean;
 }
 
-export function TranscriptStep({ messages, participants, onChange, onBack, onNext }: TranscriptStepProps) {
+export function TranscriptStep({ 
+  messages, 
+  participants, 
+  onChange, 
+  onBack, 
+  onNext,
+  editMode = false 
+}: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
