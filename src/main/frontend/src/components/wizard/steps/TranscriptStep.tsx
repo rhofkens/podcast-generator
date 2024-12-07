@@ -159,11 +159,11 @@ export function TranscriptStep({
     })
     
     // Only generate if no messages exist yet and we have participants
-    if (messages.length === 0 && participants.length >= 2) {
+    if (messages.length === 0 && participants.length >= 2 && !editMode) {
       console.log('Starting automatic transcript generation')
       generateTranscript()
     }
-  }, [messages.length, participants.length, onChange]) // Include onChange as it's used in generateTranscript
+  }, [messages.length, participants.length, onChange, editMode]) // Include onChange as it's used in generateTranscript
 
   const generateTranscript = async () => {
     console.log('Generating transcript...')
@@ -450,8 +450,13 @@ export function TranscriptStep({
                 throw new Error('No podcast ID found')
               }
 
-              const response = await fetch(`/api/transcripts`, {
-                method: 'POST',
+              const method = editMode ? 'PUT' : 'POST'
+              const url = editMode 
+                ? `/api/transcripts/podcast/${podcastId}` 
+                : '/api/transcripts'
+
+              const response = await fetch(url, {
+                method,
                 headers: {
                   'Content-Type': 'application/json'
                 },
@@ -481,7 +486,7 @@ export function TranscriptStep({
           disabled={messages.length === 0 || isGenerating}
           className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
         >
-          Next
+          {editMode ? 'Save Changes' : 'Next'}
         </button>
       </motion.div>
     </div>
