@@ -131,16 +131,35 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
   useEffect(() => {
     console.log('PodcastWizard step changed:', { currentStep })
   }, [currentStep])
+
+  useEffect(() => {
+    if (initialData) {
+      setMetadata({
+        title: initialData.metadata.title,
+        description: initialData.metadata.description,
+        length: initialData.metadata.length,
+        contextDescription: initialData.metadata.contextDescription,
+        contextUrl: initialData.metadata.contextUrl,
+        contextFile: undefined
+      })
+      setParticipants(initialData.participants)
+      setMessages(initialData.messages)
+    }
+  }, [initialData])
   const [metadata, setMetadata] = useState({
-    title: '',
-    description: '',
-    length: 30,
-    contextDescription: '',
-    contextUrl: '',
+    title: initialData?.metadata.title || '',
+    description: initialData?.metadata.description || '',
+    length: initialData?.metadata.length || 30,
+    contextDescription: initialData?.metadata.contextDescription || '',
+    contextUrl: initialData?.metadata.contextUrl || '',
     contextFile: undefined as File | undefined
   })
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [messages, setMessages] = useState<Message[]>([])
+  const [participants, setParticipants] = useState<Participant[]>(
+    initialData?.participants || []
+  )
+  const [messages, setMessages] = useState<Message[]>(
+    initialData?.messages || []
+  )
 
   const handleMetadataChange = (field: string, value: any) => {
     setMetadata(prev => ({ ...prev, [field]: value }))
