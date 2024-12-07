@@ -61,8 +61,7 @@ function PodcastCard({ podcast }: PodcastCardProps) {
   }
 
   const handleEdit = () => {
-    localStorage.setItem('currentPodcastId', podcast.id.toString())
-    navigate('/podcasts/edit')
+    navigate(`/podcasts/edit/${podcast.id}`)
   }
 
   return (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { WizardStepBar } from './WizardStepBar'
 import { MetadataStep } from './steps/MetadataStep'
 import { ParticipantsStep } from './steps/ParticipantsStep'
@@ -46,10 +47,11 @@ interface PodcastWizardProps {
   podcastId?: string;
 }
 
-export function PodcastWizard({ editMode = false, podcastId: initialPodcastId }: PodcastWizardProps) {
+export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
+  const { id } = useParams()
   const [currentStep, setCurrentStep] = useState(0)
   const [podcastId, setPodcastId] = useState<string | null>(
-    initialPodcastId || localStorage.getItem('currentPodcastId')
+    id || localStorage.getItem('currentPodcastId')
   )
   const [isLoading, setIsLoading] = useState(editMode)
   const [initialData, setInitialData] = useState<{
@@ -66,7 +68,9 @@ export function PodcastWizard({ editMode = false, podcastId: initialPodcastId }:
   } | null>(null)
 
   useEffect(() => {
-    if (editMode && podcastId) {
+    if (editMode && id) {
+      setPodcastId(id)
+      localStorage.setItem('currentPodcastId', id)
       const loadPodcastData = async () => {
         setIsLoading(true)
         try {
