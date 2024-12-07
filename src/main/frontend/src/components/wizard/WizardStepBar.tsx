@@ -17,15 +17,13 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
                 <div
                   className={`relative flex h-8 w-8 items-center justify-center rounded-full ${
                     index < currentStep
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary text-white'
                       : index === currentStep
-                      ? 'border-2 border-primary'
-                      : 'border-2 border-gray-300'
+                      ? 'border-2 border-primary text-primary'
+                      : 'border-2 border-gray-300 text-gray-500'
                   }`}
                   style={{ 
-                    zIndex: 1, 
-                    backgroundColor: index < currentStep ? 'var(--primary)' : 'white',
-                    color: index < currentStep ? 'white' : undefined
+                    zIndex: 1
                   }}
                 >
                   <span className="text-sm">{index + 1}</span>
