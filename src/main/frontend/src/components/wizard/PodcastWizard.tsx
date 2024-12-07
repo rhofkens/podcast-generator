@@ -147,19 +147,15 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
     }
   }, [initialData])
   const [metadata, setMetadata] = useState({
-    title: initialData?.metadata.title || '',
-    description: initialData?.metadata.description || '',
-    length: initialData?.metadata.length || 30,
-    contextDescription: initialData?.metadata.contextDescription || '',
-    contextUrl: initialData?.metadata.contextUrl || '',
+    title: '',
+    description: '',
+    length: 30,
+    contextDescription: '',
+    contextUrl: '',
     contextFile: undefined as File | undefined
   })
-  const [participants, setParticipants] = useState<Participant[]>(
-    initialData?.participants || []
-  )
-  const [messages, setMessages] = useState<Message[]>(
-    initialData?.messages || []
-  )
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
 
   const handleMetadataChange = (field: string, value: any) => {
     setMetadata(prev => ({ ...prev, [field]: value }))
