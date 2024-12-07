@@ -224,6 +224,13 @@ public class PodcastController {
         dto.setCreatedAt(podcast.getCreatedAt());
         dto.setUpdatedAt(podcast.getUpdatedAt());
         dto.setUserId(podcast.getUserId());
+        
+        // Add new fields
+        dto.setGenerationStatus(podcast.getGenerationStatus());
+        dto.setGenerationProgress(podcast.getGenerationProgress());
+        dto.setGenerationMessage(podcast.getGenerationMessage());
+        dto.setAudioUrl(podcast.getAudioUrl());
+
         return dto;
     }
 }
