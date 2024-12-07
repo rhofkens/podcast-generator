@@ -28,30 +28,11 @@ interface ExtendedPodcast extends Podcast {
   generationProgress?: number;
 }
 
-function getStatusIcon(status: string) {
-  switch (status.toLowerCase()) {
-    case 'completed':
-      return '✅'
-    case 'error':
-      return '❌'
-    case 'queued':
-      return '⏳'
-    case 'generating_voices':
-      return '🎤'
-    case 'generating_segments':
-      return '🔄'
-    case 'stitching':
-      return '🔗'
-    case 'cancelled':
-      return '⏹️'
-    default:
-      return '📝'
-  }
-}
-
 function formatStatus(status: string) {
-  return status.charAt(0).toUpperCase() + 
-         status.slice(1).toLowerCase().replace(/_/g, ' ')
+  return status
+    ? status.charAt(0).toUpperCase() + 
+      status.slice(1).toLowerCase().replace(/_/g, ' ')
+    : 'Draft'
 }
 
 interface PodcastCardProps {
@@ -93,17 +74,14 @@ function PodcastCard({ podcast }: PodcastCardProps) {
           <div className="flex gap-4 mt-2 text-sm text-gray-500">
             <span>{Math.floor(podcast.length / 60)} minutes</span>
             <span>•</span>
-            <span className="flex items-center gap-1">
-              {getStatusIcon(podcast.generationStatus || '')}
-              <span className={
-                podcast.generationStatus?.toLowerCase() === 'error' 
-                  ? 'text-red-600' 
-                  : podcast.generationStatus?.toLowerCase() === 'completed'
-                    ? 'text-green-600'
-                    : ''
-              }>
-                {formatStatus(podcast.generationStatus || '')}
-              </span>
+            <span className={
+              podcast.generationStatus?.toLowerCase() === 'error' 
+                ? 'text-red-600' 
+                : podcast.generationStatus?.toLowerCase() === 'completed'
+                  ? 'text-green-600'
+                  : 'text-gray-600'
+            }>
+              {formatStatus(podcast.generationStatus || '')}
             </span>
           </div>
           
