@@ -90,17 +90,18 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
           const transcriptResponse = await fetch(`/api/transcripts/podcast/${podcastId}`)
           const transcriptData = await transcriptResponse.json()
 
-          setInitialData({
-            metadata: {
-              title: podcastData.title || '',
-              description: podcastData.description || '',
-              length: podcastData.length || 30,
-              contextDescription: contextData?.descriptionText || '',
-              contextUrl: contextData?.sourceUrl || undefined,
-            },
-            participants: participantsData || [],
-            messages: transcriptData?.content?.messages || transcriptData?.messages || []
+          // Set state directly with explicit values
+          setMetadata({
+            title: podcastData.title || '',
+            description: podcastData.description || '',
+            length: podcastData.length || 30,
+            contextDescription: contextData?.descriptionText || '',
+            contextUrl: contextData?.sourceUrl || undefined,
+            contextFile: undefined
           })
+          setParticipants(participantsData || [])
+          setMessages(transcriptData?.content?.messages || transcriptData?.messages || [])
+
         } catch (error) {
           console.error('Error loading podcast data:', error)
         } finally {
@@ -132,20 +133,6 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
     console.log('PodcastWizard step changed:', { currentStep })
   }, [currentStep])
 
-  useEffect(() => {
-    if (initialData) {
-      setMetadata({
-        title: initialData.metadata.title || '',
-        description: initialData.metadata.description || '',
-        length: initialData.metadata.length || 30,
-        contextDescription: initialData.metadata.contextDescription || '',
-        contextUrl: initialData.metadata.contextUrl,
-        contextFile: undefined
-      })
-      setParticipants(initialData.participants)
-      setMessages(initialData.messages)
-    }
-  }, [initialData])
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',

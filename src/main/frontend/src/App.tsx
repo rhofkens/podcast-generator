@@ -19,7 +19,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/podcasts" />} />
               <Route path="/podcasts" element={<PodcastListPage />} />
-              <Route path="/podcasts/new" element={<PodcastWizard />} />
+              <Route path="/podcasts/new" element={<PodcastWizard editMode={false} />} />
               <Route path="/podcasts/edit/:id" element={<PodcastWizard editMode={true} />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
