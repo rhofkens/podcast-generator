@@ -22,7 +22,11 @@ export function WizardStepBar({ currentStep, steps }: WizardStepBarProps) {
                       ? 'border-2 border-primary'
                       : 'border-2 border-gray-300'
                   }`}
-                  style={{ zIndex: 1, backgroundColor: index < currentStep ? 'var(--primary)' : 'white' }}
+                  style={{ 
+                    zIndex: 1, 
+                    backgroundColor: index < currentStep ? 'var(--primary)' : 'white',
+                    color: index < currentStep ? 'white' : undefined
+                  }}
                 >
                   <span className="text-sm">{index + 1}</span>
                 </div>
