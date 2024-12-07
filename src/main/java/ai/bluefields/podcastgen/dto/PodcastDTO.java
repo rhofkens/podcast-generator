@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.dto;
 
+import ai.bluefields.podcastgen.model.PodcastStatus;
 import ai.bluefields.podcastgen.model.PodcastGenerationStatus;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -10,7 +11,7 @@ public class PodcastDTO {
     private String title;
     private String description;
     private Integer length;
-    private String status;
+    private PodcastStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String userId;
