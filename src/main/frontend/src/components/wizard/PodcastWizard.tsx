@@ -41,17 +41,78 @@ interface Message {
   timing: number
 }
 
-export function PodcastWizard() {
+interface PodcastWizardProps {
+  editMode?: boolean;
+  podcastId?: string;
+}
+
+export function PodcastWizard({ editMode = false, podcastId: initialPodcastId }: PodcastWizardProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [podcastId, setPodcastId] = useState<string | null>(
-    localStorage.getItem('currentPodcastId')
+    initialPodcastId || localStorage.getItem('currentPodcastId')
   )
+  const [isLoading, setIsLoading] = useState(editMode)
+  const [initialData, setInitialData] = useState<{
+    metadata: {
+      title: string;
+      description: string;
+      length: number;
+      contextDescription: string;
+      contextUrl?: string;
+      contextFile?: File;
+    };
+    participants: Participant[];
+    messages: Message[];
+  } | null>(null)
 
   useEffect(() => {
-    return () => {
-      localStorage.removeItem('currentPodcastId')
+    if (editMode && podcastId) {
+      const loadPodcastData = async () => {
+        setIsLoading(true)
+        try {
+          // Load podcast metadata
+          const podcastResponse = await fetch(`/api/podcasts/${podcastId}`)
+          const podcastData = await podcastResponse.json()
+
+          // Load context
+          const contextResponse = await fetch(`/api/contexts/podcast/${podcastId}`)
+          const contextData = await contextResponse.json()
+
+          // Load participants
+          const participantsResponse = await fetch(`/api/participants/podcast/${podcastId}`)
+          const participantsData = await participantsResponse.json()
+
+          // Load transcript
+          const transcriptResponse = await fetch(`/api/transcripts/podcast/${podcastId}`)
+          const transcriptData = await transcriptResponse.json()
+
+          setInitialData({
+            metadata: {
+              title: podcastData.title,
+              description: podcastData.description,
+              length: podcastData.length,
+              contextDescription: contextData.descriptionText,
+              contextUrl: contextData.sourceUrl,
+            },
+            participants: participantsData,
+            messages: transcriptData.content.messages || []
+          })
+        } catch (error) {
+          console.error('Error loading podcast data:', error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      loadPodcastData()
     }
-  }, [])
+
+    return () => {
+      if (!editMode) {
+        localStorage.removeItem('currentPodcastId')
+      }
+    }
+  }, [editMode, podcastId])
 
   const handleStepComplete = (step: number) => {
     console.log('handleStepComplete called:', { step, currentStep })
@@ -83,8 +144,14 @@ export function PodcastWizard() {
 
 
   const renderStep = () => {
-    console.log('PodcastWizard renderStep:', { currentStep, podcastId, participants })
-    
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )
+    }
+
     switch (currentStep) {
       case 0:
         return (
