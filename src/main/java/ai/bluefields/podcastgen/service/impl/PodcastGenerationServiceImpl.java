@@ -6,6 +6,7 @@ import ai.bluefields.podcastgen.model.*;
 import ai.bluefields.podcastgen.repository.PodcastRepository;
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.PodcastGenerationService;
+import ai.bluefields.podcastgen.util.AudioUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.AudioFileFormat;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
