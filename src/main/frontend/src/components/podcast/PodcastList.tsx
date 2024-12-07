@@ -21,6 +21,13 @@ import {
 import { Button } from '../ui/button'
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
 
+// Extended Podcast type for our needs
+interface ExtendedPodcast extends Podcast {
+  generationStatus?: string;
+  audioUrl?: string;
+  generationProgress?: number;
+}
+
 function getStatusIcon(status: string) {
   switch (status.toLowerCase()) {
     case 'completed':
@@ -48,64 +55,10 @@ function formatStatus(status: string) {
 }
 
 interface PodcastCardProps {
-  podcast: Podcast & {
-    generationStatus?: string;
-    audioUrl?: string;
-  }
+  podcast: ExtendedPodcast;
 }
 
 function PodcastCard({ podcast }: PodcastCardProps) {
-  const [podcasts, setPodcasts] = useState<Array<Podcast & {
-    generationStatus?: string;
-    audioUrl?: string;
-  }>>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchPodcasts = async () => {
-      try {
-        const response = await fetch('/api/podcasts')
-        if (!response.ok) {
-          throw new Error('Failed to fetch podcasts')
-        }
-        const data = await response.json()
-        setPodcasts(data.content)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load podcasts')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPodcasts()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="bg-red-50 text-red-500 p-4 rounded-lg">
-          {error}
-        </div>
-      </div>
-    )
-  }
-
-  if (podcasts.length === 0) {
-    return (
-      <div className="text-center p-8 text-gray-500">
-        No podcasts found. Create your first podcast to get started!
-      </div>
-    )
-  }
   const navigate = useNavigate()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -204,6 +157,65 @@ function PodcastCard({ podcast }: PodcastCardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  )
+}
+
+export function PodcastList() {
+  const [podcasts, setPodcasts] = useState<ExtendedPodcast[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchPodcasts = async () => {
+      try {
+        const response = await fetch('/api/podcasts')
+        if (!response.ok) {
+          throw new Error('Failed to fetch podcasts')
+        }
+        const data = await response.json()
+        setPodcasts(data.content)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load podcasts')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPodcasts()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+          {error}
+        </div>
+      </div>
+    )
+  }
+
+  if (podcasts.length === 0) {
+    return (
+      <div className="text-center p-8 text-gray-500">
+        No podcasts found. Create your first podcast to get started!
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {podcasts.map((podcast) => (
+        <PodcastCard key={podcast.id} podcast={podcast} />
+      ))}
     </div>
   )
 }
