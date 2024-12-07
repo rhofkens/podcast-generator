@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ContextRepository extends JpaRepository<Context, Long> {
-    // Add custom query methods if needed
+    Optional<Context> findByPodcastId(Long podcastId);
 }

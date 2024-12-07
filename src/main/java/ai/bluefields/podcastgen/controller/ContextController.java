@@ -103,4 +103,24 @@ public class ContextController {
             throw e;
         }
     }
+
+    @GetMapping("/podcast/{podcastId}")
+    public ResponseEntity<Context> getContextByPodcastId(
+            @PathVariable @Positive(message = "Podcast ID must be positive") Long podcastId) {
+        log.info("REST request to get context by podcast id: {}", podcastId);
+        try {
+            return contextService.getContextByPodcastId(podcastId)
+                    .map(context -> {
+                        log.info("Successfully retrieved context for podcast id: {}", podcastId);
+                        return ResponseEntity.ok(context);
+                    })
+                    .orElseGet(() -> {
+                        log.warn("Context not found for podcast id: {}", podcastId);
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            log.error("Error retrieving context for podcast {}: {}", podcastId, e.getMessage(), e);
+            throw e;
+        }
+    }
 }

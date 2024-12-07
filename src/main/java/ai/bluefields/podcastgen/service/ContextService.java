@@ -10,4 +10,5 @@ public interface ContextService {
     Context createContext(Context context);
     Context updateContext(Long id, Context context);
     void deleteContext(Long id);
+    Optional<Context> getContextByPodcastId(Long podcastId);
 }
