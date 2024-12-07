@@ -135,10 +135,10 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
   useEffect(() => {
     if (initialData) {
       setMetadata({
-        title: initialData.metadata.title,
-        description: initialData.metadata.description,
-        length: initialData.metadata.length,
-        contextDescription: initialData.metadata.contextDescription,
+        title: initialData.metadata.title || '',
+        description: initialData.metadata.description || '',
+        length: initialData.metadata.length || 30,
+        contextDescription: initialData.metadata.contextDescription || '',
         contextUrl: initialData.metadata.contextUrl,
         contextFile: undefined
       })
@@ -151,7 +151,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
     description: '',
     length: 30,
     contextDescription: '',
-    contextUrl: '',
+    contextUrl: undefined as string | undefined,
     contextFile: undefined as File | undefined
   })
   const [participants, setParticipants] = useState<Participant[]>([])
