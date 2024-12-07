@@ -79,6 +79,11 @@
             <artifactId>mp3spi</artifactId>
             <version>1.9.5.4</version>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.lame</groupId>
+            <artifactId>lame</artifactId>
+            <version>3.98.4</version>
+        </dependency>
 
         <!-- Test Dependencies -->
         <dependency>

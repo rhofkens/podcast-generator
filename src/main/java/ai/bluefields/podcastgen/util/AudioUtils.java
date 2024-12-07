@@ -1,8 +1,9 @@
 package ai.bluefields.podcastgen.util;
 
 import javazoom.jl.decoder.*;
-import javazoom.jl.converter.Converter;
-import javazoom.jl.converter.WaveFileObuffer;
+import net.sourceforge.lame.lowlevel.LameEncoder;
+import net.sourceforge.lame.mp3.Lame;
+import net.sourceforge.lame.mp3.MPEGMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,66 +17,84 @@ public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
     
     public static byte[] concatenateMP3Files(List<Path> mp3Files) throws Exception {
-        List<byte[]> pcmDataList = new ArrayList<>();
-        AudioFormat format = null;
+        if (mp3Files == null || mp3Files.isEmpty()) {
+            throw new IllegalArgumentException("No MP3 files provided");
+        }
+
+        AudioFormat commonFormat = null;
+        ByteArrayOutputStream concatenatedPCM = new ByteArrayOutputStream();
         
-        // Step 1: Decode all MP3 files to PCM
+        // Step 1: Convert each MP3 to PCM and concatenate
         for (Path mp3File : mp3Files) {
-            try (FileInputStream fis = new FileInputStream(mp3File.toFile())) {
-                Bitstream bitstream = new Bitstream(fis);
-                Decoder decoder = new Decoder();
-                
-                // Get audio format from first frame
-                Header frameHeader = bitstream.readFrame();
-                if (format == null) {
-                    format = new AudioFormat(
-                        frameHeader.frequency(),
-                        16, // sample size in bits
-                        frameHeader.mode() == Header.SINGLE_CHANNEL ? 1 : 2, // channels
-                        true, // signed
-                        false // little endian
+            log.debug("Processing MP3 file: {}", mp3File);
+            
+            try (AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile())) {
+                // Get or set common format
+                if (commonFormat == null) {
+                    // Convert to PCM format
+                    commonFormat = new AudioFormat(
+                        44100,                 // Sample rate
+                        16,                    // Sample size in bits
+                        2,                     // Channels
+                        true,                  // Signed
+                        false                  // Little endian
                     );
                 }
                 
-                // Decode frames
-                ByteArrayOutputStream pcmBuffer = new ByteArrayOutputStream();
-                while (frameHeader != null) {
-                    SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-                    writeShortArrayToStream(output.getBuffer(), pcmBuffer);
-                    bitstream.closeFrame();
-                    frameHeader = bitstream.readFrame();
+                // Convert MP3 to PCM format if needed
+                AudioInputStream pcmStream;
+                if (!mp3Stream.getFormat().matches(commonFormat)) {
+                    pcmStream = AudioSystem.getAudioInputStream(commonFormat, mp3Stream);
+                } else {
+                    pcmStream = mp3Stream;
                 }
                 
-                pcmDataList.add(pcmBuffer.toByteArray());
+                // Read PCM data
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = pcmStream.read(buffer)) != -1) {
+                    concatenatedPCM.write(buffer, 0, bytesRead);
+                }
+                
+                pcmStream.close();
+            } catch (Exception e) {
+                log.error("Error processing MP3 file {}: {}", mp3File, e.getMessage());
+                throw new RuntimeException("Failed to process MP3 file: " + mp3File, e);
             }
         }
         
-        // Step 2: Concatenate PCM data
-        ByteArrayOutputStream concatenatedPCM = new ByteArrayOutputStream();
-        for (byte[] pcmData : pcmDataList) {
-            concatenatedPCM.write(pcmData);
-        }
-        
-        // Step 3: Convert back to MP3
-        ByteArrayOutputStream mp3Output = new ByteArrayOutputStream();
-        AudioInputStream pcmStream = new AudioInputStream(
-            new ByteArrayInputStream(concatenatedPCM.toByteArray()),
-            format,
-            concatenatedPCM.size() / format.getFrameSize()
+        // Step 2: Convert concatenated PCM back to MP3
+        byte[] pcmData = concatenatedPCM.toByteArray();
+        AudioInputStream concatenatedStream = new AudioInputStream(
+            new ByteArrayInputStream(pcmData),
+            commonFormat,
+            pcmData.length / commonFormat.getFrameSize()
         );
         
-        // Use LAME or other MP3 encoder
-        AudioSystem.write(pcmStream, AudioFileFormat.Type.WAVE, mp3Output);
-        
-        return mp3Output.toByteArray();
+        return encodePCMtoMP3(concatenatedStream);
     }
     
-    private static void writeShortArrayToStream(short[] samples, OutputStream out) throws IOException {
-        byte[] buffer = new byte[samples.length * 2];
-        for (int i = 0; i < samples.length; i++) {
-            buffer[i * 2] = (byte) (samples[i] & 0xff);
-            buffer[i * 2 + 1] = (byte) ((samples[i] >> 8) & 0xff);
+    private static byte[] encodePCMtoMP3(AudioInputStream pcmStream) throws Exception {
+        LameEncoder encoder = new LameEncoder(pcmStream.getFormat(), 
+            256,                // Bitrate (kbps)
+            MPEGMode.STEREO,    // STEREO mode
+            Lame.QUALITY_HIGHEST, // Quality
+            false               // VBR disabled
+        );
+        
+        ByteArrayOutputStream mp3Output = new ByteArrayOutputStream();
+        byte[] pcmBuffer = new byte[encoder.getPCMBufferSize()];
+        byte[] mp3Buffer = new byte[encoder.getMP3BufferSize()];
+        
+        int bytesRead;
+        while ((bytesRead = pcmStream.read(pcmBuffer)) > 0) {
+            int bytesEncoded = encoder.encodeBuffer(pcmBuffer, 0, bytesRead, mp3Buffer);
+            mp3Output.write(mp3Buffer, 0, bytesEncoded);
         }
-        out.write(buffer);
+        
+        int bytesEncoded = encoder.encodeFinish(mp3Buffer);
+        mp3Output.write(mp3Buffer, 0, bytesEncoded);
+        
+        return mp3Output.toByteArray();
     }
 }
