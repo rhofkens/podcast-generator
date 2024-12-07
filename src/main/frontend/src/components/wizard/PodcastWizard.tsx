@@ -99,7 +99,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
               contextUrl: contextData.sourceUrl,
             },
             participants: participantsData,
-            messages: transcriptData.content.messages || []
+            messages: transcriptData?.content?.messages || transcriptData?.messages || []
           })
         } catch (error) {
           console.error('Error loading podcast data:', error)
