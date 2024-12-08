@@ -312,9 +312,10 @@ export function TranscriptStep({
                 <select
                   value={message.participantId}
                   onChange={(e) => updateMessage(index, 'participantId', parseInt(e.target.value))}
+                  onFocus={() => handleFieldFocus(index, 'participantId')}
                   className={cn(
                     "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'name')) ? "italic text-gray-400" : "text-gray-900"
+                    (!editMode && !isFieldEdited(index, 'participantId')) ? "italic text-gray-400" : "text-gray-900"
                   )}
                 >
                   {participants.map((p) => (
@@ -328,9 +329,10 @@ export function TranscriptStep({
                 <textarea
                   value={message.content}
                   onChange={(e) => updateMessage(index, 'content', e.target.value)}
+                  onFocus={() => handleFieldFocus(index, 'content')}
                   className={cn(
                     "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'gender')) ? "italic text-gray-400" : "text-gray-900"
+                    (!editMode && !isFieldEdited(index, 'content')) ? "italic text-gray-400" : "text-gray-900"
                   )}
                   rows={2}
                 />
@@ -340,9 +342,10 @@ export function TranscriptStep({
                   type="number"
                   value={message.timing}
                   onChange={(e) => updateMessage(index, 'timing', parseInt(e.target.value))}
+                  onFocus={() => handleFieldFocus(index, 'timing')}
                   className={cn(
                     "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'age')) ? "italic text-gray-400" : "text-gray-900"
+                    (!editMode && !isFieldEdited(index, 'timing')) ? "italic text-gray-400" : "text-gray-900"
                   )}
                   min={0}
                   step={1}
