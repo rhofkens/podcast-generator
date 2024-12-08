@@ -27,6 +27,7 @@ interface Message {
 }
 
 interface TranscriptStepProps {
+  podcastId: string | null;
   messages: Message[];
   participants: Array<{ id: number; name: string }>;
   onChange: (messages: Message[]) => void;
@@ -170,8 +171,7 @@ export function TranscriptStep({
       setIsGenerating(true)
       setError(null)
 
-      const podcastId = localStorage.getItem('currentPodcastId')
-      console.log('Retrieved podcastId:', podcastId)
+      console.log('Using podcastId:', podcastId)
       if (!podcastId) {
         throw new Error('No podcast ID found')
       }

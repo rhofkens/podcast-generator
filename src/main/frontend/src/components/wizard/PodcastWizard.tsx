@@ -58,6 +58,15 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
     if (editMode && id) {
       setPodcastId(id)
       localStorage.setItem('currentPodcastId', id)
+    } else {
+      // Get podcast ID from localStorage if not in edit mode
+      const storedId = localStorage.getItem('currentPodcastId')
+      if (storedId) {
+        setPodcastId(storedId)
+      }
+    }
+    
+    if (editMode && id) {
       const loadPodcastData = async () => {
         setIsLoading(true)
         try {
@@ -167,6 +176,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
         )
       case 2:
         console.log('Rendering TranscriptStep with:', {
+          podcastId,
           messages,
           participants: participants
             .filter((p): p is Participant & { id: number } => p.id !== undefined)
@@ -179,6 +189,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
         })
         return (
           <TranscriptStep
+            podcastId={podcastId}
             messages={messages}
             participants={participants
               .filter((p): p is Participant & { id: number } => p.id !== undefined)
@@ -189,6 +200,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
             onChange={setMessages}
             onBack={() => setCurrentStep(1)}
             onNext={() => setCurrentStep(3)}
+            editMode={editMode}
           />
         )
       case 3:
