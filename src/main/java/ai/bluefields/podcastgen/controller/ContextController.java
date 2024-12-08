@@ -123,4 +123,32 @@ public class ContextController {
             throw e;
         }
     }
+
+    @PutMapping("/podcast/{podcastId}")
+    public ResponseEntity<Context> updateContextByPodcastId(
+            @PathVariable @Positive(message = "Podcast ID must be positive") Long podcastId,
+            @Valid @RequestBody Context context) {
+        log.info("REST request to update context for podcast id: {}", podcastId);
+        try {
+            return contextService.getContextByPodcastId(podcastId)
+                    .map(existingContext -> {
+                        // Update existing context fields
+                        existingContext.setDescriptionText(context.getDescriptionText());
+                        existingContext.setSourceUrl(context.getSourceUrl());
+                        existingContext.setFilePath(context.getFilePath());
+                        existingContext.setProcessedContent(context.getProcessedContent());
+                        
+                        Context result = contextService.updateContext(existingContext.getId(), existingContext);
+                        log.info("Successfully updated context for podcast id: {}", podcastId);
+                        return ResponseEntity.ok(result);
+                    })
+                    .orElseGet(() -> {
+                        log.warn("Context not found for podcast id: {}", podcastId);
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            log.error("Error updating context for podcast {}: {}", podcastId, e.getMessage(), e);
+            throw e;
+        }
+    }
 }
