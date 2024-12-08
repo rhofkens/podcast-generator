@@ -17,6 +17,7 @@ interface GenerationState {
 }
 
 export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps) {
+    console.log('PodcastStep mounted with podcastId:', podcastId);
     const consoleRef = useRef<HTMLDivElement>(null);
     const [generationState, setGenerationState] = useState<GenerationState>({
         status: '',
