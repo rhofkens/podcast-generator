@@ -82,7 +82,11 @@ export function ParticipantsStep({
   };
 
   const handleFieldFocus = (index: number, field: keyof Participant) => {
-    setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
+    if (!editMode && !isFieldEdited(index, field)) {
+      setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
+      // Clear the sample value when focusing for the first time in create mode
+      updateParticipant(index, field, '');
+    }
   };
 
   const isFieldEdited = (index: number, field: keyof Participant) => {
@@ -205,8 +209,8 @@ export function ParticipantsStep({
       setError(null);
       const participant = participants[index];
       
-      // When field is focused for the first time, clear the sample value
-      if (!isFieldEdited(index, field)) {
+      // Only clear value on first edit if not in edit mode
+      if (!editMode && !isFieldEdited(index, field)) {
         value = '';
       }
       
