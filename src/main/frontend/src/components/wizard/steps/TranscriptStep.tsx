@@ -36,43 +36,19 @@ interface TranscriptStepProps {
   editMode?: boolean;
 }
 
-export function TranscriptStep({ 
-  podcastId,
-  messages, 
-  participants, 
-  onChange, 
-  onBack, 
-  onNext,
-  editMode = false 
-}: TranscriptStepProps) {
+export function TranscriptStep({
+                                 podcastId,
+                                 messages,
+                                 participants,
+                                 onChange,
+                                 onBack,
+                                 onNext,
+                                 editMode = false
+                               }: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
-
-  useEffect(() => {
-    // If in edit mode, mark ALL fields as edited immediately on mount
-    if (editMode) {
-      const allFields = new Set<string>();
-      messages.forEach((_, index) => {
-        ['participantId', 'content', 'timing'].forEach(field => {
-          allFields.add(`${index}-${field}`);
-        });
-      });
-      setEditedFields(allFields);
-    }
-  }, [editMode, messages.length]); // Only depend on editMode and messages length
-
-  const isFieldEdited = (index: number, field: string) => {
-    return editedFields.has(`${index}-${field}`);
-  };
-
-  const handleFieldFocus = (index: number, field: string) => {
-    if (!editMode && !isFieldEdited(index, field)) {
-      setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
-    }
-  };
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -103,7 +79,7 @@ export function TranscriptStep({
       })
       return 'left'
     }
-    
+
     // Get the index of this participant in the original participants array
     const participantIndex = participants.indexOf(participant)
     return participantIndex % 2 === 0 ? 'left' : 'right'
@@ -159,10 +135,10 @@ export function TranscriptStep({
       })
       return 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200' // default gradient
     }
-    
+
     // Get the index of this participant in the original participants array
     const participantIndex = participants.indexOf(participant)
-    
+
     const gradients = [
       'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
       'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
@@ -170,7 +146,7 @@ export function TranscriptStep({
       'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200',
       'bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200'
     ]
-    
+
     return gradients[participantIndex % gradients.length]
   }
 
@@ -182,7 +158,7 @@ export function TranscriptStep({
       participantsLength: participants.length,
       shouldGenerate: messages.length === 0 && participants.length >= 2
     })
-    
+
     // Only generate if no messages exist yet and we have participants
     if (messages.length === 0 && participants.length >= 2 && !editMode) {
       console.log('Starting automatic transcript generation')
@@ -237,7 +213,7 @@ export function TranscriptStep({
 
       // Map participants by name (case-insensitive)
       const participantsByName = new Map<string, Participant>(
-        participantsList.map((p: Participant) => [p.name.toLowerCase(), p])
+          participantsList.map((p: Participant) => [p.name.toLowerCase(), p])
       )
 
       // Convert the transcript data to messages format
@@ -279,251 +255,239 @@ export function TranscriptStep({
 
   if (isGenerating) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-        <p>Generating transcript...</p>
-      </div>
+        <div className="p-6 flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <p>Generating transcript...</p>
+        </div>
     )
   }
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
-          {error}
+        <div className="p-6">
+          <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
+            {error}
+          </div>
+          <div className="flex justify-between">
+            <button
+                onClick={onBack}
+                className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
+              Back
+            </button>
+            <button
+                onClick={generateTranscript}
+                className="bg-primary text-primary-foreground px-4 py-2 rounded"
+            >
+              Retry Generation
+            </button>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <button
-            onClick={onBack}
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-          >
-            Back
-          </button>
-          <button
-            onClick={generateTranscript}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded"
-          >
-            Retry Generation
-          </button>
-        </div>
-      </div>
     )
   }
 
   return (
-    <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex justify-between mb-4">
-        {editMode && (
-          <button
-            onClick={generateTranscript}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Regenerate
-          </button>
-        )}
-      </div>
+      <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
+        <div className="flex justify-between mb-4">
+          {editMode && (
+              <button
+                  onClick={generateTranscript}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Regenerate
+              </button>
+          )}
+        </div>
 
-      {editMode ? (
-        <motion.div 
-          className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4 shadow-sm"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2 }}
-        >
-          {messages.map((message, index) => (
-            <div key={index} className="flex gap-4">
-              <div className="w-48">
-                <select
-                  value={message.participantId}
-                  onChange={(e) => updateMessage(index, 'participantId', parseInt(e.target.value))}
-                  onFocus={() => handleFieldFocus(index, 'participantId')}
-                  className={cn(
-                    "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'participantId')) ? "italic text-gray-400" : "text-gray-900"
-                  )}
-                >
-                  {participants.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={message.content}
-                  onChange={(e) => updateMessage(index, 'content', e.target.value)}
-                  onFocus={() => handleFieldFocus(index, 'content')}
-                  className={cn(
-                    "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'content')) ? "italic text-gray-400" : "text-gray-900"
-                  )}
-                  rows={2}
-                />
-              </div>
-              <div className="w-24">
-                <input
-                  type="number"
-                  value={message.timing}
-                  onChange={(e) => updateMessage(index, 'timing', parseInt(e.target.value))}
-                  onFocus={() => handleFieldFocus(index, 'timing')}
-                  className={cn(
-                    "w-full p-2 border rounded",
-                    (!editMode && !isFieldEdited(index, 'timing')) ? "italic text-gray-400" : "text-gray-900"
-                  )}
-                  min={0}
-                  step={1}
-                />
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      ) : (
-        <motion.div 
-          ref={chatContainerRef}
-          className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg p-4 space-y-6 shadow-inner"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <AnimatePresence>
-            {messages.map((message, index) => {
-              const position = getMessagePosition(message.participantId)
-              const speakerName = getParticipantName(message.participantId)
-            
-              return (
-                <motion.div
-                  key={index}
-                  className={cn(
-                    "flex flex-col max-w-[80%]",
-                    position === 'right' ? 'ml-auto' : ''
-                  )}
-                  custom={position}
-                  initial="hidden"
-                  animate="visible"
-                  variants={messageVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  layout
-                >
-                  <motion.div 
-                    className={cn(
-                      "rounded-lg border p-4",
-                      getMessageGradient(message.participantId),
-                      position === 'left' ? 'rounded-tl-none' : 'rounded-tr-none'
-                    )}
-                  >
-                    <div className="flex justify-between items-baseline mb-2">
-                      <motion.span 
-                        className="font-medium text-primary"
-                        whileHover={{ scale: 1.05 }}
+        {editMode ? (
+            <motion.div
+                className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4 shadow-sm"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+            >
+              {messages.map((message, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="w-48">
+                      <select
+                          value={message.participantId}
+                          onChange={(e) => updateMessage(index, 'participantId', parseInt(e.target.value))}
+                          className="w-full p-2 border rounded"
                       >
-                        {speakerName}
-                      </motion.span>
-                      <span className="text-xs text-gray-500">
+                        {participants.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1">
+                <textarea
+                    value={message.content}
+                    onChange={(e) => updateMessage(index, 'content', e.target.value)}
+                    className="w-full p-2 border rounded"
+                    rows={2}
+                />
+                    </div>
+                    <div className="w-24">
+                      <input
+                          type="number"
+                          value={message.timing}
+                          onChange={(e) => updateMessage(index, 'timing', parseInt(e.target.value))}
+                          className="w-full p-2 border rounded"
+                          min={0}
+                          step={1}
+                      />
+                    </div>
+                  </div>
+              ))}
+            </motion.div>
+        ) : (
+            <motion.div
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg p-4 space-y-6 shadow-inner"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+            >
+              <AnimatePresence>
+                {messages.map((message, index) => {
+                  const position = getMessagePosition(message.participantId)
+                  const speakerName = getParticipantName(message.participantId)
+
+                  return (
+                      <motion.div
+                          key={index}
+                          className={cn(
+                              "flex flex-col max-w-[80%]",
+                              position === 'right' ? 'ml-auto' : ''
+                          )}
+                          custom={position}
+                          initial="hidden"
+                          animate="visible"
+                          variants={messageVariants}
+                          whileHover="hover"
+                          whileTap="tap"
+                          layout
+                      >
+                        <motion.div
+                            className={cn(
+                                "rounded-lg border p-4",
+                                getMessageGradient(message.participantId),
+                                position === 'left' ? 'rounded-tl-none' : 'rounded-tr-none'
+                            )}
+                        >
+                          <div className="flex justify-between items-baseline mb-2">
+                            <motion.span
+                                className="font-medium text-primary"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                              {speakerName}
+                            </motion.span>
+                            <span className="text-xs text-gray-500">
                         {formatTime(message.timing)}
                       </span>
-                    </div>
-                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                      {message.content}
-                    </p>
-                  </motion.div>
-                
-                  <motion.div 
-                    className={cn(
-                      "text-xs text-gray-400 mt-1",
-                      position === 'right' ? 'text-right' : 'text-left'
-                    )}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
+                          </div>
+                          <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                            {message.content}
+                          </p>
+                        </motion.div>
+
+                        <motion.div
+                            className={cn(
+                                "text-xs text-gray-400 mt-1",
+                                position === 'right' ? 'text-right' : 'text-left'
+                            )}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                          {new Date(message.timing * 1000).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </motion.div>
+                      </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+
+              {isGenerating && (
+                  <motion.div
+                      className="flex items-center space-x-2 p-3 bg-gray-200 rounded-lg max-w-[100px]"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                   >
-                    {new Date(message.timing * 1000).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100" />
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
                   </motion.div>
-                </motion.div>
-              )
-            })}
-          </AnimatePresence>
-          
-          {isGenerating && (
-            <motion.div
-              className="flex items-center space-x-2 p-3 bg-gray-200 rounded-lg max-w-[100px]"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100" />
-              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
+              )}
             </motion.div>
-          )}
-        </motion.div>
-      )}
+        )}
 
-      <motion.div 
-        className="flex justify-between mt-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <button
-          onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        <motion.div
+            className="flex justify-between mt-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
         >
-          Back
-        </button>
-        <button
-          onClick={async () => {
-            try {
-              // Use the podcastId from props instead of localStorage
-              if (!podcastId) {
-                throw new Error('No podcast ID found')
-              }
-
-              const method = editMode ? 'PUT' : 'POST'
-              const url = editMode 
-                ? `/api/transcripts/podcast/${podcastId}` 
-                : '/api/transcripts'
-
-              const response = await fetch(url, {
-                method,
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  podcast: {
-                    id: parseInt(podcastId)
-                  },
-                  content: {
-                    messages: messages.map(msg => ({
-                      participantId: msg.participantId,
-                      content: msg.content,
-                      timing: msg.timing
-                    }))
+          <button
+              onClick={onBack}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Back
+          </button>
+          <button
+              onClick={async () => {
+                try {
+                  // Use the podcastId from props instead of localStorage
+                  if (!podcastId) {
+                    throw new Error('No podcast ID found')
                   }
-                })
-              })
 
-              if (!response.ok) {
-                throw new Error('Failed to save transcript')
-              }
+                  const method = editMode ? 'PUT' : 'POST'
+                  const url = editMode
+                      ? `/api/transcripts/podcast/${podcastId}`
+                      : '/api/transcripts'
 
-              // After successful save, ensure the podcastId is still in localStorage
-              localStorage.setItem('currentPodcastId', podcastId)
-              
-              onNext()
-            } catch (err) {
-              setError(err instanceof Error ? err.message : 'Failed to save transcript')
-            }
-          }}
-          disabled={messages.length === 0 || isGenerating}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
-        >
-          {editMode ? 'Save Changes' : 'Next'}
-        </button>
-      </motion.div>
-    </div>
+                  const response = await fetch(url, {
+                    method,
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      podcast: {
+                        id: parseInt(podcastId)
+                      },
+                      content: {
+                        messages: messages.map(msg => ({
+                          participantId: msg.participantId,
+                          content: msg.content,
+                          timing: msg.timing
+                        }))
+                      }
+                    })
+                  })
+
+                  if (!response.ok) {
+                    throw new Error('Failed to save transcript')
+                  }
+
+                  // After successful save, ensure the podcastId is still in localStorage
+                  localStorage.setItem('currentPodcastId', podcastId)
+
+                  onNext()
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to save transcript')
+                }
+              }}
+              disabled={messages.length === 0 || isGenerating}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+          >
+            {editMode ? 'Save Changes' : 'Next'}
+          </button>
+        </motion.div>
+      </div>
   )
 }
