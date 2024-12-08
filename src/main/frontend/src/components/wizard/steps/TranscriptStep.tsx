@@ -45,10 +45,12 @@ export function TranscriptStep({
                                  onNext,
                                  editMode = false
                                }: TranscriptStepProps) {
-  console.log('TranscriptStep rendered with:', {
+  console.log('TranscriptStep initial render:', {
     podcastId,
     messages,
     participants,
+    messagesLength: messages?.length,
+    participantsLength: participants?.length,
     editMode
   });
 
@@ -186,40 +188,50 @@ export function TranscriptStep({
     console.log('TranscriptStep useEffect triggered:', {
       messages,
       participants,
-      messagesLength: messages.length,
-      participantsLength: participants.length,
-      shouldGenerate: messages.length === 0 && participants.length >= 2,
+      messagesLength: messages?.length,
+      participantsLength: participants?.length,
+      shouldGenerate: messages?.length === 0 && participants?.length >= 2,
       editMode
     });
 
     const loadExistingTranscript = async () => {
-      if (!podcastId) return;
+      if (!podcastId) {
+        console.log('No podcastId available for loading transcript');
+        return;
+      }
       
+      setIsGenerating(true);
       try {
         const response = await fetch(`/api/transcripts/podcast/${podcastId}`);
         if (!response.ok) {
           throw new Error('Failed to load transcript');
         }
         const data = await response.json();
-        if (data.content && data.content.messages) {
+        console.log('Loaded transcript data:', data);
+        
+        if (data.content?.messages) {
           onChange(data.content.messages);
+        } else if (data.messages) {
+          onChange(data.messages);
         }
       } catch (error) {
         console.error('Error loading transcript:', error);
         setError(error instanceof Error ? error.message : 'Failed to load transcript');
+      } finally {
+        setIsGenerating(false);
       }
     };
 
     // In edit mode, try to load existing transcript first
-    if (editMode && messages.length === 0) {
+    if (editMode && (!messages || messages.length === 0)) {
       loadExistingTranscript();
     }
     // In create mode, generate new transcript if we have participants but no messages
-    else if (!editMode && messages.length === 0 && participants.length >= 2) {
+    else if (!editMode && (!messages || messages.length === 0) && participants?.length >= 2) {
       console.log('Starting automatic transcript generation');
       generateTranscript();
     }
-  }, [messages.length, participants.length, editMode, podcastId, onChange])
+  }, [messages?.length, participants?.length, editMode, podcastId]);
 
   const generateTranscript = async () => {
     console.log('Generating transcript...', { podcastId });
@@ -313,11 +325,35 @@ export function TranscriptStep({
 
   if (isGenerating) {
     return (
-        <div className="p-6 flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p>Generating transcript...</p>
+      <div className="p-6 flex flex-col items-center justify-center h-[calc(100vh-200px)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-gray-600">Generating transcript...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-4">
+          {error}
         </div>
-    )
+        <div className="flex justify-between">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 border rounded hover:bg-gray-50"
+          >
+            Back
+          </button>
+          <button
+            onClick={generateTranscript}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded"
+          >
+            Retry Generation
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -403,7 +439,7 @@ export function TranscriptStep({
         ) : (
             <motion.div
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg p-4 space-y-6 shadow-inner"
+                className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg p-4 space-y-6 shadow-inner min-h-[400px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
