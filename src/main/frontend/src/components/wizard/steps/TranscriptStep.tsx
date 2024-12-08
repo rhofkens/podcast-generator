@@ -192,7 +192,7 @@ export function TranscriptStep({
       messagesLength: messages?.length,
       participantsLength: participants?.length,
       shouldGenerate: messages?.length === 0 && participants?.length >= 2,
-      editMode
+      editMode: localEditMode
     });
 
     const loadExistingTranscript = async () => {
