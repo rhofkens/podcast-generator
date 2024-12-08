@@ -280,31 +280,19 @@ export function TranscriptStep({
         );
         
         if (!participant) {
-          throw new Error(`No matching participant found for speaker: ${entry.speakerName}`);
+          console.warn(`No participant found for speaker: ${entry.speakerName}, using first participant as fallback`);
+          return participants[0].id;
         }
         
         return participant.id;
       };
 
       // Convert the transcript data to messages format with proper typing
-      const newMessages = transcriptData.transcript.map((entry) => {
-        try {
-          const participantId = getValidParticipantId(entry, participantsList);
-          return {
-            participantId,
-            content: entry.text,
-            timing: entry.timeOffset
-          };
-        } catch (error) {
-          console.error('Error mapping transcript entry:', error);
-          // Fallback to first participant if we can't find a match
-          return {
-            participantId: participantsList[0].id,
-            content: entry.text,
-            timing: entry.timeOffset
-          };
-        }
-      });
+      const newMessages: Message[] = transcriptData.transcript.map(entry => ({
+        participantId: getValidParticipantId(entry, participantsList),
+        content: entry.text,
+        timing: entry.timeOffset
+      }));
 
       console.log('Generated messages:', newMessages);
       onChange(newMessages);
