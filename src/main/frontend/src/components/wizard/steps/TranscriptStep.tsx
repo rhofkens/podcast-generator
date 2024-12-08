@@ -45,6 +45,38 @@ export function TranscriptStep({
                                  onNext,
                                  editMode = false
                                }: TranscriptStepProps) {
+  console.log('TranscriptStep rendered with:', {
+    podcastId,
+    messages,
+    participants,
+    editMode
+  });
+
+  if (!podcastId) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+          No podcast ID found. Please start from the beginning.
+        </div>
+      </div>
+    );
+  }
+
+  if (!participants || participants.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg">
+          No participants found. Please add participants first.
+        </div>
+        <button
+          onClick={onBack}
+          className="mt-4 px-4 py-2 border rounded hover:bg-gray-50"
+        >
+          Back
+        </button>
+      </div>
+    );
+  }
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -151,41 +183,62 @@ export function TranscriptStep({
   }
 
   useEffect(() => {
-    console.log('TranscriptStep mounted/updated:', {
+    console.log('TranscriptStep useEffect triggered:', {
       messages,
       participants,
       messagesLength: messages.length,
       participantsLength: participants.length,
-      shouldGenerate: messages.length === 0 && participants.length >= 2
-    })
+      shouldGenerate: messages.length === 0 && participants.length >= 2,
+      editMode
+    });
 
-    // Only generate if no messages exist yet and we have participants
-    if (messages.length === 0 && participants.length >= 2 && !editMode) {
-      console.log('Starting automatic transcript generation')
-      generateTranscript()
+    const loadExistingTranscript = async () => {
+      if (!podcastId) return;
+      
+      try {
+        const response = await fetch(`/api/transcripts/podcast/${podcastId}`);
+        if (!response.ok) {
+          throw new Error('Failed to load transcript');
+        }
+        const data = await response.json();
+        if (data.content && data.content.messages) {
+          onChange(data.content.messages);
+        }
+      } catch (error) {
+        console.error('Error loading transcript:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load transcript');
+      }
+    };
+
+    // In edit mode, try to load existing transcript first
+    if (editMode && messages.length === 0) {
+      loadExistingTranscript();
     }
-  }, [messages.length, participants.length, onChange, editMode]) // Include onChange as it's used in generateTranscript
+    // In create mode, generate new transcript if we have participants but no messages
+    else if (!editMode && messages.length === 0 && participants.length >= 2) {
+      console.log('Starting automatic transcript generation');
+      generateTranscript();
+    }
+  }, [messages.length, participants.length, editMode, podcastId, onChange])
 
   const generateTranscript = async () => {
-    console.log('Generating transcript...')
+    console.log('Generating transcript...', { podcastId });
     try {
-      setIsGenerating(true)
-      setError(null)
+      setIsGenerating(true);
+      setError(null);
 
-      console.log('Using podcastId:', podcastId)
       if (!podcastId) {
-        throw new Error('No podcast ID found')
+        throw new Error('No podcast ID found');
       }
 
       // Get participants
-      const participantsResponse = await fetch(`/api/participants/podcast/${podcastId}`)
+      const participantsResponse = await fetch(`/api/participants/podcast/${podcastId}`);
       if (!participantsResponse.ok) {
-        throw new Error('Failed to fetch participants')
+        throw new Error('Failed to fetch participants');
       }
-      const participantsList = await participantsResponse.json() as Participant[]
+      const participantsList = await participantsResponse.json();
 
-      // Log the participants we're sending
-      console.log('Sending participants for transcript generation:', participantsList)
+      console.log('Sending participants for transcript generation:', participantsList);
 
       // Generate transcript
       const transcriptResponse = await fetch(`/api/podcasts/${podcastId}/generate-transcript`, {
@@ -202,50 +255,39 @@ export function TranscriptStep({
             voiceCharacteristics: p.voiceCharacteristics
           }))
         })
-      })
+      });
 
       if (!transcriptResponse.ok) {
-        throw new Error('Failed to generate transcript')
+        const errorData = await transcriptResponse.json();
+        throw new Error(errorData.message || 'Failed to generate transcript');
       }
 
-      const transcriptData = await transcriptResponse.json() as { transcript: TranscriptEntry[] }
-      console.log('Transcript data:', transcriptData)
+      const transcriptData = await transcriptResponse.json();
+      console.log('Received transcript data:', transcriptData);
 
-      // Map participants by name (case-insensitive)
-      const participantsByName = new Map<string, Participant>(
-          participantsList.map((p: Participant) => [p.name.toLowerCase(), p])
-      )
+      if (!transcriptData || !transcriptData.transcript) {
+        throw new Error('Invalid transcript data received');
+      }
 
       // Convert the transcript data to messages format
-      const newMessages = transcriptData.transcript.map((entry: TranscriptEntry) => {
-        const participant = participantsByName.get(entry.speakerName.toLowerCase())
-        if (!participant) {
-          console.warn(`No participant found for speaker: ${entry.speakerName}`)
-          // Use first participant as fallback
-          return {
-            participantId: participantsList[0].id,
-            content: entry.text,
-            timing: entry.timeOffset
-          }
-        }
-        return {
-          participantId: participant.id,
-          content: entry.text,
-          timing: entry.timeOffset
-        }
-      })
+      const newMessages = transcriptData.transcript.map(entry => ({
+        participantId: entry.participantId || participantsList.find(p => 
+          p.name.toLowerCase() === entry.speakerName.toLowerCase()
+        )?.id,
+        content: entry.text,
+        timing: entry.timeOffset
+      }));
 
-      console.log('Generated messages:', newMessages)
-
-      onChange(newMessages)
+      console.log('Generated messages:', newMessages);
+      onChange(newMessages);
 
     } catch (err) {
-      console.error('Error generating transcript:', err)
-      setError(err instanceof Error ? err.message : 'Failed to generate transcript')
+      console.error('Error generating transcript:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate transcript');
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
   const updateMessage = (index: number, field: keyof Message, value: any) => {
     const updated = [...messages]
