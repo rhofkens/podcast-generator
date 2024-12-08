@@ -269,14 +269,42 @@ export function TranscriptStep({
         throw new Error('Invalid transcript data received');
       }
 
-      // Convert the transcript data to messages format with proper typing
-      const newMessages = transcriptData.transcript.map((entry) => ({
-        participantId: entry.participantId || participantsList.find((p: ParticipantData) => 
+      // Helper function to ensure valid participantId
+      const getValidParticipantId = (entry: typeof transcriptData.transcript[0], participants: ParticipantData[]): number => {
+        if (entry.participantId) {
+          return entry.participantId;
+        }
+        
+        const participant = participants.find(p => 
           p.name.toLowerCase() === entry.speakerName.toLowerCase()
-        )?.id,
-        content: entry.text,
-        timing: entry.timeOffset
-      }));
+        );
+        
+        if (!participant) {
+          throw new Error(`No matching participant found for speaker: ${entry.speakerName}`);
+        }
+        
+        return participant.id;
+      };
+
+      // Convert the transcript data to messages format with proper typing
+      const newMessages = transcriptData.transcript.map((entry) => {
+        try {
+          const participantId = getValidParticipantId(entry, participantsList);
+          return {
+            participantId,
+            content: entry.text,
+            timing: entry.timeOffset
+          };
+        } catch (error) {
+          console.error('Error mapping transcript entry:', error);
+          // Fallback to first participant if we can't find a match
+          return {
+            participantId: participantsList[0].id,
+            content: entry.text,
+            timing: entry.timeOffset
+          };
+        }
+      });
 
       console.log('Generated messages:', newMessages);
       onChange(newMessages);
