@@ -37,6 +37,7 @@ interface TranscriptStepProps {
 }
 
 export function TranscriptStep({ 
+  podcastId,
   messages, 
   participants, 
   onChange, 
