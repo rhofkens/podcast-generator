@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -104,7 +105,7 @@ public class ContextController {
         }
     }
 
-    @GetMapping("/podcast/{podcastId}")
+    @GetMapping(value = "/podcast/{podcastId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Context> getContextByPodcastId(
             @PathVariable @Positive(message = "Podcast ID must be positive") Long podcastId) {
         log.info("REST request to get context by podcast id: {}", podcastId);
@@ -112,7 +113,9 @@ public class ContextController {
             return contextService.getContextByPodcastId(podcastId)
                     .map(context -> {
                         log.info("Successfully retrieved context for podcast id: {}", podcastId);
-                        return ResponseEntity.ok(context);
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(context);
                     })
                     .orElseGet(() -> {
                         log.warn("Context not found for podcast id: {}", podcastId);
