@@ -204,6 +204,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
           />
         )
       case 3:
+        console.log('Rendering PodcastStep with podcastId:', podcastId)
         return (
           <PodcastStep
             podcastId={podcastId}

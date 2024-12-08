@@ -110,7 +110,11 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
         let ws: PodcastGenerationWebSocket | null = null;
 
         const initializeGeneration = async () => {
-            if (!podcastId) return;
+            if (!podcastId) {
+                console.error('No podcastId provided to PodcastStep');
+                setError('No podcast ID found');
+                return;
+            }
 
             // Fetch initial status
             try {
