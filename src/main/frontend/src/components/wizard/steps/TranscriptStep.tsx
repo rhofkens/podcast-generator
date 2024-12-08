@@ -3,21 +3,21 @@ import { formatTime } from '../../../utils/timeFormat'
 import { cn } from '../../../lib/utils'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
-interface Participant {
+interface ParticipantData {
   id: number
   name: string
-  gender: string
-  age: number
   role: string
   roleDescription: string
   voiceCharacteristics: string
 }
 
-interface TranscriptEntry {
-  speakerName: string
-  timeOffset: number
-  duration: number
-  text: string
+interface TranscriptData {
+  transcript: Array<{
+    participantId?: number
+    speakerName: string
+    text: string
+    timeOffset: number
+  }>
 }
 
 interface Message {
@@ -236,7 +236,7 @@ export function TranscriptStep({
       if (!participantsResponse.ok) {
         throw new Error('Failed to fetch participants');
       }
-      const participantsList = await participantsResponse.json();
+      const participantsList = await participantsResponse.json() as ParticipantData[];
 
       console.log('Sending participants for transcript generation:', participantsList);
 
@@ -247,7 +247,7 @@ export function TranscriptStep({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          participants: participantsList.map(p => ({
+          participants: participantsList.map((p: ParticipantData) => ({
             id: p.id,
             name: p.name,
             role: p.role,
@@ -262,16 +262,16 @@ export function TranscriptStep({
         throw new Error(errorData.message || 'Failed to generate transcript');
       }
 
-      const transcriptData = await transcriptResponse.json();
+      const transcriptData = await transcriptResponse.json() as TranscriptData;
       console.log('Received transcript data:', transcriptData);
 
       if (!transcriptData || !transcriptData.transcript) {
         throw new Error('Invalid transcript data received');
       }
 
-      // Convert the transcript data to messages format
-      const newMessages = transcriptData.transcript.map(entry => ({
-        participantId: entry.participantId || participantsList.find(p => 
+      // Convert the transcript data to messages format with proper typing
+      const newMessages = transcriptData.transcript.map((entry) => ({
+        participantId: entry.participantId || participantsList.find((p: ParticipantData) => 
           p.name.toLowerCase() === entry.speakerName.toLowerCase()
         )?.id,
         content: entry.text,
