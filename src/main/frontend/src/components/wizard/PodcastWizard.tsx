@@ -193,9 +193,8 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
           participantsLength: participants.length,
           localStorage: localStorage.getItem('currentPodcastId')
         })
+        console.log('Participants before filtering:', participants)
         return (
-          console.log('Participants before filtering:', participants);
-          
           <TranscriptStep
             podcastId={podcastId}
             messages={messages}
