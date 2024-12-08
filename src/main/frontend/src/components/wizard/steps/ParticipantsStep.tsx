@@ -249,53 +249,6 @@ export function ParticipantsStep({
     onChange(newParticipants);
   };
 
-  const saveNewParticipants = async () => {
-    try {
-      setError(null);
-      const newParticipants = participants.filter(p => p.isNew);
-      
-      // Validate all new participants before saving
-      const invalidParticipants = newParticipants.filter(
-        p => !p.name || !p.gender || !p.role || !p.roleDescription
-      );
-      
-      if (invalidParticipants.length > 0) {
-        throw new Error('Please fill out all required fields for all participants');
-      }
-
-      // Save all new participants
-      const savedParticipants = await Promise.all(
-        newParticipants.map(participant =>
-          fetch('/api/participants', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              ...participant,
-              podcast: {
-                id: parseInt(podcastId!)
-              }
-            })
-          }).then(res => {
-            if (!res.ok) throw new Error('Failed to save participant');
-            return res.json();
-          })
-        )
-      );
-
-      // Update state with saved participants
-      const updatedParticipants = participants.map(p => 
-        p.isNew ? savedParticipants.shift() : p
-      );
-      onChange(updatedParticipants);
-      
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save participants');
-      return false;
-    }
-  };
 
   const removeParticipant = async (index: number) => {
     try {
