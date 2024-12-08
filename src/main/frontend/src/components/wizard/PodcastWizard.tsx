@@ -194,13 +194,15 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
           localStorage: localStorage.getItem('currentPodcastId')
         })
         return (
+          console.log('Participants before filtering:', participants);
+          
           <TranscriptStep
             podcastId={podcastId}
             messages={messages}
             participants={participants
-              .filter((p): p is Participant & { id: number } => p.id !== undefined)
+              .filter(p => p.id != null)
               .map(p => ({ 
-                id: p.id,
+                id: p.id!,
                 name: p.name 
               }))}
             onChange={setMessages}

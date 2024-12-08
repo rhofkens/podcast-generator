@@ -493,7 +493,9 @@ export function ParticipantsStep({
                     throw new Error(`Failed to ${participant.isNew ? 'create' : 'update'} participant`);
                   }
                   
-                  return response.json();
+                  const savedParticipant = await response.json();
+                  console.log('Saved participant response:', savedParticipant);
+                  return savedParticipant;
                 }));
 
                 // If all saves successful, proceed to next step
