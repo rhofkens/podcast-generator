@@ -52,7 +52,7 @@ export function TranscriptStep({
     participants,
     messagesLength: messages?.length,
     participantsLength: participants?.length,
-    editMode
+    editMode: localEditMode
   });
 
   if (!podcastId) {
@@ -232,7 +232,7 @@ export function TranscriptStep({
       console.log('Starting automatic transcript generation');
       generateTranscript();
     }
-  }, [messages?.length, participants?.length, editMode, podcastId]);
+  }, [messages?.length, participants?.length, localEditMode, podcastId]);
 
   const generateTranscript = async () => {
     console.log('Generating transcript...', { podcastId });
@@ -549,8 +549,8 @@ export function TranscriptStep({
                     throw new Error('No podcast ID found')
                   }
 
-                  const method = editMode ? 'PUT' : 'POST'
-                  const url = editMode
+                  const method = localEditMode ? 'PUT' : 'POST'
+                  const url = localEditMode
                       ? `/api/transcripts/podcast/${podcastId}`
                       : '/api/transcripts'
 
@@ -588,7 +588,7 @@ export function TranscriptStep({
               disabled={messages.length === 0 || isGenerating}
               className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
           >
-            {editMode ? 'Save Changes' : 'Next'}
+            {localEditMode ? 'Save Changes' : 'Next'}
           </button>
         </motion.div>
       </div>
