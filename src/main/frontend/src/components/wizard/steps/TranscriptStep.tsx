@@ -228,7 +228,7 @@ export function TranscriptStep({
       loadExistingTranscript();
     }
     // In create mode, generate new transcript if we have participants but no messages
-    else if (!editMode && (!messages || messages.length === 0) && participants?.length >= 2) {
+    else if (!localEditMode && (!messages || messages.length === 0) && participants?.length >= 2) {
       console.log('Starting automatic transcript generation');
       generateTranscript();
     }
