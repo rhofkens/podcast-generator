@@ -43,8 +43,9 @@ export function TranscriptStep({
                                  onChange,
                                  onBack,
                                  onNext,
-                                 editMode = false
+                                 editMode: propEditMode = false
                                }: TranscriptStepProps) {
+  const [localEditMode, setEditMode] = useState(propEditMode);
   console.log('TranscriptStep initial render:', {
     podcastId,
     messages,
@@ -223,7 +224,7 @@ export function TranscriptStep({
     };
 
     // In edit mode, try to load existing transcript first
-    if (editMode && (!messages || messages.length === 0)) {
+    if (localEditMode && (!messages || messages.length === 0)) {
       loadExistingTranscript();
     }
     // In create mode, generate new transcript if we have participants but no messages
@@ -383,17 +384,25 @@ export function TranscriptStep({
   return (
       <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
         <div className="flex justify-between mb-4">
-          {editMode && (
-              <button
-                  onClick={generateTranscript}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
+          <div className="flex gap-2">
+            {!localEditMode && (
+                <button
+                    onClick={() => setEditMode(true)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                    Edit
+                </button>
+            )}
+            <button
+                onClick={generateTranscript}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
                 Regenerate
-              </button>
-          )}
+            </button>
+          </div>
         </div>
 
-        {editMode ? (
+        {localEditMode ? (
             <motion.div
                 className="flex-1 overflow-y-auto bg-white rounded-lg border p-4 space-y-4 shadow-sm"
                 initial={{ opacity: 0, scale: 0.95 }}
