@@ -13,6 +13,7 @@ interface Participant {
   voicePreviewUrl?: string;
   syntheticVoiceId?: string;
   isNew?: boolean;
+  isDirty?: boolean;
   isGeneratingVoice?: boolean;
 }
 
@@ -232,53 +233,20 @@ export function ParticipantsStep({
     onChange([...participants, newParticipant]);
   };
 
-  const updateParticipant = async (index: number, field: keyof Participant, value: any) => {
-    try {
-      setError(null);
-      const participant = participants[index];
-      
-      // Only clear value on first edit if not in edit mode
-      if (!editMode && !isFieldEdited(index, field)) {
-        value = '';
-      }
-      
-      const updated = { ...participant, [field]: value };
-      
-      if (participant.isNew) {
-        // Just update local state for new participants
-        const newParticipants = [...participants];
-        newParticipants[index] = updated;
-        onChange(newParticipants);
-        return;
-      }
-
-      // Only make API call for existing participants
-      if (participant.id) {
-        const response = await fetch(`/api/participants/${participant.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...updated,
-            podcast: {
-              id: parseInt(podcastId!)
-            }
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update participant');
-        }
-
-        const updatedParticipant = await response.json();
-        const newParticipants = [...participants];
-        newParticipants[index] = updatedParticipant;
-        onChange(newParticipants);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update participant');
+  const updateParticipant = (index: number, field: keyof Participant, value: any) => {
+    // Only clear value on first edit if not in edit mode
+    if (!editMode && !isFieldEdited(index, field)) {
+      value = '';
     }
+    
+    // Just update local state
+    const newParticipants = [...participants];
+    newParticipants[index] = { 
+      ...newParticipants[index], 
+      [field]: value,
+      isDirty: true // Add a flag to track changes
+    };
+    onChange(newParticipants);
   };
 
   const saveNewParticipants = async () => {
@@ -542,11 +510,44 @@ export function ParticipantsStep({
           </button>
           <button
             onClick={async () => {
-              if (participants.some(p => p.isNew)) {
-                const saved = await saveNewParticipants();
-                if (!saved) return;
+              try {
+                setError(null);
+                
+                // Get all participants that need saving (new or modified)
+                const participantsToSave = participants.filter(p => p.isNew || p.isDirty);
+                
+                // Save all modified participants
+                await Promise.all(participantsToSave.map(async (participant) => {
+                  const method = participant.isNew ? 'POST' : 'PUT';
+                  const url = participant.isNew 
+                    ? '/api/participants'
+                    : `/api/participants/${participant.id}`;
+                    
+                  const response = await fetch(url, {
+                    method,
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      ...participant,
+                      podcast: {
+                        id: parseInt(podcastId!)
+                      }
+                    })
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`Failed to ${participant.isNew ? 'create' : 'update'} participant`);
+                  }
+                  
+                  return response.json();
+                }));
+
+                // If all saves successful, proceed to next step
+                onNext();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to save participants');
               }
-              onNext();
             }}
             disabled={!isValid || isLoading}
             className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
