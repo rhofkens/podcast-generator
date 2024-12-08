@@ -38,6 +38,19 @@ export function ParticipantsStep({
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    // Mark all fields as edited when in edit mode
+    if (editMode) {
+      const allFields = new Set<string>();
+      participants.forEach((_, index) => {
+        ['name', 'gender', 'age', 'role', 'roleDescription', 'voiceCharacteristics'].forEach(field => {
+          allFields.add(`${index}-${field}`);
+        });
+      });
+      setEditedFields(allFields);
+    }
+  }, [editMode, participants.length]);
+
+  useEffect(() => {
     console.log('Participants state changed:', participants);
   }, [participants]);
 
