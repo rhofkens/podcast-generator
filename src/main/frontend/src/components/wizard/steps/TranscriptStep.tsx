@@ -47,8 +47,32 @@ export function TranscriptStep({
 }: TranscriptStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
+
+  useEffect(() => {
+    // If in edit mode, mark ALL fields as edited immediately on mount
+    if (editMode) {
+      const allFields = new Set<string>();
+      messages.forEach((_, index) => {
+        ['participantId', 'content', 'timing'].forEach(field => {
+          allFields.add(`${index}-${field}`);
+        });
+      });
+      setEditedFields(allFields);
+    }
+  }, [editMode, messages.length]); // Only depend on editMode and messages length
+
+  const isFieldEdited = (index: number, field: string) => {
+    return editedFields.has(`${index}-${field}`);
+  };
+
+  const handleFieldFocus = (index: number, field: string) => {
+    if (!editMode && !isFieldEdited(index, field)) {
+      setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
+    }
+  };
 
   useEffect(() => {
     if (chatContainerRef.current) {
