@@ -20,17 +20,17 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    // If we're in edit mode, mark all non-empty fields as edited immediately
+    // If in edit mode, mark ALL fields as edited immediately on mount
     if (editMode) {
-      const fieldsToMark = new Set<string>();
-      if (data.title?.trim()) fieldsToMark.add('title');
-      if (data.description?.trim()) fieldsToMark.add('description');
-      if (data.length) fieldsToMark.add('length');
-      if (data.contextDescription?.trim()) fieldsToMark.add('contextDescription');
-      if (data.contextUrl?.trim()) fieldsToMark.add('contextUrl');
-      setEditedFields(fieldsToMark);
+      setEditedFields(new Set([
+        'title',
+        'description',
+        'length',
+        'contextDescription',
+        'contextUrl'
+      ]));
     }
-  }, [editMode, data]); // Include data in dependencies
+  }, [editMode]); // Only run when editMode changes
   
   const handleInputChange = (field: string, value: any) => {
     if (!editMode) {
@@ -68,16 +68,21 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
   const [sampleError, setSampleError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Only load sample data if fields are empty and we're not in edit mode
-    if (!editMode && !data.title && !data.description && !data.contextDescription) {
+    // Only load sample data if we're not in edit mode
+    if (!editMode) {
       loadSampleData()
     } else {
-      // Make sure we stop the loading spinner if we have data
       setIsLoadingSample(false)
     }
-  }, [data.title, data.description, data.contextDescription])
+  }, [editMode]) // Only depend on editMode
 
   const loadSampleData = async () => {
+    // Don't load sample data if in edit mode
+    if (editMode) {
+      setIsLoadingSample(false);
+      return;
+    }
+
     try {
       setIsLoadingSample(true)
       setSampleError(null)
