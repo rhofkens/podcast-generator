@@ -38,17 +38,24 @@ export function ParticipantsStep({
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Mark all fields as edited when in edit mode
+    // If in edit mode, mark ALL fields as edited immediately on mount
     if (editMode) {
       const allFields = new Set<string>();
       participants.forEach((_, index) => {
-        ['name', 'gender', 'age', 'role', 'roleDescription', 'voiceCharacteristics'].forEach(field => {
+        [
+          'name',
+          'gender', 
+          'age',
+          'role',
+          'roleDescription',
+          'voiceCharacteristics'
+        ].forEach(field => {
           allFields.add(`${index}-${field}`);
         });
       });
       setEditedFields(allFields);
     }
-  }, [editMode, participants.length]);
+  }, [editMode, participants.length]); // Only depend on editMode and participants length
 
   useEffect(() => {
     console.log('Participants state changed:', participants);
@@ -65,6 +72,12 @@ export function ParticipantsStep({
   }, [podcastId, editMode]);
 
   const loadSampleParticipants = async () => {
+    // Don't load sample data if in edit mode
+    if (editMode) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -86,6 +99,8 @@ export function ParticipantsStep({
       }));
       
       onChange(sampleParticipants);
+      // Don't mark sample data as edited
+      setEditedFields(new Set());
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load sample participants');
@@ -96,9 +111,9 @@ export function ParticipantsStep({
 
   const handleFieldFocus = (index: number, field: keyof Participant) => {
     if (!editMode && !isFieldEdited(index, field)) {
-      setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
       // Clear the sample value when focusing for the first time in create mode
       updateParticipant(index, field, '');
+      setEditedFields(prev => new Set([...prev, `${index}-${field}`]));
     }
   };
 
