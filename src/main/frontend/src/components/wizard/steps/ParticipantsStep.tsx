@@ -465,17 +465,17 @@ export function ParticipantsStep({
             onClick={async () => {
               try {
                 setError(null);
-                
+                  
                 // Get all participants that need saving (new or modified)
                 const participantsToSave = participants.filter(p => p.isNew || p.isDirty);
-                
-                // Save all modified participants
-                await Promise.all(participantsToSave.map(async (participant) => {
+                  
+                // Save all modified participants and collect the results
+                const savedParticipants = await Promise.all(participantsToSave.map(async (participant) => {
                   const method = participant.isNew ? 'POST' : 'PUT';
                   const url = participant.isNew 
                     ? '/api/participants'
                     : `/api/participants/${participant.id}`;
-                    
+                      
                   const response = await fetch(url, {
                     method,
                     headers: {
@@ -492,11 +492,20 @@ export function ParticipantsStep({
                   if (!response.ok) {
                     throw new Error(`Failed to ${participant.isNew ? 'create' : 'update'} participant`);
                   }
-                  
-                  const savedParticipant = await response.json();
-                  console.log('Saved participant response:', savedParticipant);
-                  return savedParticipant;
+                    
+                  return await response.json();
                 }));
+
+                // Update the participants array with the saved data
+                const updatedParticipants = participants.map(p => {
+                  const savedParticipant = savedParticipants.find(sp => 
+                    (p.id && sp.id === p.id) || (!p.id && sp.name === p.name)
+                  );
+                  return savedParticipant || p;
+                });
+
+                // Update state with saved participants
+                onChange(updatedParticipants);
 
                 // If all saves successful, proceed to next step
                 onNext();
