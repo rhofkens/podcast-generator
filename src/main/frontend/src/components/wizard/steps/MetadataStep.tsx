@@ -253,7 +253,7 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
               onChange={(e) => handleInputChange('title', e.target.value)}
               className={cn(
                 "w-full p-2 border rounded",
-                !editedFields.has('title') && "italic text-gray-400"
+                !editMode && !editedFields.has('title') && "italic text-gray-400"
               )}
               onFocus={() => handleFieldFocus('title')}
             />
@@ -265,7 +265,7 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
               onChange={(e) => handleInputChange('description', e.target.value)}
               className={cn(
                 "w-full p-2 border rounded",
-                !editedFields.has('description') && "italic text-gray-400"
+                !editMode && !editedFields.has('description') && "italic text-gray-400"
               )}
               rows={3}
               onFocus={() => handleFieldFocus('description')}
@@ -279,7 +279,7 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
               onChange={(e) => handleInputChange('length', parseInt(e.target.value))}
               className={cn(
                 "w-full p-2 border rounded",
-                !editedFields.has('length') && "italic text-gray-400"
+                !editMode && !editedFields.has('length') && "italic text-gray-400"
               )}
               min={1}
               onFocus={() => handleFieldFocus('length')}
@@ -298,7 +298,7 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
               onChange={(e) => handleInputChange('contextDescription', e.target.value)}
               className={cn(
                 "w-full p-2 border rounded",
-                !editedFields.has('contextDescription') && "italic text-gray-400"
+                !editMode && !editedFields.has('contextDescription') && "italic text-gray-400"
               )}
               rows={4}
               onFocus={() => handleFieldFocus('contextDescription')}
@@ -312,7 +312,7 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
               onChange={(e) => handleInputChange('contextUrl', e.target.value)}
               className={cn(
                 "w-full p-2 border rounded",
-                !editedFields.has('contextUrl') && "italic text-gray-400"
+                !editMode && !editedFields.has('contextUrl') && "italic text-gray-400"
               )}
               onFocus={() => handleFieldFocus('contextUrl')}
             />
