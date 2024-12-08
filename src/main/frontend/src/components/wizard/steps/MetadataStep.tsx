@@ -104,69 +104,118 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
   }
 
   const handleNext = async () => {
-    console.log('handleNext called', { data });
+    console.log('handleNext called', { data, editMode });
     try {
       setIsSubmitting(true);
       setError(null);
       
-      // Step 1: Create the podcast with basic metadata
-      const podcastData = {
-        title: data.title,
-        description: data.description,
-        length: data.length,
-        status: 'DRAFT',
-        userId: 'dev-user-123'
-      };
-
-      console.log('Creating podcast with data:', podcastData);
+      // Get the existing podcastId from URL if in edit mode
+      const currentPodcastId = window.location.pathname.split('/').pop();
       
-      const podcastResponse = await fetch('/api/podcasts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(podcastData),
-      });
+      if (editMode && currentPodcastId) {
+        // Update existing podcast
+        console.log('Updating existing podcast:', currentPodcastId);
+        
+        const podcastResponse = await fetch(`/api/podcasts/${currentPodcastId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: data.title,
+            description: data.description,
+            length: data.length,
+            status: 'DRAFT',
+            userId: 'dev-user-123'
+          }),
+        });
 
-      if (!podcastResponse.ok) {
-        const errorData = await podcastResponse.json();
-        throw new Error(errorData.message || 'Failed to create podcast');
-      }
-
-      const podcast = await podcastResponse.json();
-      console.log('Created podcast:', podcast);
-      
-      // Step 2: Create the context and associate it with the podcast
-      const contextData = {
-        descriptionText: data.contextDescription,
-        sourceUrl: data.contextUrl || null,
-        podcast: {
-          id: podcast.id
+        if (!podcastResponse.ok) {
+          const errorData = await podcastResponse.json();
+          throw new Error(errorData.message || 'Failed to update podcast');
         }
-      };
 
-      // Verify the structure before sending
-      console.log('Context data before fetch:', contextData);
-      console.log('Stringified context data:', JSON.stringify(contextData));
-      
-      const contextResponse = await fetch('/api/contexts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contextData),
-      });
+        // Update existing context
+        const contextResponse = await fetch(`/api/contexts/podcast/${currentPodcastId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            descriptionText: data.contextDescription,
+            sourceUrl: data.contextUrl || null,
+            podcast: {
+              id: parseInt(currentPodcastId)
+            }
+          }),
+        });
 
-      if (!contextResponse.ok) {
-        const errorData = await contextResponse.json();
-        throw new Error(errorData.message || 'Failed to create context');
+        if (!contextResponse.ok) {
+          const errorData = await contextResponse.json();
+          throw new Error(errorData.message || 'Failed to update context');
+        }
+
+        // Store the podcast ID for later use
+        localStorage.setItem('currentPodcastId', currentPodcastId);
+        
+      } else {
+        // Create new podcast
+        const podcastData = {
+          title: data.title,
+          description: data.description,
+          length: data.length,
+          status: 'DRAFT',
+          userId: 'dev-user-123'
+        };
+
+        console.log('Creating podcast with data:', podcastData);
+        
+        const podcastResponse = await fetch('/api/podcasts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(podcastData),
+        });
+
+        if (!podcastResponse.ok) {
+          const errorData = await podcastResponse.json();
+          throw new Error(errorData.message || 'Failed to create podcast');
+        }
+
+        const podcast = await podcastResponse.json();
+        console.log('Created podcast:', podcast);
+        
+        // Create the context and associate it with the podcast
+        const contextData = {
+          descriptionText: data.contextDescription,
+          sourceUrl: data.contextUrl || null,
+          podcast: {
+            id: podcast.id
+          }
+        };
+
+        console.log('Context data before fetch:', contextData);
+        
+        const contextResponse = await fetch('/api/contexts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contextData),
+        });
+
+        if (!contextResponse.ok) {
+          const errorData = await contextResponse.json();
+          throw new Error(errorData.message || 'Failed to create context');
+        }
+
+        const context = await contextResponse.json();
+        console.log('Created context:', context);
+
+        // Store the podcast ID for later use
+        localStorage.setItem('currentPodcastId', podcast.id.toString());
       }
-
-      const context = await contextResponse.json();
-      console.log('Created context:', context);
-
-      // Store the podcast ID for later use
-      localStorage.setItem('currentPodcastId', podcast.id.toString());
       
       onNext();
     } catch (error) {
