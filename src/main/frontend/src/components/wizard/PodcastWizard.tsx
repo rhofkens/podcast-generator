@@ -146,6 +146,8 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
 
 
   const renderStep = () => {
+    console.log('PodcastWizard renderStep - current podcastId:', podcastId)
+    
     if (isLoading) {
       return (
         <div className="flex justify-center items-center h-64">
@@ -170,7 +172,10 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
             podcastId={podcastId}
             participants={participants}
             onChange={setParticipants}
-            onNext={() => setCurrentStep(2)}
+            onNext={() => {
+              console.log('TranscriptStep onNext called, podcastId:', podcastId)
+              setCurrentStep(2)
+            }}
             onBack={() => setCurrentStep(0)}
           />
         )
@@ -185,7 +190,8 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
               name: p.name 
             })),
           messagesLength: messages.length,
-          participantsLength: participants.length
+          participantsLength: participants.length,
+          localStorage: localStorage.getItem('currentPodcastId')
         })
         return (
           <TranscriptStep
@@ -199,7 +205,10 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
               }))}
             onChange={setMessages}
             onBack={() => setCurrentStep(1)}
-            onNext={() => setCurrentStep(3)}
+            onNext={() => {
+              console.log('TranscriptStep onNext called, podcastId:', podcastId)
+              setCurrentStep(3)
+            }}
             editMode={editMode}
           />
         )

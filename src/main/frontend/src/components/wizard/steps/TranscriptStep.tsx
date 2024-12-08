@@ -441,7 +441,7 @@ export function TranscriptStep({
         <button
           onClick={async () => {
             try {
-              const podcastId = localStorage.getItem('currentPodcastId')
+              // Use the podcastId from props instead of localStorage
               if (!podcastId) {
                 throw new Error('No podcast ID found')
               }
@@ -474,7 +474,10 @@ export function TranscriptStep({
                 throw new Error('Failed to save transcript')
               }
 
-              onNext()  // Use onNext from props
+              // After successful save, ensure the podcastId is still in localStorage
+              localStorage.setItem('currentPodcastId', podcastId)
+              
+              onNext()
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Failed to save transcript')
             }
