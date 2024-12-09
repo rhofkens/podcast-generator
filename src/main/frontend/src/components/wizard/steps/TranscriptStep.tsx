@@ -544,15 +544,19 @@ export function TranscriptStep({
           <button
               onClick={async () => {
                 try {
-                  // Use the podcastId from props instead of localStorage
                   if (!podcastId) {
                     throw new Error('No podcast ID found')
                   }
 
-                  const method = localEditMode ? 'PUT' : 'POST'
-                  const url = localEditMode
-                      ? `/api/transcripts/podcast/${podcastId}`
-                      : '/api/transcripts'
+                  // First check if a transcript already exists
+                  const checkResponse = await fetch(`/api/transcripts/podcast/${podcastId}`);
+                  const transcriptExists = checkResponse.ok;
+
+                  // Choose method based on existence
+                  const method = transcriptExists ? 'PUT' : 'POST';
+                  const url = transcriptExists
+                    ? `/api/transcripts/podcast/${podcastId}`
+                    : '/api/transcripts';
 
                   const response = await fetch(url, {
                     method,
@@ -571,16 +575,16 @@ export function TranscriptStep({
                         }))
                       }
                     })
-                  })
+                  });
 
                   if (!response.ok) {
-                    throw new Error('Failed to save transcript')
+                    throw new Error(`Failed to ${transcriptExists ? 'update' : 'save'} transcript`)
                   }
 
                   // After successful save, ensure the podcastId is still in localStorage
-                  localStorage.setItem('currentPodcastId', podcastId)
+                  localStorage.setItem('currentPodcastId', podcastId);
 
-                  onNext()
+                  onNext();
                 } catch (err) {
                   setError(err instanceof Error ? err.message : 'Failed to save transcript')
                 }
