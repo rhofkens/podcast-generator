@@ -7,6 +7,7 @@ import { LeftNav } from './components/layout/LeftNav'
 import { PodcastListPage } from './pages/PodcastListPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { PodcastWizard } from './components/wizard/PodcastWizard'
+import { PodcastEditView } from './components/podcast/PodcastEditView'
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
               <Route path="/" element={<Navigate to="/podcasts" />} />
               <Route path="/podcasts" element={<PodcastListPage />} />
               <Route path="/podcasts/new" element={<PodcastWizard editMode={false} />} />
-              <Route path="/podcasts/edit/:id" element={<PodcastWizard editMode={true} />} />
+              <Route path="/podcasts/edit/:id" element={<PodcastEditView />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </main>
