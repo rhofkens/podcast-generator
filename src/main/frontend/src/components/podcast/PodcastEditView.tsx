@@ -1,6 +1,37 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs'
+
+interface PodcastMetadata {
+  title: string
+  description: string
+  length: number
+  contextDescription: string
+  contextUrl?: string
+}
+
+interface Participant {
+  id: number
+  name: string
+  gender: string
+  age: number
+  role: string
+  roleDescription: string
+  voiceCharacteristics: string
+  voicePreviewUrl?: string
+}
+
+interface TranscriptMessage {
+  participantId: number
+  content: string
+  timing: number
+}
+
+interface Transcript {
+  content: {
+    messages: TranscriptMessage[]
+  }
+}
 import { Button } from '../ui/button'
 import { MetadataTab } from './edit-tabs/MetadataTab'
 import { ParticipantsTab } from './edit-tabs/ParticipantsTab'
@@ -26,9 +57,9 @@ export function PodcastEditView() {
   const [isLoading, setIsLoading] = useState(false)
 
   // Track changes in each tab
-  const [metadata, setMetadata] = useState(null)
-  const [participants, setParticipants] = useState([])
-  const [transcript, setTranscript] = useState(null)
+  const [metadata, setMetadata] = useState<PodcastMetadata | null>(null)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [transcript, setTranscript] = useState<Transcript | null>(null)
 
   useEffect(() => {
     loadPodcastData()
@@ -70,6 +101,8 @@ export function PodcastEditView() {
   }
 
   const handleSave = async () => {
+    if (!metadata || !id) return
+
     setIsLoading(true)
     try {
       // Save all changes using PUT endpoints
@@ -91,7 +124,7 @@ export function PodcastEditView() {
           body: JSON.stringify({
             descriptionText: metadata.contextDescription,
             sourceUrl: metadata.contextUrl,
-            podcast: { id: parseInt(id!) }
+            podcast: { id: parseInt(id) }
           })
         }),
         // Save participants
@@ -101,20 +134,20 @@ export function PodcastEditView() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               ...participant,
-              podcast: { id: parseInt(id!) }
+              podcast: { id: parseInt(id) }
             })
           })
         ),
         // Save transcript
-        fetch(`/api/transcripts/podcast/${id}`, {
+        transcript && fetch(`/api/transcripts/podcast/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: transcript,
-            podcast: { id: parseInt(id!) }
+            content: transcript.content,
+            podcast: { id: parseInt(id) }
           })
         })
-      ])
+      ].filter(Boolean)) // Filter out null values from Promise.all
 
       setHasUnsavedChanges(false)
     } catch (error) {
@@ -148,19 +181,21 @@ export function PodcastEditView() {
         </TabsList>
 
         <TabsContent value="metadata">
-          <MetadataTab 
-            data={metadata} 
-            onChange={(data) => {
-              setMetadata(data)
-              setHasUnsavedChanges(true)
-            }} 
-          />
+          {metadata && (
+            <MetadataTab 
+              data={metadata} 
+              onChange={(data: PodcastMetadata) => {
+                setMetadata(data)
+                setHasUnsavedChanges(true)
+              }} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="participants">
           <ParticipantsTab 
             participants={participants}
-            onChange={(data) => {
+            onChange={(data: Participant[]) => {
               setParticipants(data)
               setHasUnsavedChanges(true)
             }}
@@ -168,14 +203,16 @@ export function PodcastEditView() {
         </TabsContent>
 
         <TabsContent value="transcript">
-          <TranscriptTab 
-            transcript={transcript}
-            participants={participants}
-            onChange={(data) => {
-              setTranscript(data)
-              setHasUnsavedChanges(true)
-            }}
-          />
+          {transcript && (
+            <TranscriptTab 
+              transcript={transcript}
+              participants={participants}
+              onChange={(data: Transcript) => {
+                setTranscript(data)
+                setHasUnsavedChanges(true)
+              }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="generate">
