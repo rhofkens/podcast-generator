@@ -35,6 +35,7 @@ interface TranscriptStepProps {
   onNext: () => void;
   editMode?: boolean;
   hideControls?: boolean;
+  hideNavigation?: boolean;
 }
 
 export function TranscriptStep({
@@ -533,12 +534,13 @@ export function TranscriptStep({
             </motion.div>
         )}
 
-        <motion.div
-            className="flex justify-between mt-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-        >
+        {!hideNavigation && (
+          <motion.div
+              className="flex justify-between mt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+          >
           <button
               onClick={onBack}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -598,7 +600,8 @@ export function TranscriptStep({
           >
             {localEditMode ? 'Save Changes' : 'Next'}
           </button>
-        </motion.div>
+          </motion.div>
+        )}
       </div>
   )
 }
