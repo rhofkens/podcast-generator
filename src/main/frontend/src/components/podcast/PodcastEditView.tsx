@@ -119,7 +119,9 @@ export function PodcastEditView() {
           body: JSON.stringify({
             title: metadata.title,
             description: metadata.description,
-            length: metadata.length
+            length: metadata.length,
+            userId: 'dev-user-123',
+            status: 'DRAFT'
           })
         }),
         // Save context
