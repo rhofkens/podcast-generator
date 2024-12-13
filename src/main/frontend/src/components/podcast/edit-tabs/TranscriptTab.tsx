@@ -1,5 +1,4 @@
 import { TranscriptStep } from '../../wizard/steps/TranscriptStep'
-import { useState } from 'react'
 
 interface TranscriptTabProps {
   transcript: any
@@ -9,8 +8,6 @@ interface TranscriptTabProps {
 }
 
 export function TranscriptTab({ transcript, participants, onChange, podcastId }: TranscriptTabProps) {
-  const [localEditMode, setLocalEditMode] = useState(false);
-
   // Transform the transcript data into the expected format
   const messages = Array.isArray(transcript) 
     ? transcript[0]?.content?.messages || transcript[0]?.messages || []
