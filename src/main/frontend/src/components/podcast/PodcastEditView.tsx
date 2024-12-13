@@ -124,16 +124,35 @@ export function PodcastEditView() {
             status: 'DRAFT'
           })
         }),
-        // Save context
-        fetch(`/api/contexts/podcast/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            descriptionText: metadata.contextDescription,
-            sourceUrl: metadata.contextUrl,
-            podcast: { id: parseInt(id) }
-          })
-        }),
+      
+        // For context, first get the context ID then update it
+        (async () => {
+          // Get the context for this podcast
+          const contextResponse = await fetch(`/api/contexts/podcast/${id}`);
+          if (!contextResponse.ok) {
+            throw new Error('Failed to fetch context');
+          }
+          const existingContext = await contextResponse.json();
+        
+          // Update the context using its ID
+          const updateResponse = await fetch(`/api/contexts/${existingContext.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: existingContext.id,
+              descriptionText: metadata.contextDescription,
+              sourceUrl: metadata.contextUrl,
+              podcast: { id: parseInt(id) }
+            })
+          });
+        
+          if (!updateResponse.ok) {
+            throw new Error('Failed to update context');
+          }
+        
+          return updateResponse.json();
+        })(),
+      
         // Save participants
         ...participants.map(participant => 
           fetch(`/api/participants/${participant.id}`, {
