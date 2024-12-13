@@ -4,13 +4,14 @@ interface TranscriptTabProps {
   transcript: any
   participants: any[]
   onChange: (transcript: any) => void
+  podcastId: string
 }
 
-export function TranscriptTab({ transcript, participants, onChange }: TranscriptTabProps) {
+export function TranscriptTab({ transcript, participants, onChange, podcastId }: TranscriptTabProps) {
   return (
     <div className="bg-white rounded-lg shadow">
       <TranscriptStep
-        podcastId={null} // Will be handled by parent
+        podcastId={podcastId}
         messages={transcript?.content?.messages || transcript?.messages || []}
         participants={participants.map(p => ({ id: p.id, name: p.name }))}
         onChange={onChange}
