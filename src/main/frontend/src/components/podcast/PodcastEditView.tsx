@@ -83,6 +83,13 @@ export function PodcastEditView() {
         transcriptRes.json()
       ])
 
+      console.log('PodcastEditView loaded data:', {
+        podcast,
+        context,
+        participants,
+        transcript
+      });
+
       setMetadata({
         title: podcast.title,
         description: podcast.description,
