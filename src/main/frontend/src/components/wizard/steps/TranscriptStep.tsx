@@ -555,18 +555,9 @@ export function TranscriptStep({
                     throw new Error('No podcast ID found')
                   }
 
-                  // First check if a transcript already exists
-                  const checkResponse = await fetch(`/api/transcripts/podcast/${podcastId}`);
-                  const transcriptExists = checkResponse.ok;
-
-                  // Choose method based on existence
-                  const method = transcriptExists ? 'PUT' : 'POST';
-                  const url = transcriptExists
-                    ? `/api/transcripts/podcast/${podcastId}`
-                    : '/api/transcripts';
-
-                  const response = await fetch(url, {
-                    method,
+                  // Create new transcript
+                  const response = await fetch('/api/transcripts', {
+                    method: 'POST',
                     headers: {
                       'Content-Type': 'application/json'
                     },
@@ -585,7 +576,7 @@ export function TranscriptStep({
                   });
 
                   if (!response.ok) {
-                    throw new Error(`Failed to ${transcriptExists ? 'update' : 'save'} transcript`)
+                    throw new Error('Failed to save transcript')
                   }
 
                   // After successful save, ensure the podcastId is still in localStorage
