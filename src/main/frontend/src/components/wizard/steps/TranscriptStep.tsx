@@ -34,6 +34,7 @@ interface TranscriptStepProps {
   onBack: () => void;
   onNext: () => void;
   editMode?: boolean;
+  hideControls?: boolean;
 }
 
 export function TranscriptStep({
@@ -383,24 +384,26 @@ export function TranscriptStep({
 
   return (
       <div className="p-6 flex flex-col h-[calc(100vh-200px)]">
-        <div className="flex justify-between mb-4">
-          <div className="flex gap-2">
-            {!localEditMode && (
-                <button
-                    onClick={() => setEditMode(true)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                    Edit
-                </button>
-            )}
-            <button
-                onClick={generateTranscript}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-                Regenerate
-            </button>
+        {!hideControls && (
+          <div className="flex justify-between mb-4">
+            <div className="flex gap-2">
+              {!localEditMode && (
+                  <button
+                      onClick={() => setEditMode(true)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                      Edit
+                  </button>
+              )}
+              <button
+                  onClick={generateTranscript}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                  Regenerate
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {localEditMode ? (
             <motion.div
