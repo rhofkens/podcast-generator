@@ -44,7 +44,7 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
         }}
         onNext={() => {}} // Not used in edit mode
         onBack={() => {}} // Not used in edit mode
-        editMode={localEditMode}
+        editMode={true}
       />
     </div>
   )
