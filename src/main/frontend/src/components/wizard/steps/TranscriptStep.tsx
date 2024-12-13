@@ -555,29 +555,25 @@ export function TranscriptStep({
                     throw new Error('No podcast ID found')
                   }
 
-                  // First check if a transcript already exists
-                  const checkResponse = await fetch(`/api/transcripts/podcast/${podcastId}`);
-                  if (!checkResponse.ok) {
-                    throw new Error('Failed to check existing transcript');
+                  // First get the transcript ID
+                  const transcriptResponse = await fetch(`/api/transcripts/${podcastId}`);
+                  if (!transcriptResponse.ok) {
+                    throw new Error('Failed to fetch transcript');
                   }
                   
-                  const existingTranscripts = await checkResponse.json();
-                  const transcriptId = Array.isArray(existingTranscripts) ? 
-                    existingTranscripts[0]?.id : 
-                    existingTranscripts?.id;
-
-                  if (!transcriptId) {
+                  const transcript = await transcriptResponse.json();
+                  if (!transcript?.id) {
                     throw new Error('No transcript ID found');
                   }
 
-                  // Use the existing PUT /{id} endpoint
-                  const response = await fetch(`/api/transcripts/${transcriptId}`, {
+                  // Use the direct PUT endpoint with the transcript ID
+                  const updateResponse = await fetch(`/api/transcripts/${transcript.id}`, {
                     method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                      id: transcriptId,
+                      id: transcript.id,
                       podcast: {
                         id: parseInt(podcastId)
                       },
@@ -591,13 +587,11 @@ export function TranscriptStep({
                     })
                   });
 
-                  if (!response.ok) {
+                  if (!updateResponse.ok) {
                     throw new Error('Failed to update transcript')
                   }
 
-                  // After successful save, ensure the podcastId is still in localStorage
                   localStorage.setItem('currentPodcastId', podcastId);
-
                   onNext();
                 } catch (err) {
                   setError(err instanceof Error ? err.message : 'Failed to save transcript')
