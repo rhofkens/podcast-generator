@@ -1,4 +1,6 @@
 import { TranscriptStep } from '../../wizard/steps/TranscriptStep'
+import { useState } from 'react'
+import { Button } from '../../ui/button'
 
 interface TranscriptTabProps {
   transcript: any
@@ -8,15 +10,9 @@ interface TranscriptTabProps {
 }
 
 export function TranscriptTab({ transcript, participants, onChange, podcastId }: TranscriptTabProps) {
-  // Add logging to debug the incoming data
-  console.log('TranscriptTab received:', {
-    transcript,
-    participants,
-    podcastId
-  });
+  const [localEditMode, setLocalEditMode] = useState(false);
 
   // Transform the transcript data into the expected format
-  // Handle both array and object formats
   const messages = Array.isArray(transcript) 
     ? transcript[0]?.content?.messages || transcript[0]?.messages || []
     : transcript?.content?.messages || transcript?.messages || [];
@@ -27,19 +23,39 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
     name: p.name 
   }));
 
-  console.log('TranscriptTab formatted data:', {
-    messages,
-    formattedParticipants
-  });
-
   return (
     <div className="bg-white rounded-lg shadow">
+      <div className="flex justify-between p-4">
+        <div className="flex gap-2">
+          {!localEditMode && (
+            <Button
+              variant="outline"
+              onClick={() => setLocalEditMode(true)}
+            >
+              Edit
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Trigger transcript regeneration
+              // This will be handled by the TranscriptStep component
+              const transcriptStep = document.querySelector('button[aria-label="Regenerate"]');
+              if (transcriptStep) {
+                (transcriptStep as HTMLButtonElement).click();
+              }
+            }}
+          >
+            Regenerate
+          </Button>
+        </div>
+      </div>
+
       <TranscriptStep
         podcastId={podcastId}
         messages={messages}
         participants={formattedParticipants}
         onChange={(updatedMessages) => {
-          // Transform the data back to the expected format before calling onChange
           // Transform the data back to the expected format before calling onChange
           const updatedTranscript = Array.isArray(transcript)
             ? [{
@@ -58,7 +74,7 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
         }}
         onNext={() => {}} // Not used in edit mode
         onBack={() => {}} // Not used in edit mode
-        editMode={true}
+        editMode={localEditMode}
       />
     </div>
   )
