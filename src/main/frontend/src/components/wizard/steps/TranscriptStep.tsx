@@ -557,20 +557,27 @@ export function TranscriptStep({
 
                   // First check if a transcript already exists
                   const checkResponse = await fetch(`/api/transcripts/podcast/${podcastId}`);
-                  const transcriptExists = checkResponse.ok;
+                  if (!checkResponse.ok) {
+                    throw new Error('Failed to check existing transcript');
+                  }
+                  
+                  const existingTranscripts = await checkResponse.json();
+                  const transcriptId = Array.isArray(existingTranscripts) ? 
+                    existingTranscripts[0]?.id : 
+                    existingTranscripts?.id;
 
-                  // Choose method based on existence
-                  const method = transcriptExists ? 'PUT' : 'POST';
-                  const url = transcriptExists
-                    ? `/api/transcripts/podcast/${podcastId}`
-                    : '/api/transcripts';
+                  if (!transcriptId) {
+                    throw new Error('No transcript ID found');
+                  }
 
-                  const response = await fetch(url, {
-                    method,
+                  // Use the existing PUT /{id} endpoint
+                  const response = await fetch(`/api/transcripts/${transcriptId}`, {
+                    method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                      id: transcriptId,
                       podcast: {
                         id: parseInt(podcastId)
                       },
@@ -585,7 +592,7 @@ export function TranscriptStep({
                   });
 
                   if (!response.ok) {
-                    throw new Error(`Failed to ${transcriptExists ? 'update' : 'save'} transcript`)
+                    throw new Error('Failed to update transcript')
                   }
 
                   // After successful save, ensure the podcastId is still in localStorage
