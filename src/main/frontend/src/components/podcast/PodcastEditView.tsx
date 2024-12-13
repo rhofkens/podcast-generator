@@ -165,14 +165,28 @@ export function PodcastEditView() {
           })
         ),
         // Save transcript
-        transcript && fetch(`/api/transcripts/podcast/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: transcript.content,
-            podcast: { id: parseInt(id) }
-          })
-        })
+        transcript && (async () => {
+          // First get the transcript ID
+          const transcriptResponse = await fetch(`/api/transcripts/podcast/${id}`);
+          if (!transcriptResponse.ok) {
+            throw new Error('Failed to fetch transcript');
+          }
+          const transcripts = await transcriptResponse.json();
+          if (!transcripts || !transcripts[0]?.id) {
+            throw new Error('No transcript ID found');
+          }
+
+          // Use the direct PUT endpoint with the transcript ID
+          return fetch(`/api/transcripts/${transcripts[0].id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: transcripts[0].id,
+              podcast: { id: parseInt(id) },
+              content: transcript.content
+            })
+          });
+        })()
       ].filter(Boolean)) // Filter out null values from Promise.all
 
       setHasUnsavedChanges(false)
