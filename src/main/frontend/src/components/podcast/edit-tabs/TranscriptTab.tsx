@@ -1,6 +1,5 @@
 import { TranscriptStep } from '../../wizard/steps/TranscriptStep'
 import { useState } from 'react'
-import { Button } from '../../ui/button'
 
 interface TranscriptTabProps {
   transcript: any
@@ -25,32 +24,6 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <div className="flex justify-between p-4">
-        <div className="flex gap-2">
-          {!localEditMode && (
-            <Button
-              variant="outline"
-              onClick={() => setLocalEditMode(true)}
-            >
-              Edit
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Trigger transcript regeneration
-              // This will be handled by the TranscriptStep component
-              const transcriptStep = document.querySelector('button[aria-label="Regenerate"]');
-              if (transcriptStep) {
-                (transcriptStep as HTMLButtonElement).click();
-              }
-            }}
-          >
-            Regenerate
-          </Button>
-        </div>
-      </div>
-
       <TranscriptStep
         podcastId={podcastId}
         messages={messages}
