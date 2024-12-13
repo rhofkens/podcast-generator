@@ -24,6 +24,7 @@ interface ParticipantsStepProps {
   onNext: () => void;
   onBack: () => void;
   editMode?: boolean;
+  hideControls?: boolean;
 }
 
 export function ParticipantsStep({ 
@@ -32,7 +33,8 @@ export function ParticipantsStep({
   onChange, 
   onNext, 
   onBack,
-  editMode = false 
+  editMode = false,
+  hideControls = false
 }: ParticipantsStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -454,7 +456,8 @@ export function ParticipantsStep({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="flex justify-between mt-6">
+        !hideControls && (
+          <div className="flex justify-between mt-6">
           <button
             onClick={onBack}
             className="px-4 py-2 border rounded hover:bg-gray-50"

@@ -15,6 +15,7 @@ export function ParticipantsTab({ participants, onChange }: ParticipantsTabProps
         onNext={() => {}} // Not used in edit mode
         onBack={() => {}} // Not used in edit mode
         editMode={true}
+        hideControls={true}
       />
     </div>
   )
