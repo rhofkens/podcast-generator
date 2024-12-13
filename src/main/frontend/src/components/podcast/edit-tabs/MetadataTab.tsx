@@ -18,6 +18,7 @@ export function MetadataTab({ data, onChange }: MetadataTabProps) {
         }}
         onNext={() => {}} // Not used in edit mode
         editMode={true}
+        hideControls={true}
       />
     </div>
   )

@@ -14,9 +14,16 @@ interface MetadataStepProps {
   onChange: (field: string, value: any) => void
   onNext: () => void
   editMode?: boolean
+  hideControls?: boolean
 }
 
-export function MetadataStep({ data, onChange, onNext, editMode = false }: MetadataStepProps) {
+export function MetadataStep({ 
+  data, 
+  onChange, 
+  onNext, 
+  editMode = false,
+  hideControls = false 
+}: MetadataStepProps) {
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -347,22 +354,24 @@ export function MetadataStep({ data, onChange, onNext, editMode = false }: Metad
         </div>
       </section>
 
-      <div className="flex flex-col gap-4">
-        {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-lg">
-            {error}
+      {!hideControls && (
+        <div className="flex flex-col gap-4">
+          {error && (
+            <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+              {error}
+            </div>
+          )}
+          <div className="flex justify-end">
+            <button
+              onClick={handleNext}
+              disabled={!isValid || isSubmitting}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+            >
+              {isSubmitting ? 'Creating...' : 'Next'}
+            </button>
           </div>
-        )}
-        <div className="flex justify-end">
-          <button
-            onClick={handleNext}
-            disabled={!isValid || isSubmitting}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
-          >
-            {isSubmitting ? 'Creating...' : 'Next'}
-          </button>
         </div>
-      </div>
+      )}
     </div>
   )
 }
