@@ -44,7 +44,8 @@ export function TranscriptStep({
                                  onChange,
                                  onBack,
                                  onNext,
-                                 editMode: propEditMode = false
+                                 editMode: propEditMode = false,
+                                 hideControls = false
                                }: TranscriptStepProps) {
   const [localEditMode, setEditMode] = useState(propEditMode);
   console.log('TranscriptStep initial render:', {
