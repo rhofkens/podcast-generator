@@ -83,12 +83,7 @@ export function PodcastEditView() {
         transcriptRes.json()
       ])
 
-      console.log('PodcastEditView loaded data:', {
-        podcast,
-        context,
-        participants,
-        transcript
-      });
+      console.log('PodcastEditView loaded transcript data:', transcript);
 
       setMetadata({
         title: podcast.title,
@@ -98,7 +93,10 @@ export function PodcastEditView() {
         contextUrl: context?.sourceUrl
       })
       setParticipants(participants)
-      setTranscript(transcript)
+    
+      // Ensure transcript is in the correct format before setting state
+      const formattedTranscript = Array.isArray(transcript) ? transcript[0] : transcript;
+      setTranscript(formattedTranscript)
       
     } catch (error) {
       console.error('Error loading podcast data:', error)
