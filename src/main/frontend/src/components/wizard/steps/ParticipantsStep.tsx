@@ -455,9 +455,8 @@ export function ParticipantsStep({
         <div className="flex justify-center py-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      ) : (
-        !hideControls && (
-          <div className="flex justify-between mt-6">
+      ) : !hideControls && (
+        <div className="flex justify-between mt-6">
           <button
             onClick={onBack}
             className="px-4 py-2 border rounded hover:bg-gray-50"
