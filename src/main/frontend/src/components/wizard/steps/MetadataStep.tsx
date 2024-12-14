@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from 'react'
 import { cn } from '../../../lib/utils'
 import { useDropzone } from 'react-dropzone'
+import { Button } from "@/components/ui/button"
 
 interface MetadataStepProps {
   data: {
@@ -73,6 +74,36 @@ export function MetadataStep({
   const [error, setError] = useState<string | null>(null)
   const [isLoadingSample, setIsLoadingSample] = useState(true)
   const [sampleError, setSampleError] = useState<string | null>(null)
+  const [isExtracting, setIsExtracting] = useState(false)
+  const [extractError, setExtractError] = useState<string | null>(null)
+
+  const handleExtractContext = async () => {
+    if (!data.contextUrl?.trim()) {
+      return
+    }
+
+    try {
+      setIsExtracting(true)
+      setExtractError(null)
+
+      const response = await fetch(`/api/contexts/scrape?url=${encodeURIComponent(data.contextUrl)}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to extract context')
+      }
+
+      const extractedContent = await response.json()
+      handleInputChange('contextDescription', extractedContent)
+      setEditedFields(prev => new Set([...prev, 'contextDescription']))
+      
+    } catch (error) {
+      console.error('Error extracting context:', error)
+      setExtractError(error instanceof Error ? error.message : 'Failed to extract context')
+    } finally {
+      setIsExtracting(false)
+    }
+  }
 
   useEffect(() => {
     // Only load sample data if we're not in edit mode
@@ -322,16 +353,37 @@ export function MetadataStep({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">URL (optional)</label>
-            <input
-              type="url"
-              value={data.contextUrl}
-              onChange={(e) => handleInputChange('contextUrl', e.target.value)}
-              className={cn(
-                "w-full p-2 border rounded",
-                (!editMode && !editedFields.has('contextUrl')) ? "italic text-gray-400" : "text-gray-900"
-              )}
-              onFocus={() => handleFieldFocus('contextUrl')}
-            />
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={data.contextUrl}
+                onChange={(e) => handleInputChange('contextUrl', e.target.value)}
+                className={cn(
+                  "flex-1 p-2 border rounded",
+                  (!editMode && !editedFields.has('contextUrl')) ? "italic text-gray-400" : "text-gray-900"
+                )}
+                onFocus={() => handleFieldFocus('contextUrl')}
+              />
+              <Button
+                onClick={handleExtractContext}
+                disabled={!data.contextUrl?.trim() || isExtracting}
+                className="whitespace-nowrap"
+              >
+                {isExtracting ? (
+                  <>
+                    <span className="animate-spin mr-2">⭮</span>
+                    Extracting...
+                  </>
+                ) : (
+                  'Extract Context'
+                )}
+              </Button>
+            </div>
+            {extractError && (
+              <p className="text-sm text-red-500 mt-1">
+                {extractError}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">File Upload (optional)</label>
