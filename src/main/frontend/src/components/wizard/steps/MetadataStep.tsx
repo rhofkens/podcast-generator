@@ -94,12 +94,16 @@ export function MetadataStep({
       }
 
       const scrapedData = await response.json()
+      console.log('Scraped data:', scrapedData) // For debugging
       
       // Update both title and context if they haven't been edited
       if (!editedFields.has('title')) {
-        handleInputChange('title', scrapedData.title)
+        handleInputChange('title', scrapedData.title || '')
+        setEditedFields(prev => new Set([...prev, 'title']))
       }
-      handleInputChange('contextDescription', scrapedData.content)
+      
+      // Make sure we're using the content field from the DTO
+      handleInputChange('contextDescription', scrapedData.content || '')
       setEditedFields(prev => new Set([...prev, 'contextDescription']))
       
     } catch (error) {
