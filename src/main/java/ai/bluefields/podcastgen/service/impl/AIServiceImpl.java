@@ -447,4 +447,48 @@ public class AIServiceImpl implements AIService {
             throw new RuntimeException("Audio generation failed", e);
         }
     }
+
+    @Override
+    public String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription) {
+        log.info("Rewriting scraped content for podcast: {}", podcastTitle);
+        
+        String promptText = String.format("""
+            Rewrite the following content to be more natural and podcast-friendly.
+            The content should be engaging and suitable for a podcast discussion.
+            
+            Podcast Title: %s
+            Podcast Description: %s
+            
+            Original Content:
+            %s
+            
+            Requirements:
+            1. Maintain all key information and facts from the original
+            2. Make it more conversational and engaging
+            3. Break up long paragraphs into digestible segments
+            4. Remove any web-specific formatting or references
+            5. Keep technical terms but explain them naturally
+            6. Aim for a clear, flowing narrative
+            7. Make it suitable for spoken discussion
+            
+            Return only the rewritten content, no additional formatting or metadata.
+            """,
+            podcastTitle,
+            podcastDescription,
+            scrapedText
+        );
+        
+        try {
+            Prompt prompt = new Prompt(promptText);
+            ChatResponse response = chatClient.call(prompt);
+            String rewrittenContent = response.getResult().getOutput().getContent();
+            
+            log.debug("Successfully rewrote content, new length: {} chars", rewrittenContent.length());
+            return rewrittenContent;
+            
+        } catch (Exception e) {
+            log.error("Failed to rewrite content: {}", e.getMessage(), e);
+            throw new RuntimeException("Content rewriting failed: " + e.getMessage(), e);
+        }
+    }
 }
