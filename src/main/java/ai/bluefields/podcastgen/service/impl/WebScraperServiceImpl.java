@@ -77,38 +77,55 @@ public class WebScraperServiceImpl implements WebScraperService {
     }
     
     private void extractContent(Element container, List<String> contentParts) {
+        // Add null check for container
+        if (container == null) {
+            log.warn("Container element is null, skipping content extraction");
+            return;
+        }
+
         // Get the title if present
         Elements title = container.select("h1");
-        if (!title.isEmpty()) {
-            contentParts.add(title.first().text());
+        if (!title.isEmpty() && title.first() != null) {
+            String titleText = title.first().text();
+            if (titleText != null && !titleText.trim().isEmpty()) {
+                contentParts.add(titleText);
+            }
         }
         
         // Get all paragraphs
         Elements paragraphs = container.select("p");
         for (Element p : paragraphs) {
-            String text = p.text().trim();
-            if (!text.isEmpty()) {
-                contentParts.add(text);
+            if (p != null) {
+                String text = p.text();
+                if (text != null && !text.trim().isEmpty()) {
+                    contentParts.add(text);
+                }
             }
         }
         
         // Get all headers
         Elements headers = container.select("h2, h3, h4, h5, h6");
         for (Element header : headers) {
-            String text = header.text().trim();
-            if (!text.isEmpty()) {
-                contentParts.add(text);
+            if (header != null) {
+                String text = header.text();
+                if (text != null && !text.trim().isEmpty()) {
+                    contentParts.add(text);
+                }
             }
         }
         
         // Get list items
         Elements lists = container.select("ul, ol");
         for (Element list : lists) {
-            Elements items = list.select("li");
-            for (Element item : items) {
-                String text = item.text().trim();
-                if (!text.isEmpty()) {
-                    contentParts.add("• " + text);
+            if (list != null) {
+                Elements items = list.select("li");
+                for (Element item : items) {
+                    if (item != null) {
+                        String text = item.text();
+                        if (text != null && !text.trim().isEmpty()) {
+                            contentParts.add("• " + text);
+                        }
+                    }
                 }
             }
         }
