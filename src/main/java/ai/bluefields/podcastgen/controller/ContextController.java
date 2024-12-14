@@ -2,6 +2,7 @@ package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.model.Context;
 import ai.bluefields.podcastgen.service.ContextService;
+import ai.bluefields.podcastgen.service.WebScraperService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ public class ContextController {
 
     private static final Logger log = LoggerFactory.getLogger(ContextController.class);
     private final ContextService contextService;
+    private final WebScraperService webScraperService;
 
     @GetMapping
     public ResponseEntity<List<Context>> getAllContexts() {
@@ -151,6 +153,19 @@ public class ContextController {
                     });
         } catch (Exception e) {
             log.error("Error updating context for podcast {}: {}", podcastId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/scrape")
+    public ResponseEntity<String> scrapeUrl(@RequestParam String url) {
+        log.info("REST request to scrape URL: {}", url);
+        try {
+            String content = webScraperService.scrapeUrl(url);
+            log.info("Successfully scraped content from URL: {}", url);
+            return ResponseEntity.ok(content);
+        } catch (Exception e) {
+            log.error("Error scraping URL {}: {}", url, e.getMessage(), e);
             throw e;
         }
     }
