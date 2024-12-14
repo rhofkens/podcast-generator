@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.service.impl;
 
+import ai.bluefields.podcastgen.dto.ScrapedContentDTO;
 import ai.bluefields.podcastgen.service.WebScraperService;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
