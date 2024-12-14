@@ -1,6 +1,7 @@
 package ai.bluefields.podcastgen.service.impl;
 
 import ai.bluefields.podcastgen.dto.ScrapedContentDTO;
+import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.WebScraperService;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -22,6 +23,8 @@ public class WebScraperServiceImpl implements WebScraperService {
     
     private static final Logger log = LoggerFactory.getLogger(WebScraperServiceImpl.class);
     private static final int TIMEOUT_MILLIS = 10000;
+    
+    private final AIService aiService;
 
     @Override
     public ScrapedContentDTO scrapeUrl(String urlString) {
@@ -52,17 +55,24 @@ public class WebScraperServiceImpl implements WebScraperService {
             }
             
             // Join all content parts with newlines
-            String content = String.join("\n\n", contentParts);
+            String rawContent = String.join("\n\n", contentParts);
             
             // Cleanup the content
-            content = cleanupContent(content);
+            String cleanedContent = cleanupContent(rawContent);
             
             // Get page title
             String title = doc.title();
+
+            // Use AI service to rewrite content for podcast context
+            String rewrittenContent = aiService.rewriteScrapedContent(
+                cleanedContent,
+                title,
+                "Podcast about " + title
+            );
             
-            log.info("Successfully scraped content from URL: {}", urlString);
+            log.info("Successfully scraped and processed content from URL: {}", urlString);
             return ScrapedContentDTO.builder()
-                .content(content)
+                .content(rewrittenContent)
                 .sourceUrl(urlString)
                 .title(title)
                 .build();
