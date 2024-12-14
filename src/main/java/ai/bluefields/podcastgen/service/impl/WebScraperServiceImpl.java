@@ -56,8 +56,15 @@ public class WebScraperServiceImpl implements WebScraperService {
             // Cleanup the content
             content = cleanupContent(content);
             
+            // Get page title
+            String title = doc.title();
+            
             log.info("Successfully scraped content from URL: {}", urlString);
-            return content;
+            return ScrapedContentDTO.builder()
+                .content(content)
+                .sourceUrl(urlString)
+                .title(title)
+                .build();
             
         } catch (IOException e) {
             log.error("Failed to scrape URL {}: {}", urlString, e.getMessage(), e);
