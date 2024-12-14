@@ -93,8 +93,13 @@ export function MetadataStep({
         throw new Error(errorData.message || 'Failed to extract context')
       }
 
-      const extractedContent = await response.json()
-      handleInputChange('contextDescription', extractedContent)
+      const scrapedData = await response.json()
+      
+      // Update both title and context if they haven't been edited
+      if (!editedFields.has('title')) {
+        handleInputChange('title', scrapedData.title)
+      }
+      handleInputChange('contextDescription', scrapedData.content)
       setEditedFields(prev => new Set([...prev, 'contextDescription']))
       
     } catch (error) {

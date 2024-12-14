@@ -23,7 +23,7 @@ public class WebScraperServiceImpl implements WebScraperService {
     private static final int TIMEOUT_MILLIS = 10000;
 
     @Override
-    public String scrapeUrl(String urlString) {
+    public ScrapedContentDTO scrapeUrl(String urlString) {
         log.info("Starting to scrape URL: {}", urlString);
         
         try {

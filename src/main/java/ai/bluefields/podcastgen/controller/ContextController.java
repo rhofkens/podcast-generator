@@ -158,10 +158,10 @@ public class ContextController {
     }
 
     @GetMapping("/scrape")
-    public ResponseEntity<String> scrapeUrl(@RequestParam String url) {
+    public ResponseEntity<ScrapedContentDTO> scrapeUrl(@RequestParam String url) {
         log.info("REST request to scrape URL: {}", url);
         try {
-            String content = webScraperService.scrapeUrl(url);
+            ScrapedContentDTO content = webScraperService.scrapeUrl(url);
             log.info("Successfully scraped content from URL: {}", url);
             return ResponseEntity.ok(content);
         } catch (Exception e) {
