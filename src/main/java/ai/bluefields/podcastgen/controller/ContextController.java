@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.controller;
 
+import ai.bluefields.podcastgen.dto.ScrapedContentDTO;
 import ai.bluefields.podcastgen.model.Context;
 import ai.bluefields.podcastgen.service.ContextService;
 import ai.bluefields.podcastgen.service.WebScraperService;
