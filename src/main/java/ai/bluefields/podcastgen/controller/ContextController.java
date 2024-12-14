@@ -26,6 +26,7 @@ public class ContextController {
     private static final Logger log = LoggerFactory.getLogger(ContextController.class);
     private final ContextService contextService;
     private final WebScraperService webScraperService;
+    private final DocumentProcessorService documentProcessorService;
 
     @GetMapping
     public ResponseEntity<List<Context>> getAllContexts() {
@@ -154,6 +155,20 @@ public class ContextController {
                     });
         } catch (Exception e) {
             log.error("Error updating context for podcast {}: {}", podcastId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/extract-document")
+    public ResponseEntity<ScrapedContentDTO> extractDocumentContent(
+            @RequestParam("file") MultipartFile file) {
+        log.info("REST request to extract content from document: {}", file.getOriginalFilename());
+        try {
+            ScrapedContentDTO content = documentProcessorService.extractContent(file);
+            log.info("Successfully extracted content from document: {}", file.getOriginalFilename());
+            return ResponseEntity.ok(content);
+        } catch (Exception e) {
+            log.error("Error extracting content from document: {}", e.getMessage(), e);
             throw e;
         }
     }

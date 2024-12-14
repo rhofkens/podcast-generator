@@ -77,6 +77,43 @@ export function MetadataStep({
   const [isExtracting, setIsExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
 
+  const handleExtractDocument = async () => {
+    if (!data.contextFile) {
+      return;
+    }
+
+    try {
+      setIsExtracting(true);
+      setExtractError(null);
+
+      const formData = new FormData();
+      formData.append('file', data.contextFile);
+
+      const response = await fetch('/api/contexts/extract-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to extract document content');
+      }
+
+      const extractedData = await response.json();
+      console.log('Extracted data:', extractedData);
+
+      // Update the context description with the extracted content
+      handleInputChange('contextDescription', extractedData.content || '');
+      setEditedFields(prev => new Set([...prev, 'contextDescription']));
+
+    } catch (error) {
+      console.error('Error extracting document content:', error);
+      setExtractError(error instanceof Error ? error.message : 'Failed to extract document content');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   const handleExtractContext = async () => {
     if (!data.contextUrl?.trim()) {
       return
@@ -396,20 +433,43 @@ export function MetadataStep({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">File Upload (optional)</label>
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
-                ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}`}
-            >
-              <input {...getInputProps()} />
-              {data.contextFile ? (
-                <p>Selected file: {data.contextFile.name}</p>
-              ) : (
-                <p>Drop a file here, or click to select</p>
+            <div className="space-y-2">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer
+                  ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}`}
+              >
+                <input {...getInputProps()} />
+                {data.contextFile ? (
+                  <p>Selected file: {data.contextFile.name}</p>
+                ) : (
+                  <p>Drop a file here, or click to select</p>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  Supported formats: PDF, DOCX, TXT, PPT
+                </p>
+              </div>
+              {data.contextFile && (
+                <Button
+                  onClick={handleExtractDocument}
+                  disabled={isExtracting}
+                  className="w-full"
+                >
+                  {isExtracting ? (
+                    <>
+                      <span className="animate-spin mr-2">⭮</span>
+                      Extracting...
+                    </>
+                  ) : (
+                    'Extract Document Content'
+                  )}
+                </Button>
               )}
-              <p className="text-sm text-gray-500 mt-2">
-                Supported formats: PDF, DOCX, TXT, PPT
-              </p>
+              {extractError && (
+                <p className="text-sm text-red-500 mt-1">
+                  {extractError}
+                </p>
+              )}
             </div>
           </div>
         </div>
