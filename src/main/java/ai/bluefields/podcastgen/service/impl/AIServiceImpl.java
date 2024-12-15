@@ -2,11 +2,9 @@ package ai.bluefields.podcastgen.service.impl;
 
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.model.Participant;
-import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 @RequiredArgsConstructor
 public class AIServiceImpl implements AIService {
     private static final Logger log = LoggerFactory.getLogger(AIServiceImpl.class);
-    
+
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     
