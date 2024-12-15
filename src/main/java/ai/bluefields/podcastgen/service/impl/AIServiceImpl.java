@@ -135,9 +135,8 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating transcript with prompt: {}", promptText);
         
         try {
-            Prompt prompt = new Prompt(promptText);
-            ChatResponse response = chatClient.call(prompt);
-            String aiResponse = response.getResult().getOutput().getContent();
+            Message userMessage = new UserMessage(promptText);
+            String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
             
             log.debug("Received AI response: {}", aiResponse);
             
@@ -203,9 +202,8 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating participant suggestions with prompt: {}", promptText);
         
         try {
-            Prompt prompt = new Prompt(promptText);
-            ChatResponse response = chatClient.call(prompt);
-            String aiResponse = response.getResult().getOutput().getContent();
+            Message userMessage = new UserMessage(promptText);
+            String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
             
             log.debug("Received AI response: {}", aiResponse);
             
@@ -243,9 +241,8 @@ public class AIServiceImpl implements AIService {
             Make it interesting and creative, but keep it professional.
             """;
         
-        Prompt prompt = new Prompt(promptText);
-        ChatResponse response = chatClient.call(prompt);
-        String aiResponse = response.getResult().getOutput().getContent();
+        Message userMessage = new UserMessage(promptText);
+        String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
@@ -479,9 +476,8 @@ public class AIServiceImpl implements AIService {
         );
         
         try {
-            Prompt prompt = new Prompt(promptText);
-            ChatResponse response = chatClient.call(prompt);
-            String rewrittenContent = response.getResult().getOutput().getContent();
+            Message userMessage = new UserMessage(promptText);
+            String rewrittenContent = chatClient.call(userMessage).getResult().getOutput().getContent();
             
             log.debug("Successfully rewrote content, new length: {} chars", rewrittenContent.length());
             return rewrittenContent;
