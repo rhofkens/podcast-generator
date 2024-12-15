@@ -131,13 +131,12 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating transcript with prompt: {}", promptText);
         
         try {
-            String aiResponse = chatClient.prompt()
+            ChatResponse response = chatClient.prompt()
                 .user(promptText)
                 .call()
-                .getResult()
-                .getOutput()
-                .getContent();
-            
+                .chatResponse();
+                
+            String aiResponse = response.getResult().getOutput().getContent();
             log.debug("Received AI response: {}", aiResponse);
             
             JsonNode transcript = objectMapper.readTree(aiResponse);
@@ -202,13 +201,12 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating participant suggestions with prompt: {}", promptText);
         
         try {
-            String aiResponse = chatClient.prompt()
+            ChatResponse response = chatClient.prompt()
                 .user(promptText)
                 .call()
-                .getResult()
-                .getOutput()
-                .getContent();
-            
+                .chatResponse();
+                
+            String aiResponse = response.getResult().getOutput().getContent();
             log.debug("Received AI response: {}", aiResponse);
             
             try {
@@ -245,12 +243,12 @@ public class AIServiceImpl implements AIService {
             Make it interesting and creative, but keep it professional.
             """;
         
-        String aiResponse = chatClient.prompt()
+        ChatResponse response = chatClient.prompt()
             .user(promptText)
             .call()
-            .getResult()
-            .getOutput()
-            .getContent();
+            .chatResponse();
+            
+        String aiResponse = response.getResult().getOutput().getContent();
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
@@ -484,13 +482,12 @@ public class AIServiceImpl implements AIService {
         );
         
         try {
-            String rewrittenContent = chatClient.prompt()
+            ChatResponse response = chatClient.prompt()
                 .user(promptText)
                 .call()
-                .getResult()
-                .getOutput()
-                .getContent();
-            
+                .chatResponse();
+                
+            String rewrittenContent = response.getResult().getOutput().getContent();
             log.debug("Successfully rewrote content, new length: {} chars", rewrittenContent.length());
             return rewrittenContent;
             
