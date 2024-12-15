@@ -1,8 +1,8 @@
 package ai.bluefields.podcastgen.config;
 
-import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.openai.OpenAiChatClient;
+
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
