@@ -6,6 +6,7 @@ import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.DocumentProcessorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
@@ -91,15 +92,21 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
             throw new IllegalArgumentException("Content type cannot be null");
         }
         
-        // Use absolute path instead of relative path
-        String absolutePath = file.getAbsolutePath();
-        
-        return switch (contentType.toLowerCase()) {
-            case "application/pdf" -> new PagePdfDocumentReader(absolutePath);
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> 
-                new TikaDocumentReader(absolutePath);
-            default -> throw new IllegalArgumentException("Unsupported file type: " + contentType);
-        };
+        try {
+            // Convert File to Resource
+            org.springframework.core.io.Resource resource = 
+                new org.springframework.core.io.FileSystemResource(file);
+            
+            return switch (contentType.toLowerCase()) {
+                case "application/pdf" -> new PagePdfDocumentReader(resource);
+                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> 
+                    new TikaDocumentReader(resource);
+                default -> throw new IllegalArgumentException("Unsupported file type: " + contentType);
+            };
+        } catch (Exception e) {
+            log.error("Failed to create document reader for file {}: {}", file.getName(), e.getMessage());
+            throw new RuntimeException("Failed to create document reader: " + e.getMessage(), e);
+        }
     }
     
     private String getFileExtension(String filename) {
