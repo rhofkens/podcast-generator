@@ -30,10 +30,13 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
     @Override
     public ScrapedContentDTO extractContent(MultipartFile file) {
         log.info("Starting to process document: {}", file.getOriginalFilename());
+        File tempFile = null;
         
         try {
-            // Convert MultipartFile to temporary File
-            File tempFile = convertMultipartFileToFile(file);
+            // Create temp file with original extension
+            String extension = getFileExtension(file.getOriginalFilename());
+            tempFile = File.createTempFile("upload_", extension);
+            file.transferTo(tempFile);
             
             // Create document reader based on file type
             DocumentReader reader = createDocumentReader(tempFile, file.getContentType());
@@ -45,9 +48,6 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
             String content = documents.stream()
                 .map(Document::getContent)
                 .collect(Collectors.joining("\n\n"));
-            
-            // Clean up temp file
-            tempFile.delete();
             
             // Process through AI service
             String rewrittenContent = aiService.rewriteScrapedContent(
@@ -67,6 +67,14 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
         } catch (Exception e) {
             log.error("Error processing document: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to process document: " + e.getMessage(), e);
+        } finally {
+            // Clean up temp file
+            if (tempFile != null && tempFile.exists()) {
+                boolean deleted = tempFile.delete();
+                if (!deleted) {
+                    log.warn("Failed to delete temporary file: {}", tempFile.getAbsolutePath());
+                }
+            }
         }
     }
     
@@ -83,10 +91,13 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
             throw new IllegalArgumentException("Content type cannot be null");
         }
         
+        // Use absolute path instead of relative path
+        String absolutePath = file.getAbsolutePath();
+        
         return switch (contentType.toLowerCase()) {
-            case "application/pdf" -> new PagePdfDocumentReader(file.getPath());
+            case "application/pdf" -> new PagePdfDocumentReader(absolutePath);
             case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> 
-                new TikaDocumentReader(file.getPath());
+                new TikaDocumentReader(absolutePath);
             default -> throw new IllegalArgumentException("Unsupported file type: " + contentType);
         };
     }
