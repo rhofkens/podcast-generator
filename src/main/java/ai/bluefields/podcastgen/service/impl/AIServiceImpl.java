@@ -3,6 +3,7 @@ package ai.bluefields.podcastgen.service.impl;
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.model.Participant;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
