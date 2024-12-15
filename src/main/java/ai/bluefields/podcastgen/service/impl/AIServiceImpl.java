@@ -2,7 +2,7 @@ package ai.bluefields.podcastgen.service.impl;
 
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.model.Participant;
-import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
