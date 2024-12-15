@@ -116,7 +116,9 @@ public class AIServiceImpl implements AIService {
                - Ensure timeOffset values are sequential
                - Duration must reflect realistic speaking pace
                - Total of all durations plus pauses must equal %d seconds
-               - JSON must be valid and match the specified structure
+               - JSON must be valid and match the specified structure exactly
+               
+            IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """,
             podcastTitle,
             podcastDescription,
@@ -139,26 +141,38 @@ public class AIServiceImpl implements AIService {
                 .map(ChatResponse::getResult)
                 .map(result -> result.getOutput().getContent())
                 .orElseThrow(() -> new RuntimeException("No response received from AI service"));
-            log.debug("Received AI response: {}", aiResponse);
+
+            // Clean up the response by removing markdown formatting
+            String cleanedResponse = aiResponse
+                .replaceAll("```json\\s*", "") // Remove opening markdown
+                .replaceAll("```\\s*$", "")    // Remove closing markdown
+                .trim();                       // Remove any extra whitespace
+                
+            log.debug("Cleaned AI response: {}", cleanedResponse);
             
-            JsonNode transcript = objectMapper.readTree(aiResponse);
-            
-            // Validate total duration
-            int totalDuration = 0;
-            JsonNode segments = transcript.get("transcript");
-            if (segments != null && segments.isArray()) {
-                for (JsonNode segment : segments) {
-                    totalDuration += segment.get("duration").asInt();
+            try {
+                JsonNode transcript = objectMapper.readTree(cleanedResponse);
+                
+                // Validate total duration
+                int totalDuration = 0;
+                JsonNode segments = transcript.get("transcript");
+                if (segments != null && segments.isArray()) {
+                    for (JsonNode segment : segments) {
+                        totalDuration += segment.get("duration").asInt();
+                    }
                 }
+                
+                int expectedDuration = lengthInMinutes * 60;
+                if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
+                    log.warn("Generated transcript duration ({} seconds) significantly differs from target ({} seconds)", 
+                            totalDuration, expectedDuration);
+                }
+                
+                return transcript;
+            } catch (Exception e) {
+                log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
+                throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
             }
-            
-            int expectedDuration = lengthInMinutes * 60;
-            if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
-                log.warn("Generated transcript duration ({} seconds) significantly differs from target ({} seconds)", 
-                        totalDuration, expectedDuration);
-            }
-            
-            return transcript;
         } catch (Exception e) {
             log.error("Failed to generate or parse transcript: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
