@@ -193,7 +193,7 @@ public class AIServiceImpl implements AIService {
             Make the participants diverse but relevant to the topic. Their roles and expertise should complement each other 
             and create an interesting dynamic for the podcast discussion.
             
-            IMPORTANT: Response must be valid JSON only, no additional text or explanations.
+            IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """, 
             podcastTitle,
             podcastDescription,
@@ -212,12 +212,19 @@ public class AIServiceImpl implements AIService {
                 .map(ChatResponse::getResult)
                 .map(result -> result.getOutput().getContent())
                 .orElseThrow(() -> new RuntimeException("No response received from AI service"));
-            log.debug("Received AI response: {}", aiResponse);
+
+            // Clean up the response by removing markdown formatting
+            String cleanedResponse = aiResponse
+                .replaceAll("```json\\s*", "") // Remove opening markdown
+                .replaceAll("```\\s*$", "")    // Remove closing markdown
+                .trim();                       // Remove any extra whitespace
+                
+            log.debug("Cleaned AI response: {}", cleanedResponse);
             
             try {
-                return objectMapper.readTree(aiResponse);
+                return objectMapper.readTree(cleanedResponse);
             } catch (Exception e) {
-                log.error("Failed to parse AI response as JSON: {}", aiResponse, e);
+                log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
                 throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
             }
         } catch (Exception e) {
