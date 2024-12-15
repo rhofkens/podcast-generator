@@ -59,6 +59,8 @@ export function MetadataStep({
     }
   }, [onChange])
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -67,7 +69,8 @@ export function MetadataStep({
       'text/plain': ['.txt'],
       'application/vnd.ms-powerpoint': ['.ppt']
     },
-    maxFiles: 1
+    maxFiles: 1,
+    maxSize: MAX_FILE_SIZE
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)

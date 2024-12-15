@@ -1,6 +1,10 @@
 spring:
   application:
     name: podcast-generator
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
   datasource:
     url: jdbc:postgresql://localhost:5432/podcast_db
     username: podcastadmin
