@@ -39,9 +39,6 @@ public class AIServiceImpl implements AIService {
     @Value("${elevenlabs.api.voice-settings.similarity-boost:0.75}")
     private double similarityBoost;
 
-    @Value("${elevenlabs.api.language-code:en}")
-    private String languageCode;
-
     @Value("${elevenlabs.api.model-id:eleven_multilingual_v2}")
     private String modelId;
 
@@ -137,7 +134,10 @@ public class AIServiceImpl implements AIService {
                 .call()
                 .chatResponse();
                 
-            String aiResponse = response.getResult().getOutput().getContent();
+            String aiResponse = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"));
             log.debug("Received AI response: {}", aiResponse);
             
             JsonNode transcript = objectMapper.readTree(aiResponse);
@@ -207,7 +207,10 @@ public class AIServiceImpl implements AIService {
                 .call()
                 .chatResponse();
                 
-            String aiResponse = response.getResult().getOutput().getContent();
+            String aiResponse = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"));
             log.debug("Received AI response: {}", aiResponse);
             
             try {
@@ -249,7 +252,10 @@ public class AIServiceImpl implements AIService {
             .call()
             .chatResponse();
             
-        String aiResponse = response.getResult().getOutput().getContent();
+        String aiResponse = Optional.ofNullable(response)
+            .map(ChatResponse::getResult)
+            .map(result -> result.getOutput().getContent())
+            .orElseThrow(() -> new RuntimeException("No response received from AI service"));
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
@@ -319,7 +325,7 @@ public class AIServiceImpl implements AIService {
             JsonNode responseJson = objectMapper.readTree(response.getBody());
             JsonNode previews = responseJson.get("previews");
             
-            if (previews == null || !previews.isArray() || previews.size() == 0) {
+            if (previews == null || !previews.isArray() || previews.isEmpty()) {
                 throw new RuntimeException("No voice previews received from API");
             }
             
@@ -336,7 +342,7 @@ public class AIServiceImpl implements AIService {
             
             // Generate unique filename
             String filename = String.format("voice-preview-%s-%s.mp3", 
-                UUID.randomUUID().toString(),
+                UUID.randomUUID(),
                 generatedVoiceId);
             
             Path filePath = Paths.get(voicePreviewsPath, filename);
@@ -488,7 +494,10 @@ public class AIServiceImpl implements AIService {
                 .call()
                 .chatResponse();
                 
-            String rewrittenContent = response.getResult().getOutput().getContent();
+            String rewrittenContent = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"));
             log.debug("Successfully rewrote content, new length: {} chars", rewrittenContent.length());
             return rewrittenContent;
             
