@@ -77,16 +77,20 @@ export function MetadataStep({
   const [error, setError] = useState<string | null>(null)
   const [isLoadingSample, setIsLoadingSample] = useState(true)
   const [sampleError, setSampleError] = useState<string | null>(null)
-  const [isExtracting, setIsExtracting] = useState(false)
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false)
+  const [isExtractingDoc, setIsExtractingDoc] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
 
-  const handleExtractDocument = async () => {
+  const handleExtractDocument = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!data.contextFile) {
       return;
     }
 
     try {
-      setIsExtracting(true);
+      setIsExtractingDoc(true);
       setExtractError(null);
 
       const formData = new FormData();
@@ -113,17 +117,20 @@ export function MetadataStep({
       console.error('Error extracting document content:', error);
       setExtractError(error instanceof Error ? error.message : 'Failed to extract document content');
     } finally {
-      setIsExtracting(false);
+      setIsExtractingDoc(false);
     }
   };
 
-  const handleExtractContext = async () => {
+  const handleExtractContext = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!data.contextUrl?.trim()) {
       return
     }
 
     try {
-      setIsExtracting(true)
+      setIsExtractingUrl(true)
       setExtractError(null)
 
       const response = await fetch(`/api/contexts/scrape?url=${encodeURIComponent(data.contextUrl)}`)
@@ -150,7 +157,7 @@ export function MetadataStep({
       console.error('Error extracting context:', error)
       setExtractError(error instanceof Error ? error.message : 'Failed to extract context')
     } finally {
-      setIsExtracting(false)
+      setIsExtractingUrl(false)
     }
   }
 
@@ -415,10 +422,10 @@ export function MetadataStep({
               />
               <Button
                 onClick={handleExtractContext}
-                disabled={!data.contextUrl?.trim() || isExtracting}
+                disabled={!data.contextUrl?.trim() || isExtractingUrl}
                 className="whitespace-nowrap"
               >
-                {isExtracting ? (
+                {isExtractingUrl ? (
                   <>
                     <span className="animate-spin mr-2">⭮</span>
                     Extracting...
@@ -455,10 +462,10 @@ export function MetadataStep({
               {data.contextFile && (
                 <Button
                   onClick={handleExtractDocument}
-                  disabled={isExtracting}
+                  disabled={isExtractingDoc}
                   className="w-full"
                 >
-                  {isExtracting ? (
+                  {isExtractingDoc ? (
                     <>
                       <span className="animate-spin mr-2">⭮</span>
                       Extracting...
