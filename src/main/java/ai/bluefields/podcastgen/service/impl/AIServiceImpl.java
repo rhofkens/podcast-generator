@@ -5,8 +5,6 @@ import ai.bluefields.podcastgen.model.Participant;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -133,8 +131,12 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating transcript with prompt: {}", promptText);
         
         try {
-            Message userMessage = new UserMessage(promptText);
-            String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
+            String aiResponse = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .getResult()
+                .getOutput()
+                .getContent();
             
             log.debug("Received AI response: {}", aiResponse);
             
@@ -200,8 +202,12 @@ public class AIServiceImpl implements AIService {
         log.debug("Generating participant suggestions with prompt: {}", promptText);
         
         try {
-            Message userMessage = new UserMessage(promptText);
-            String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
+            String aiResponse = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .getResult()
+                .getOutput()
+                .getContent();
             
             log.debug("Received AI response: {}", aiResponse);
             
@@ -239,8 +245,12 @@ public class AIServiceImpl implements AIService {
             Make it interesting and creative, but keep it professional.
             """;
         
-        Message userMessage = new UserMessage(promptText);
-        String aiResponse = chatClient.call(userMessage).getResult().getOutput().getContent();
+        String aiResponse = chatClient.prompt()
+            .user(promptText)
+            .call()
+            .getResult()
+            .getOutput()
+            .getContent();
         try {
             return objectMapper.readTree(aiResponse);
         } catch (Exception e) {
@@ -474,8 +484,12 @@ public class AIServiceImpl implements AIService {
         );
         
         try {
-            Message userMessage = new UserMessage(promptText);
-            String rewrittenContent = chatClient.call(userMessage).getResult().getOutput().getContent();
+            String rewrittenContent = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .getResult()
+                .getOutput()
+                .getContent();
             
             log.debug("Successfully rewrote content, new length: {} chars", rewrittenContent.length());
             return rewrittenContent;
