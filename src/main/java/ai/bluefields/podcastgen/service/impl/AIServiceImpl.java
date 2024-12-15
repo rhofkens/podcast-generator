@@ -245,22 +245,35 @@ public class AIServiceImpl implements AIService {
             - No social media links
             - Must be a specific article or page, not just a homepage
             
-            Make it interesting and creative, but keep it professional.
+            IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """;
         
-        ChatResponse response = chatClient.prompt()
-            .user(promptText)
-            .call()
-            .chatResponse();
-            
-        String aiResponse = Optional.ofNullable(response)
-            .map(ChatResponse::getResult)
-            .map(result -> result.getOutput().getContent())
-            .orElseThrow(() -> new RuntimeException("No response received from AI service"));
         try {
-            return objectMapper.readTree(aiResponse);
+            ChatResponse response = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .chatResponse();
+                
+            String aiResponse = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"));
+
+            // Clean up the response by removing markdown formatting if present
+            String cleanedResponse = aiResponse
+                .replaceAll("```json\\s*", "") // Remove opening markdown
+                .replaceAll("```\\s*$", "")    // Remove closing markdown
+                .trim();                       // Remove any extra whitespace
+
+            try {
+                return objectMapper.readTree(cleanedResponse);
+            } catch (Exception e) {
+                log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
+                throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse AI response", e);
+            log.error("Error during AI podcast suggestion generation: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate podcast suggestion: " + e.getMessage(), e);
         }
     }
 
