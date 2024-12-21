@@ -5,7 +5,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../resources/static',
+    outDir: '../../target/classes/static',
     emptyOutDir: true
   },
   server: {
