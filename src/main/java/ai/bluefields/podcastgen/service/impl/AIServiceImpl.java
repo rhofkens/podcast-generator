@@ -194,18 +194,24 @@ public class AIServiceImpl implements AIService {
                         "name": "full name",
                         "gender": "male/female",
                         "age": number between 25-65,
-                        "role": "professional role or title",
-                        "roleDescription": "detailed description of their expertise and relevance (max 200 chars)",
+                        "role": "Interview host",
+                        "roleDescription": "Professional podcast host with expertise relevant to the topic (max 200 chars)",
                         "voiceCharacteristics": "description of their speaking style and voice qualities"
                     },
                     {
-                        // second participant with same structure
+                        "name": "full name",
+                        "gender": "male/female",
+                        "age": number between 25-65,
+                        "role": "professional role or title",
+                        "roleDescription": "detailed description of their expertise and relevance (max 200 chars)",
+                        "voiceCharacteristics": "description of their speaking style and voice qualities"
                     }
                 ]
             }
             
-            Make the participants diverse but relevant to the topic. Their roles and expertise should complement each other 
-            and create an interesting dynamic for the podcast discussion.
+            Make the participants diverse but relevant to the topic. The first participant must be an interview host, 
+            while the second participant should be an expert or professional in the field being discussed. Their roles 
+            and expertise should complement each other and create an interesting dynamic for the podcast discussion.
             
             IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """, 
