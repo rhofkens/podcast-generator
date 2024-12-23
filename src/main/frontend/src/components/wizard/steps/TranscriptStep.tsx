@@ -84,6 +84,40 @@ export function TranscriptStep({
       </div>
     );
   }
+  console.log('TranscriptStep initial render:', {
+    podcastId,
+    messages,
+    participants,
+    messagesLength: messages?.length,
+    participantsLength: participants?.length,
+    editMode: localEditMode
+  });
+
+  if (!podcastId) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+          No podcast ID found. Please start from the beginning.
+        </div>
+      </div>
+    );
+  }
+
+  if (!participants || participants.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg">
+          No participants found. Please add participants first.
+        </div>
+        <button
+          onClick={onBack}
+          className="mt-4 px-4 py-2 border rounded hover:bg-gray-50"
+        >
+          Back
+        </button>
+      </div>
+    );
+  }
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
