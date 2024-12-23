@@ -1,4 +1,6 @@
 import { TranscriptStep } from '../../wizard/steps/TranscriptStep'
+import { Button } from '../../ui/button'
+import { useState } from 'react'
 
 interface TranscriptTabProps {
   transcript: any
@@ -8,16 +10,62 @@ interface TranscriptTabProps {
 }
 
 export function TranscriptTab({ transcript, participants, onChange, podcastId }: TranscriptTabProps) {
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  // Check if we have a valid transcript with messages
+  const hasTranscript = transcript && (
+    (Array.isArray(transcript) && transcript[0]?.content?.messages?.length > 0) ||
+    (transcript?.content?.messages?.length > 0) ||
+    (transcript?.messages?.length > 0)
+  )
+
+  const handleGenerateTranscript = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch(`/api/podcasts/${podcastId}/generate-transcript`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate transcript')
+      }
+
+      const newTranscript = await response.json()
+      onChange(newTranscript)
+    } catch (error) {
+      console.error('Error generating transcript:', error)
+      // You might want to add error handling UI here
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  if (!hasTranscript) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
+        <p className="mb-4 text-gray-600">
+          No transcript available. Generate one to get started.
+        </p>
+        <Button 
+          onClick={handleGenerateTranscript}
+          disabled={isGenerating}
+        >
+          {isGenerating ? 'Generating...' : 'Generate Transcript'}
+        </Button>
+      </div>
+    )
+  }
+
   // Transform the transcript data into the expected format
   const messages = Array.isArray(transcript) 
     ? transcript[0]?.content?.messages || transcript[0]?.messages || []
-    : transcript?.content?.messages || transcript?.messages || [];
+    : transcript?.content?.messages || transcript?.messages || []
   
   // Ensure participants are in the correct format
   const formattedParticipants = participants.map(p => ({ 
     id: p.id, 
     name: p.name 
-  }));
+  }))
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -26,7 +74,6 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
         messages={messages}
         participants={formattedParticipants}
         onChange={(updatedMessages) => {
-          // Transform the data back to the expected format before calling onChange
           const updatedTranscript = Array.isArray(transcript)
             ? [{
                 ...transcript[0],
@@ -39,8 +86,8 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
                 content: {
                   messages: updatedMessages
                 }
-              };
-          onChange(updatedTranscript);
+              }
+          onChange(updatedTranscript)
         }}
         onNext={() => {}} // Not used in edit mode
         onBack={() => {}} // Not used in edit mode
