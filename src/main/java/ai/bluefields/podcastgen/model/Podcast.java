@@ -84,8 +84,9 @@ public class Podcast {
     }
 
     public String getAudioUrl() {
-        if (audioOutputs != null && !audioOutputs.isEmpty()) {
-            return audioOutputs.get(audioOutputs.size() - 1).getUrl();
+        if (audioOutputs != null && !audioOutputs.isEmpty() && status == PodcastStatus.COMPLETED) {
+            Audio latestAudio = audioOutputs.get(audioOutputs.size() - 1);
+            return latestAudio.getUrl();
         }
         return null;
     }

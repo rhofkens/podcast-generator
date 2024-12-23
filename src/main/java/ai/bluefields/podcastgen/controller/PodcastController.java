@@ -254,11 +254,16 @@ public class PodcastController {
         dto.setGenerationStatus(podcast.getGenerationStatus());
         dto.setGenerationProgress(podcast.getGenerationProgress());
         dto.setGenerationMessage(podcast.getGenerationMessage());
-        dto.setHasAudio(podcast.getAudioUrl() != null);
         
-        // Only set audioUrl if it actually exists and podcast is completed
-        if (podcast.getAudioUrl() != null && podcast.getStatus() == PodcastStatus.COMPLETED) {
-            dto.setAudioUrl(podcast.getAudioUrl());
+        // Update the audio handling logic
+        String audioUrl = podcast.getAudioUrl();
+        dto.setHasAudio(audioUrl != null && !audioUrl.isEmpty());
+        dto.setAudioUrl(audioUrl);
+        
+        // Only consider it has audio if there's a URL and status is COMPLETED
+        if (podcast.getStatus() != PodcastStatus.COMPLETED) {
+            dto.setHasAudio(false);
+            dto.setAudioUrl(null);
         }
 
         return dto;
