@@ -62,8 +62,13 @@ public class AIServiceImpl implements AIService {
             
             Writing Guidelines:
             1. Create a dynamic interview format where:
-               - The host asks insightful, sometimes provocative questions
-               - The expert gives detailed, engaging answers with real examples
+               - The host asks insightful, sometimes provocative questions (20-30 words each)
+               - The expert gives detailed, in-depth answers (100-200 words each) that include:
+                   * Specific examples and case studies
+                   * Personal experiences and anecdotes
+                   * Technical details explained in accessible ways
+                   * Surprising insights or counterintuitive points
+                   * Real-world applications or implications
                - Include occasional humor and light moments
                - Add some friendly banter and personality
             
@@ -71,14 +76,22 @@ public class AIServiceImpl implements AIService {
                - Start with a catchy introduction (60-90 seconds)
                - Build tension/interest through the interview
                - Include 2-3 surprising or humorous moments
+               - Each expert response should be substantial (45-90 seconds of speaking time)
                - End with impactful closing thoughts
             
             3. Make it engaging by:
-               - Using analogies and metaphors
-               - Including personal anecdotes
-               - Adding unexpected twists
-               - Making complex topics accessible and interesting
+               - Having the expert build complex arguments across multiple points
+               - Using storytelling techniques in expert responses
+               - Including follow-up questions from the host to dig deeper
+               - Making sure expert responses fully explore each topic
+               - Adding expert's personal insights and professional experiences
                
+            Response Length Guidelines:
+            - Host questions: 2-3 sentences (20-30 words)
+            - Expert answers: 8-12 sentences (100-200 words)
+            - Expert should speak roughly 70%% of the total time
+            - Host should speak roughly 30%% of the total time
+                   
             Generate in this JSON format:
             {
                 "transcript": [
