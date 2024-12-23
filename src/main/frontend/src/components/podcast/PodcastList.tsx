@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '../AudioPlayer'
 import type { Podcast } from '../../types/podcast'
+
+function isCompleted(status?: string): boolean {
+  return status?.toUpperCase() === 'COMPLETED';
+}
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,7 +89,7 @@ function PodcastCard({ podcast }: PodcastCardProps) {
             </span>
           </div>
           
-          {podcast.hasAudio && podcast.audioUrl && podcast.generationStatus?.toLowerCase() === 'completed' ? (
+          {podcast.hasAudio && podcast.audioUrl && isCompleted(podcast.status) ? (
             <div className="mt-4 border-t pt-4">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                 <span className="flex items-center">
