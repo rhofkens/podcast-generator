@@ -220,20 +220,30 @@ public class PodcastController {
         }
     }
 
-    @GetMapping("/{id}/audio-status")
-    public ResponseEntity<Map<String, Object>> getAudioStatus(@PathVariable Long id) {
-        log.info("REST request to check audio status for podcast id: {}", id);
+    @GetMapping("/validate-audio/{id}")
+    public ResponseEntity<Map<String, Object>> validateAudioUrl(@PathVariable Long id) {
+        log.debug("Validating audio URL for podcast {}", id);
         try {
             return podcastService.getPodcastById(id)
                 .map(podcast -> {
-                    Map<String, Object> status = new HashMap<>();
-                    status.put("hasAudio", podcast.getAudioUrl() != null);
-                    status.put("status", podcast.getStatus());
-                    status.put("generationStatus", podcast.getGenerationStatus());
-                    status.put("generationProgress", podcast.getGenerationProgress());
-                    return ResponseEntity.ok(status);
+                    String audioUrl = podcast.getAudioUrl();
+                    boolean isValid = audioUrl != null && 
+                                    !audioUrl.isEmpty() && 
+                                    podcast.getGenerationStatus() == PodcastGenerationStatus.COMPLETED &&
+                                    podcast.getAudioOutputs() != null &&
+                                    !podcast.getAudioOutputs().isEmpty();
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("valid", isValid);
+                    response.put("url", isValid ? audioUrl : null);
+                    
+                    log.debug("Audio URL validation result for podcast {}: {}", id, isValid);
+                    return ResponseEntity.ok(response);
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> {
+                    log.warn("Podcast not found during audio validation: {}", id);
+                    return ResponseEntity.notFound().build();
+                });
         } catch (Exception e) {
             log.error("Error checking audio status for podcast {}: {}", id, e.getMessage(), e);
             throw e;

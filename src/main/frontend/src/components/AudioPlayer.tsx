@@ -3,12 +3,37 @@ import type { SyntheticEvent } from 'react';
 
 interface AudioPlayerProps {
     audioUrl: string;
+    podcastId: string | number;
 }
 
-export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
+export function AudioPlayer({ audioUrl, podcastId }: AudioPlayerProps) {
     const [error, setError] = useState(false);
+    const [validatedUrl, setValidatedUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    console.debug('AudioPlayer mounted with URL:', audioUrl);
+    useEffect(() => {
+        const validateAudio = async () => {
+            try {
+                const response = await fetch(`/api/podcasts/validate-audio/${podcastId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to validate audio URL');
+                }
+                const data = await response.json();
+                if (data.valid) {
+                    setValidatedUrl(data.url);
+                } else {
+                    setError(true);
+                }
+            } catch (err) {
+                console.error('Error validating audio:', err);
+                setError(true);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        validateAudio();
+    }, [podcastId]);
 
     const handleError = (e: SyntheticEvent<HTMLAudioElement, Event>) => {
         console.error('Audio player error:', e);
@@ -21,10 +46,20 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
         setError(true);
     };
 
-    if (error) {
+    if (isLoading) {
+        return (
+            <div className="w-full bg-gray-50 rounded-md p-4 mt-2">
+                <div className="animate-pulse flex justify-center">
+                    Loading audio...
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !validatedUrl) {
         return (
             <div className="w-full bg-red-50 text-red-500 rounded-md p-4 mt-2">
-                Failed to load audio. Please try again later.
+                Audio not available yet. Please try again later.
             </div>
         );
     }
@@ -34,11 +69,11 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
             <audio 
                 controls 
                 className="w-full h-10"
-                src={audioUrl}
+                src={validatedUrl}
                 preload="metadata"
                 onError={handleError}
             >
-                <source src={audioUrl} type="audio/mpeg" />
+                <source src={validatedUrl} type="audio/mpeg" />
                 Your browser does not support the audio element.
             </audio>
         </div>

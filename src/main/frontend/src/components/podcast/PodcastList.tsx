@@ -123,7 +123,7 @@ function PodcastCard({ podcast }: PodcastCardProps) {
                   Generated Audio
                 </span>
               </div>
-              <AudioPlayer audioUrl={podcast.audioUrl} />
+              <AudioPlayer audioUrl={podcast.audioUrl} podcastId={podcast.id} />
             </div>
           ) : podcast.generationStatus?.toLowerCase() === 'processing' ? (
             <div className="mt-4 border-t pt-4">
