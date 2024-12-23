@@ -6,7 +6,11 @@ import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.PodcastGenerationService;
 import com.fasterxml.jackson.databind.JsonNode;
 import ai.bluefields.podcastgen.dto.TranscriptGenerationRequest;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import ai.bluefields.podcastgen.dto.PageResponseDTO;
 import ai.bluefields.podcastgen.model.Podcast;
 import ai.bluefields.podcastgen.service.PodcastService;
