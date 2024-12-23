@@ -42,6 +42,7 @@ interface PodcastCardProps {
 }
 
 function PodcastCard({ podcast }: PodcastCardProps) {
+  // Debug logging before render
   console.debug('Rendering podcast card:', {
     id: podcast.id,
     hasAudio: podcast.hasAudio,
@@ -94,11 +95,14 @@ function PodcastCard({ podcast }: PodcastCardProps) {
             </span>
           </div>
           
-          {console.debug('Rendering audio section:', {
-            hasAudio: podcast.hasAudio,
-            audioUrl: podcast.audioUrl,
-            generationStatus: podcast.generationStatus
-          })}
+          {(() => {
+            console.debug('Rendering audio section:', {
+              hasAudio: podcast.hasAudio,
+              audioUrl: podcast.audioUrl,
+              generationStatus: podcast.generationStatus
+            });
+            return null;
+          })()}
           
           {podcast.hasAudio && podcast.audioUrl ? (
             <div className="mt-4 border-t pt-4">
