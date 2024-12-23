@@ -86,7 +86,7 @@ function PodcastCard({ podcast }: PodcastCardProps) {
             </span>
           </div>
           
-          {podcast.hasAudio && podcast.audioUrl ? (
+          {podcast.hasAudio && podcast.audioUrl && (
             <div className="mt-4 border-t pt-4">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                 <span className="flex items-center">
