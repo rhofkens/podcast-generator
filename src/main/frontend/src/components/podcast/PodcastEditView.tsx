@@ -243,17 +243,15 @@ export function PodcastEditView() {
         </TabsContent>
 
         <TabsContent value="transcript">
-          {transcript && (
-            <TranscriptTab 
-              transcript={transcript}
-              participants={participants}
-              onChange={(data: Transcript) => {
-                setTranscript(data)
-                setHasUnsavedChanges(true)
-              }}
-              podcastId={id!}
-            />
-          )}
+          <TranscriptTab 
+            transcript={transcript || []}
+            participants={participants}
+            onChange={(data: Transcript) => {
+              setTranscript(data)
+              setHasUnsavedChanges(true)
+            }}
+            podcastId={id!}
+          />
         </TabsContent>
 
         <TabsContent value="generate">
