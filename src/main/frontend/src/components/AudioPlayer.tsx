@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { SyntheticEvent } from 'react';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -9,9 +10,9 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
 
     console.debug('AudioPlayer mounted with URL:', audioUrl);
 
-    const handleError = (e: Event) => {
+    const handleError = (e: SyntheticEvent<HTMLAudioElement, Event>) => {
         console.error('Audio player error:', e);
-        const audioElement = e.target as HTMLAudioElement;
+        const audioElement = e.currentTarget;
         console.error('Audio element error details:', {
             error: audioElement.error,
             networkState: audioElement.networkState,
