@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { SyntheticEvent } from 'react';
 
 interface AudioPlayerProps {
-    audioUrl: string;
     podcastId: string | number;
 }
 
-export function AudioPlayer({ audioUrl, podcastId }: AudioPlayerProps) {
+export function AudioPlayer({ podcastId }: AudioPlayerProps) {
     const [error, setError] = useState(false);
     const [validatedUrl, setValidatedUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);

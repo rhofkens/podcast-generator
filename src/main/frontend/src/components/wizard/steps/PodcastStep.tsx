@@ -188,7 +188,7 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
 
                 {generationState.status === 'COMPLETED' && generationState.audioUrl && (
                     <div className="mb-6">
-                        <AudioPlayer audioUrl={generationState.audioUrl} />
+                        <AudioPlayer podcastId={podcastId || ''} />
                     </div>
                 )}
 
