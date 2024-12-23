@@ -214,6 +214,26 @@ public class PodcastController {
         }
     }
 
+    @GetMapping("/{id}/audio-status")
+    public ResponseEntity<Map<String, Object>> getAudioStatus(@PathVariable Long id) {
+        log.info("REST request to check audio status for podcast id: {}", id);
+        try {
+            return podcastService.getPodcastById(id)
+                .map(podcast -> {
+                    Map<String, Object> status = new HashMap<>();
+                    status.put("hasAudio", podcast.getAudioUrl() != null);
+                    status.put("status", podcast.getStatus());
+                    status.put("generationStatus", podcast.getGenerationStatus());
+                    status.put("generationProgress", podcast.getGenerationProgress());
+                    return ResponseEntity.ok(status);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("Error checking audio status for podcast {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
+    }
+
     private PodcastDTO convertToDTO(Podcast podcast) {
         PodcastDTO dto = new PodcastDTO();
         dto.setId(podcast.getId());
@@ -229,7 +249,12 @@ public class PodcastController {
         dto.setGenerationStatus(podcast.getGenerationStatus());
         dto.setGenerationProgress(podcast.getGenerationProgress());
         dto.setGenerationMessage(podcast.getGenerationMessage());
-        dto.setAudioUrl(podcast.getAudioUrl());
+        dto.setHasAudio(podcast.getAudioUrl() != null);
+        
+        // Only set audioUrl if it actually exists and podcast is completed
+        if (podcast.getAudioUrl() != null && podcast.getStatus() == PodcastStatus.COMPLETED) {
+            dto.setAudioUrl(podcast.getAudioUrl());
+        }
 
         return dto;
     }

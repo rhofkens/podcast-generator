@@ -1,7 +1,9 @@
 package ai.bluefields.podcastgen.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.web.bind.annotation.RequestMapping;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -82,6 +84,24 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST.value(),
             "File size exceeds maximum limit of 50MB"
         );
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public ResponseEntity<Map<String, Object>> handleClientAbortException(ClientAbortException ex) {
+        log.warn("Client aborted the request: {}", ex.getMessage());
+        // Since this is a client disconnect, we don't need to send a response
+        return null;
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Map<String, Object>> handleIOException(IOException ex) {
+        if ("Broken pipe".equals(ex.getMessage())) {
+            log.warn("Client disconnected while streaming: {}", ex.getMessage());
+            return null;
+        }
+        
+        log.error("IO error occurred: {}", ex.getMessage());
+        return createErrorBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error accessing resource");
     }
 
     @ExceptionHandler(Exception.class)
