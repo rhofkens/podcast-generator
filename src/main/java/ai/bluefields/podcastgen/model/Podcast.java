@@ -6,12 +6,15 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "podcasts")
 @Getter
 @Setter
 public class Podcast {
+    private static final Logger log = LoggerFactory.getLogger(Podcast.class);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -84,10 +87,18 @@ public class Podcast {
     }
 
     public String getAudioUrl() {
+        log.debug("Getting audio URL for podcast {}", id);
+        log.debug("Audio outputs: {}, Status: {}", 
+            audioOutputs != null ? audioOutputs.size() : "null", 
+            status);
+        
         if (audioOutputs != null && !audioOutputs.isEmpty() && status == PodcastStatus.COMPLETED) {
             Audio latestAudio = audioOutputs.get(audioOutputs.size() - 1);
-            return latestAudio.getUrl();
+            String url = latestAudio.getUrl();
+            log.debug("Returning audio URL: {}", url);
+            return url;
         }
+        log.debug("No audio URL available");
         return null;
     }
 }

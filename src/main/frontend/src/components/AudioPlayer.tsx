@@ -7,7 +7,16 @@ interface AudioPlayerProps {
 export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
     const [error, setError] = useState(false);
 
-    const handleError = () => {
+    console.debug('AudioPlayer mounted with URL:', audioUrl);
+
+    const handleError = (e: Event) => {
+        console.error('Audio player error:', e);
+        const audioElement = e.target as HTMLAudioElement;
+        console.error('Audio element error details:', {
+            error: audioElement.error,
+            networkState: audioElement.networkState,
+            readyState: audioElement.readyState
+        });
         setError(true);
     };
 

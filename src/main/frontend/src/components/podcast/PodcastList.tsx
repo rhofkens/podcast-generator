@@ -42,6 +42,14 @@ interface PodcastCardProps {
 }
 
 function PodcastCard({ podcast }: PodcastCardProps) {
+  console.debug('Rendering podcast card:', {
+    id: podcast.id,
+    hasAudio: podcast.hasAudio,
+    audioUrl: podcast.audioUrl,
+    status: podcast.status,
+    generationStatus: podcast.generationStatus
+  });
+
   const navigate = useNavigate()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -85,6 +93,12 @@ function PodcastCard({ podcast }: PodcastCardProps) {
               {formatStatus(podcast.generationStatus || '')}
             </span>
           </div>
+          
+          {console.debug('Rendering audio section:', {
+            hasAudio: podcast.hasAudio,
+            audioUrl: podcast.audioUrl,
+            generationStatus: podcast.generationStatus
+          })}
           
           {podcast.hasAudio && podcast.audioUrl ? (
             <div className="mt-4 border-t pt-4">

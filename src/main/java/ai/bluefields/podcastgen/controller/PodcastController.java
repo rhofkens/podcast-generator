@@ -240,6 +240,8 @@ public class PodcastController {
     }
 
     private PodcastDTO convertToDTO(Podcast podcast) {
+        log.debug("Converting podcast to DTO - id: {}, status: {}", podcast.getId(), podcast.getStatus());
+        
         PodcastDTO dto = new PodcastDTO();
         dto.setId(podcast.getId());
         dto.setTitle(podcast.getTitle());
@@ -255,11 +257,20 @@ public class PodcastController {
         dto.setGenerationProgress(podcast.getGenerationProgress());
         dto.setGenerationMessage(podcast.getGenerationMessage());
         
-        // Simplify the audio URL and status logic
+        // Add debug logging for audio status
         String audioUrl = podcast.getAudioUrl();
+        log.debug("Podcast {} - Raw audioUrl: {}", podcast.getId(), audioUrl);
+        
         boolean hasAudio = audioUrl != null && 
                           !audioUrl.isEmpty() && 
                           podcast.getStatus() == PodcastStatus.COMPLETED;
+        
+        log.debug("Podcast {} - hasAudio: {}, status: {}, audioUrl: {}", 
+            podcast.getId(), 
+            hasAudio, 
+            podcast.getStatus(),
+            audioUrl
+        );
         
         dto.setHasAudio(hasAudio);
         dto.setAudioUrl(hasAudio ? audioUrl : null);

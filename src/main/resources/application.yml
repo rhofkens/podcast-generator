@@ -52,7 +52,9 @@ app:
 logging:
   level:
     ai.bluefields.podcastgen: DEBUG
+    ai.bluefields.podcastgen.controller: DEBUG
+    ai.bluefields.podcastgen.model: DEBUG
     org.springframework: INFO
     org.hibernate: WARN
-    org.hibernate.SQL: WARN
-    org.hibernate.type: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
