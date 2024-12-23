@@ -12,12 +12,17 @@ interface TranscriptTabProps {
 export function TranscriptTab({ transcript, participants, onChange, podcastId }: TranscriptTabProps) {
   const [isGenerating, setIsGenerating] = useState(false)
 
-  // Check if we have a valid transcript with messages
-  const hasTranscript = transcript && (
-    (Array.isArray(transcript) && transcript[0]?.content?.messages?.length > 0) ||
-    (transcript?.content?.messages?.length > 0) ||
-    (transcript?.messages?.length > 0)
+  // More strict check for valid transcript content
+  const hasTranscript = Boolean(
+    transcript && (
+      (Array.isArray(transcript) && transcript[0]?.content?.messages?.length) ||
+      transcript?.content?.messages?.length ||
+      transcript?.messages?.length
+    )
   )
+
+  console.log('Current transcript:', transcript); // Debug log
+  console.log('Has transcript:', hasTranscript); // Debug log
 
   const handleGenerateTranscript = async () => {
     setIsGenerating(true)
@@ -42,13 +47,14 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
 
   if (!hasTranscript) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
-        <p className="mb-4 text-gray-600">
+      <div className="flex flex-col items-center justify-center min-h-[200px] p-8 bg-white rounded-lg shadow">
+        <p className="mb-4 text-gray-600 text-center">
           No transcript available. Generate one to get started.
         </p>
         <Button 
           onClick={handleGenerateTranscript}
           disabled={isGenerating}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isGenerating ? 'Generating...' : 'Generate Transcript'}
         </Button>
