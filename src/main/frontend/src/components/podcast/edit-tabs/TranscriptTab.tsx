@@ -14,10 +14,12 @@ export function TranscriptTab({ transcript, participants, onChange, podcastId }:
 
   // More strict check for valid transcript content
   const hasTranscript = Boolean(
-    transcript && (
-      (Array.isArray(transcript) && transcript[0]?.content?.messages?.length) ||
-      transcript?.content?.messages?.length ||
-      transcript?.messages?.length
+    transcript && 
+    !(Array.isArray(transcript) && transcript.length === 0) && // Check for empty array
+    (
+      (Array.isArray(transcript) && transcript[0]?.content?.messages?.length > 0) ||
+      transcript?.content?.messages?.length > 0 ||
+      transcript?.messages?.length > 0
     )
   )
 
