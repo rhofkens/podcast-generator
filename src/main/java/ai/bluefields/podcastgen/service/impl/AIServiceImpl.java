@@ -46,136 +46,169 @@ public class AIServiceImpl implements AIService {
     @Value("${app.uploads.voice-previews-path}")
     private String voicePreviewsPath;
 
-    @Override
-    public JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
-        String participantsDescription = participants.stream()
-            .map(p -> String.format("""
-                Name: %s
-                Role: %s
-                Role Description: %s
-                Voice Profile:
-                  - Voice Characteristics: %s
-                  - Speaking Style: Match these voice qualities throughout the dialogue
-                  - Voice Pattern: Ensure dialogue reflects these speech characteristics
-                Speaking Instructions:
-                  - Maintain consistent voice personality
-                  - Use language patterns fitting their voice profile
-                  - Keep dialogue authentic to their speaking style
-                """, 
-                p.getName(), 
-                p.getRole(), 
-                p.getRoleDescription(), 
-                p.getVoiceCharacteristics()))
-            .collect(Collectors.joining("\n\n"));
-
+    private JsonNode generateInitialTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
         String promptText = String.format("""
-            Generate a podcast transcript with the following details:
+            You are an expert podcast writer known for creating engaging, dynamic conversations.
             
+            Create an entertaining podcast transcript between:
+            1. An interviewer: %s - %s
+            2. An expert guest: %s - %s
+            
+            Topic Details:
             Title: %s
             Description: %s
             Context: %s
-            Target Duration: %d minutes (IMPORTANT: ensure total duration matches this exactly)
+            Target Duration: %d minutes
             
-            Participants:
-            %s
+            Writing Guidelines:
+            1. Create a dynamic interview format where:
+               - The host asks insightful, sometimes provocative questions
+               - The expert gives detailed, engaging answers with real examples
+               - Include occasional humor and light moments
+               - Add some friendly banter and personality
             
-            Generate a natural conversation transcript in JSON format:
+            2. Structure:
+               - Start with a catchy introduction (60-90 seconds)
+               - Build tension/interest through the interview
+               - Include 2-3 surprising or humorous moments
+               - End with impactful closing thoughts
+            
+            3. Make it engaging by:
+               - Using analogies and metaphors
+               - Including personal anecdotes
+               - Adding unexpected twists
+               - Making complex topics accessible and interesting
+               
+            Generate in this JSON format:
             {
                 "transcript": [
                     {
-                        "speakerName": "participant name",
-                        "timeOffset": seconds from start,
-                        "duration": length in seconds,
-                        "text": "what they say"
+                        "speakerName": "name",
+                        "timeOffset": seconds,
+                        "duration": seconds,
+                        "text": "dialogue"
                     }
                 ]
             }
-            
-            Requirements:
-            1. Timing Requirements:
-               - Total duration MUST be exactly %d seconds
-               - Each segment should be 10-30 seconds.  This means 30-100 words per segment.  Make sure to adhere to these limits!
-               - Include natural pauses between segments (2-3 seconds)
-               - Track cumulative time to ensure total matches target
-            
-            2. Content Structure:
-               - Start with brief introductions (60-90 seconds total)
-               - Main discussion (70%% of total time)
-               - Wrap-up/conclusion (10%% of total time)
-               - Distribute speaking time evenly between participants
-            
-            3. Speaking Guidelines:
-               - Keep responses concise
-               - Include relevant details from the context
-               - Make timing realistic for natural speech
-               - Maintain each participant's voice characteristics
-               - Ensure speaking patterns match voice profiles
-               - Make voice personalities distinct and consistent
-            
-            4. Technical Requirements:
-               - Ensure timeOffset values are sequential
-               - Duration must reflect realistic speaking pace
-               - Total of all durations plus pauses must equal %d seconds
-               - JSON must be valid and match the specified structure exactly
-               
-            IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """,
+            participants.get(0).getName(),
+            participants.get(0).getRoleDescription(),
+            participants.get(1).getName(),
+            participants.get(1).getRoleDescription(),
             podcastTitle,
             podcastDescription,
             contextDescription,
-            lengthInMinutes,
-            participantsDescription,
-            lengthInMinutes * 60,
-            lengthInMinutes * 60
+            lengthInMinutes
         );
         
-        log.debug("Generating transcript with prompt: {}", promptText);
+        // Use the existing AI call mechanism
+        ChatResponse response = chatClient.prompt()
+            .user(promptText)
+            .call()
+            .chatResponse();
+        
+        return parseAndValidateResponse(response);
+    }
+
+    private JsonNode editTranscript(JsonNode initialTranscript, int targetLengthMinutes) {
+        String promptText = String.format("""
+            You are an expert podcast editor. Review and improve this transcript to match our requirements.
+            
+            Current Transcript:
+            %s
+            
+            Target Length: %d minutes (%d seconds)
+            
+            Edit the transcript to:
+            1. Timing Adjustments:
+               - Ensure total duration is exactly %d seconds
+               - Each segment should be 10-30 seconds (30-100 words)
+               - Add natural 2-3 second pauses between segments
+            
+            2. Dynamic Improvements:
+               - Enhance interview dynamics (questions should lead naturally to answers)
+               - Add more personality to the dialogue
+               - Ensure humor lands well
+               - Make transitions smoother
+            
+            3. Content Balance:
+               - 70%% expert insights
+               - 30%% host guidance and questions
+               - Keep the most engaging parts
+               - Cut or compress less interesting segments
+            
+            Return the edited transcript in the same JSON format.
+            """,
+            initialTranscript.toString(),
+            targetLengthMinutes,
+            targetLengthMinutes * 60,
+            targetLengthMinutes * 60
+        );
+        
+        ChatResponse response = chatClient.prompt()
+            .user(promptText)
+            .call()
+            .chatResponse();
+        
+        return parseAndValidateResponse(response);
+    }
+
+    @Override
+    public JsonNode generateTranscript(String podcastTitle, String podcastDescription, String contextDescription, List<Participant> participants, int lengthInMinutes) {
+        try {
+            // Step 1: Generate initial creative transcript
+            JsonNode initialTranscript = generateInitialTranscript(podcastTitle, podcastDescription, contextDescription, participants, lengthInMinutes);
+            
+            // Step 2: Edit and refine the transcript
+            JsonNode finalTranscript = editTranscript(initialTranscript, lengthInMinutes);
+            
+            // Validate final output
+            validateTranscriptTiming(finalTranscript, lengthInMinutes);
+            
+            return finalTranscript;
+        } catch (Exception e) {
+            log.error("Failed to generate transcript: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateTranscriptTiming(JsonNode transcript, int targetLengthMinutes) {
+        int totalDuration = 0;
+        JsonNode segments = transcript.get("transcript");
+        if (segments != null && segments.isArray()) {
+            for (JsonNode segment : segments) {
+                totalDuration += segment.get("duration").asInt();
+            }
+        }
+        
+        int expectedDuration = targetLengthMinutes * 60;
+        if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
+            log.warn("Generated transcript duration ({} seconds) differs from target ({} seconds)", 
+                    totalDuration, expectedDuration);
+            throw new RuntimeException(String.format("Generated transcript length (%d seconds) significantly differs from target (%d seconds)", 
+                    totalDuration, expectedDuration));
+        }
+    }
+
+    private JsonNode parseAndValidateResponse(ChatResponse response) {
+        String aiResponse = Optional.ofNullable(response)
+            .map(ChatResponse::getResult)
+            .map(result -> result.getOutput().getContent())
+            .orElseThrow(() -> new RuntimeException("No response received from AI service"));
+
+        // Clean up the response by removing markdown formatting
+        String cleanedResponse = aiResponse
+            .replaceAll("```json\\s*", "") // Remove opening markdown
+            .replaceAll("```\\s*$", "")    // Remove closing markdown
+            .trim();                       // Remove any extra whitespace
+            
+        log.debug("Cleaned AI response: {}", cleanedResponse);
         
         try {
-            ChatResponse response = chatClient.prompt()
-                .user(promptText)
-                .call()
-                .chatResponse();
-                
-            String aiResponse = Optional.ofNullable(response)
-                .map(ChatResponse::getResult)
-                .map(result -> result.getOutput().getContent())
-                .orElseThrow(() -> new RuntimeException("No response received from AI service"));
-
-            // Clean up the response by removing markdown formatting
-            String cleanedResponse = aiResponse
-                .replaceAll("```json\\s*", "") // Remove opening markdown
-                .replaceAll("```\\s*$", "")    // Remove closing markdown
-                .trim();                       // Remove any extra whitespace
-                
-            log.debug("Cleaned AI response: {}", cleanedResponse);
-            
-            try {
-                JsonNode transcript = objectMapper.readTree(cleanedResponse);
-                
-                // Validate total duration
-                int totalDuration = 0;
-                JsonNode segments = transcript.get("transcript");
-                if (segments != null && segments.isArray()) {
-                    for (JsonNode segment : segments) {
-                        totalDuration += segment.get("duration").asInt();
-                    }
-                }
-                
-                int expectedDuration = lengthInMinutes * 60;
-                if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
-                    log.warn("Generated transcript duration ({} seconds) significantly differs from target ({} seconds)", 
-                            totalDuration, expectedDuration);
-                }
-                
-                return transcript;
-            } catch (Exception e) {
-                log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
-                throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
-            }
+            return objectMapper.readTree(cleanedResponse);
         } catch (Exception e) {
-            log.error("Failed to generate or parse transcript: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
+            log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
+            throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
         }
     }
 
