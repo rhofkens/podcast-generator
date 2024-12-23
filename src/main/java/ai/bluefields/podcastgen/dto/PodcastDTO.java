@@ -20,4 +20,5 @@ public class PodcastDTO {
     private Integer generationProgress;
     private String generationMessage;
     private String audioUrl;
+    private Boolean hasAudio;
 }

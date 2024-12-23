@@ -2,6 +2,7 @@ package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
 import ai.bluefields.podcastgen.model.Participant;
+import ai.bluefields.podcastgen.model.PodcastStatus;
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.PodcastGenerationService;
 import com.fasterxml.jackson.databind.JsonNode;
