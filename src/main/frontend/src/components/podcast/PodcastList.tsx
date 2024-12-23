@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '../AudioPlayer'
 import type { Podcast } from '../../types/podcast'
 
-function isCompleted(status?: string): boolean {
-  return status?.toUpperCase() === 'COMPLETED';
-}
 import {
   DropdownMenu,
   DropdownMenuContent,
