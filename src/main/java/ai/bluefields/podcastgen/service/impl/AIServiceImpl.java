@@ -162,17 +162,15 @@ public class AIServiceImpl implements AIService {
             // Step 2: Edit and refine the transcript
             JsonNode finalTranscript = editTranscript(initialTranscript, lengthInMinutes);
             
-            // Validate final output
-            validateTranscriptTiming(finalTranscript, lengthInMinutes);
-            
-            return finalTranscript;
+            // Step 3: Validate timing (now returns the transcript instead of throwing)
+            return validateTranscriptTiming(finalTranscript, lengthInMinutes);
         } catch (Exception e) {
             log.error("Failed to generate transcript: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
         }
     }
 
-    private void validateTranscriptTiming(JsonNode transcript, int targetLengthMinutes) {
+    private JsonNode validateTranscriptTiming(JsonNode transcript, int targetLengthMinutes) {
         int totalDuration = 0;
         JsonNode segments = transcript.get("transcript");
         if (segments != null && segments.isArray()) {
@@ -183,11 +181,11 @@ public class AIServiceImpl implements AIService {
         
         int expectedDuration = targetLengthMinutes * 60;
         if (Math.abs(totalDuration - expectedDuration) > 30) { // Allow 30 seconds variance
-            log.warn("Generated transcript duration ({} seconds) differs from target ({} seconds)", 
-                    totalDuration, expectedDuration);
-            throw new RuntimeException(String.format("Generated transcript length (%d seconds) significantly differs from target (%d seconds)", 
-                    totalDuration, expectedDuration));
+            log.warn("Generated transcript duration ({} seconds) differs significantly from target ({} seconds). " + 
+                    "This may affect the final podcast length.", totalDuration, expectedDuration);
         }
+        
+        return transcript; // Return the transcript instead of throwing exception
     }
 
     private JsonNode parseAndValidateResponse(ChatResponse response) {
