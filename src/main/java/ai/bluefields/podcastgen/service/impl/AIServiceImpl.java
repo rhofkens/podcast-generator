@@ -207,19 +207,50 @@ public class AIServiceImpl implements AIService {
             .map(result -> result.getOutput().getContent())
             .orElseThrow(() -> new RuntimeException("No response received from AI service"));
 
+        log.debug("Raw AI response: {}", aiResponse);
+
+        // If response starts with "Here is" or similar text, try to find the JSON part
+        if (aiResponse.contains("{")) {
+            aiResponse = aiResponse.substring(aiResponse.indexOf("{"));
+            if (aiResponse.contains("}")) {
+                aiResponse = aiResponse.substring(0, aiResponse.lastIndexOf("}") + 1);
+            }
+        }
+
         // Clean up the response by removing markdown formatting
         String cleanedResponse = aiResponse
             .replaceAll("```json\\s*", "") // Remove opening markdown
             .replaceAll("```\\s*$", "")    // Remove closing markdown
             .trim();                       // Remove any extra whitespace
-            
+                
         log.debug("Cleaned AI response: {}", cleanedResponse);
         
         try {
             return objectMapper.readTree(cleanedResponse);
         } catch (Exception e) {
             log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
-            throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
+            
+            // Create a default JSON structure if parsing fails
+            ObjectNode fallbackNode = objectMapper.createObjectNode();
+            ArrayNode transcriptArray = fallbackNode.putArray("transcript");
+            
+            // Split the text response into segments
+            String[] segments = cleanedResponse.split("\n\n");
+            int timeOffset = 0;
+            
+            for (String segment : segments) {
+                if (!segment.trim().isEmpty()) {
+                    ObjectNode segmentNode = transcriptArray.addObject();
+                    segmentNode.put("speakerName", "Speaker");
+                    segmentNode.put("timeOffset", timeOffset);
+                    segmentNode.put("duration", 30); // default duration
+                    segmentNode.put("text", segment.trim());
+                    timeOffset += 30;
+                }
+            }
+            
+            log.info("Created fallback transcript structure from text response");
+            return fallbackNode;
         }
     }
 
