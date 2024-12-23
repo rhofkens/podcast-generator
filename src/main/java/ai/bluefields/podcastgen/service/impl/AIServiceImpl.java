@@ -173,11 +173,11 @@ public class AIServiceImpl implements AIService {
             // Step 1: Generate initial creative transcript
             JsonNode initialTranscript = generateInitialTranscript(podcastTitle, podcastDescription, contextDescription, participants, lengthInMinutes);
             
-            // Step 2: Edit and refine the transcript
-            JsonNode finalTranscript = editTranscript(initialTranscript, lengthInMinutes);
+            // Step 2: Edit and refine the transcript - DISABLED
+            // JsonNode finalTranscript = editTranscript(initialTranscript, lengthInMinutes);
             
             // Step 3: Validate timing (now returns the transcript instead of throwing)
-            return validateTranscriptTiming(finalTranscript, lengthInMinutes);
+            return validateTranscriptTiming(initialTranscript, lengthInMinutes);
         } catch (Exception e) {
             log.error("Failed to generate transcript: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate transcript: " + e.getMessage(), e);
