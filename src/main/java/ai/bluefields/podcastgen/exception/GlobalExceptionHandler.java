@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@RestControllerAdvice(produces = "application/json")
 public class GlobalExceptionHandler {
     
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -24,21 +25,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         log.warn("Resource not found: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.NOT_FOUND.value(),
             ex.getMessage()
         );
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.warn("Invalid argument: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.BAD_REQUEST.value(),
             ex.getMessage()
         );
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -50,59 +49,58 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         
         log.warn("Validation failed: {}", errors);
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.BAD_REQUEST.value(),
             "Validation failed: " + errors
         );
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException ex) {
         log.warn("Constraint violation: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.BAD_REQUEST.value(),
             "Validation failed: " + ex.getMessage()
         );
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, Object>> handleDataAccessException(DataAccessException ex) {
         log.error("Database error: {}", ex.getMessage(), ex);
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Database operation failed"
         );
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
         log.warn("File upload size exceeded: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.BAD_REQUEST.value(),
             "File size exceeds maximum limit of 50MB"
         );
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGlobalException(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
-        Map<String, Object> body = createErrorBody(
+        return createErrorBody(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "An unexpected error occurred"
         );
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private Map<String, Object> createErrorBody(int status, String message) {
+    private ResponseEntity<Map<String, Object>> createErrorBody(int status, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status);
         body.put("error", HttpStatus.valueOf(status).getReasonPhrase());
         body.put("message", message);
-        return body;
+        
+        return ResponseEntity
+            .status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 }
