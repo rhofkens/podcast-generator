@@ -88,11 +88,12 @@ public class Podcast {
 
     public String getAudioUrl() {
         log.debug("Getting audio URL for podcast {}", id);
-        log.debug("Audio outputs: {}, Status: {}", 
+        log.debug("Audio outputs: {}, GenerationStatus: {}", 
             audioOutputs != null ? audioOutputs.size() : "null", 
-            status);
+            generationStatus);
         
-        if (audioOutputs != null && !audioOutputs.isEmpty() && status == PodcastStatus.COMPLETED) {
+        if (audioOutputs != null && !audioOutputs.isEmpty() && 
+            generationStatus == PodcastGenerationStatus.COMPLETED) {
             Audio latestAudio = audioOutputs.get(audioOutputs.size() - 1);
             String url = latestAudio.getUrl();
             log.debug("Returning audio URL: {}", url);

@@ -263,12 +263,12 @@ public class PodcastController {
         
         boolean hasAudio = audioUrl != null && 
                           !audioUrl.isEmpty() && 
-                          podcast.getStatus() == PodcastStatus.COMPLETED;
+                          podcast.getGenerationStatus() == PodcastGenerationStatus.COMPLETED;
         
-        log.debug("Podcast {} - hasAudio: {}, status: {}, audioUrl: {}", 
+        log.debug("Podcast {} - hasAudio: {}, generationStatus: {}, audioUrl: {}", 
             podcast.getId(), 
             hasAudio, 
-            podcast.getStatus(),
+            podcast.getGenerationStatus(),
             audioUrl
         );
         
