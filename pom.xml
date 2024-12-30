@@ -114,11 +114,6 @@
 
         <!-- Security & Auth -->
         <dependency>
-            <groupId>com.zitadel</groupId>
-            <artifactId>spring-boot-starter-zitadel</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
@@ -151,11 +146,6 @@
             <releases>
                 <enabled>false</enabled>
             </releases>
-        </repository>
-        <repository>
-            <id>zitadel</id>
-            <name>ZITADEL Repository</name>
-            <url>https://repo.zitadel.com/repository/maven-public</url>
         </repository>
     </repositories>
 
