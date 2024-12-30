@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './styles/globals.css'
+import { AuthProvider } from './contexts/AuthContext'
 import { TopNav } from './components/layout/TopNav'
 import { LeftNav } from './components/layout/LeftNav'
 import { PodcastListPage } from './pages/PodcastListPage'
@@ -12,7 +13,8 @@ import { PodcastEditView } from './components/podcast/PodcastEditView'
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
         <TopNav />
         <div className="flex-1 flex">
           <LeftNav />
@@ -26,7 +28,8 @@ function App() {
             </Routes>
           </main>
         </div>
-      </div>
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
