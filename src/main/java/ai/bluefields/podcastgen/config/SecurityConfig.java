@@ -8,6 +8,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import java.util.function.Consumer;
 
 @Configuration
 @EnableWebSecurity
@@ -16,12 +18,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, 
                                          ClientRegistrationRepository clientRegistrationRepository) throws Exception {
-        // Create custom authorization request resolver
-        OAuth2AuthorizationRequestResolver authorizationRequestResolver =
+        // Create custom authorization request resolver with PKCE
+        DefaultOAuth2AuthorizationRequestResolver authorizationRequestResolver =
             new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, 
                 "/oauth2/authorization"
             );
+
+        // Enable PKCE
+        authorizationRequestResolver.setAuthorizationRequestCustomizer(
+            customizer -> customizer.attributes(attrs -> {
+                attrs.put(OAuth2AuthorizationRequest.CODE_CHALLENGE_METHOD_ATTRIBUTE_NAME, "S256");
+                attrs.put(OAuth2AuthorizationRequest.CODE_CHALLENGE_ATTRIBUTE_NAME, "REQUIRED");
+            })
+        );
 
         http
             .csrf(csrf -> csrf.disable())
