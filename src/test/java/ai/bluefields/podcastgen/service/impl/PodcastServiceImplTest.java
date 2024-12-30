@@ -133,10 +133,14 @@ class PodcastServiceImplTest {
 
     @Test
     void deletePodcast_WhenPodcastExists_ShouldDeletePodcast() {
+        // Given
+        when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
         when(podcastRepository.existsById(1L)).thenReturn(true);
 
+        // When
         podcastService.deletePodcast(1L);
 
+        // Then
         verify(podcastRepository).deleteById(1L);
     }
 
@@ -146,6 +150,44 @@ class PodcastServiceImplTest {
 
         assertThatThrownBy(() -> podcastService.deletePodcast(1L))
             .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void getAllPodcasts_WithNullUserId_ShouldThrowException() {
+        // When/Then
+        assertThatThrownBy(() -> podcastService.getAllPodcasts(null, pageable))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("User ID cannot be null or empty");
+    }
+
+    @Test
+    void getAllPodcasts_WithEmptyUserId_ShouldThrowException() {
+        // When/Then
+        assertThatThrownBy(() -> podcastService.getAllPodcasts("  ", pageable))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("User ID cannot be null or empty");
+    }
+
+    @Test
+    void createPodcast_WithNullUserId_ShouldThrowException() {
+        // Given
+        podcast.setUserId(null);
+
+        // When/Then
+        assertThatThrownBy(() -> podcastService.createPodcast(podcast))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Podcast userId cannot be empty");
+    }
+
+    @Test
+    void createPodcast_WithEmptyUserId_ShouldThrowException() {
+        // Given
+        podcast.setUserId("");
+
+        // When/Then
+        assertThatThrownBy(() -> podcastService.createPodcast(podcast))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Podcast userId cannot be empty");
     }
 
     @Test
