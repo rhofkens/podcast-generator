@@ -36,6 +36,8 @@ spring:
           zitadel:
             client-id: ${ZITADEL_CLIENT_ID}
             client-secret: ${ZITADEL_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope:
               - openid
               - profile
@@ -44,6 +46,10 @@ spring:
         provider:
           zitadel:
             issuer-uri: https://${ZITADEL_DOMAIN}
+            authorization-uri: https://${ZITADEL_DOMAIN}/oauth/v2/authorize
+            token-uri: https://${ZITADEL_DOMAIN}/oauth/v2/token
+            user-info-uri: https://${ZITADEL_DOMAIN}/oidc/v1/userinfo
+            jwk-set-uri: https://${ZITADEL_DOMAIN}/oauth/v2/keys
             user-name-attribute: preferred_username
 
 elevenlabs:
