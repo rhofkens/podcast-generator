@@ -35,10 +35,9 @@ spring:
         registration:
           zitadel:
             client-id: ${ZITADEL_CLIENT_ID}
-            client-secret: ${ZITADEL_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            client-authentication-method: client_secret_post
+            client-authentication-method: none
             scope:
               - openid
               - profile
