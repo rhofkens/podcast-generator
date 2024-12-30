@@ -2,32 +2,27 @@ package ai.bluefields.podcastgen.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 public class SecurityConfig {
-
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/static/**", "/api/public/**").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().authenticated())
+                // Temporarily allow all requests during debugging
+                .anyRequest().permitAll()
+            )
             .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/", true))
-            .logout(logout -> logout
-                .logoutSuccessUrl("/")
-                .permitAll());
-
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error=true")
+            );
+        
         return http.build();
     }
 }
