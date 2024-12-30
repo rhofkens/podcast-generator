@@ -41,6 +41,7 @@ class PodcastServiceImplTest {
 
     private Podcast podcast;
     private Pageable pageable;
+    private final String TEST_USER_ID = "test-user";
 
     @BeforeEach
     void setUp() {
@@ -48,7 +49,7 @@ class PodcastServiceImplTest {
         podcast.setId(1L);
         podcast.setTitle("Test Podcast");
         podcast.setDescription("Test Description");
-        podcast.setUserId("test-user");
+        podcast.setUserId(TEST_USER_ID);
 
         pageable = PageRequest.of(0, 10);
     }
@@ -56,20 +57,19 @@ class PodcastServiceImplTest {
     @Test
     void getAllPodcasts_ShouldReturnPageOfPodcasts() {
         // Given
-        String userId = "test-user";
         List<Podcast> podcastList = List.of(podcast);
         Page<Podcast> podcastPage = new PageImpl<>(podcastList, pageable, 1);
-        when(podcastRepository.findByUserIdOrderByCreatedAtDesc(eq(userId), any(Pageable.class)))
+        when(podcastRepository.findByUserIdOrderByCreatedAtDesc(eq(TEST_USER_ID), any(Pageable.class)))
             .thenReturn(podcastPage);
 
         // When
-        Page<Podcast> result = podcastService.getAllPodcasts(userId, pageable);
+        Page<Podcast> result = podcastService.getAllPodcasts(TEST_USER_ID, pageable);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Test Podcast");
-        verify(podcastRepository).findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        verify(podcastRepository).findByUserIdOrderByCreatedAtDesc(TEST_USER_ID, pageable);
     }
 
     @Test
@@ -105,26 +105,29 @@ class PodcastServiceImplTest {
 
     @Test
     void updatePodcast_WhenPodcastExists_ShouldReturnUpdatedPodcast() {
-        when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
+        when(podcastRepository.findByIdAndUserId(eq(1L), eq(TEST_USER_ID))).thenReturn(Optional.of(podcast));
         when(podcastRepository.save(any(Podcast.class))).thenReturn(podcast);
 
         Podcast updatedPodcast = new Podcast();
         updatedPodcast.setTitle("Updated Title");
         updatedPodcast.setDescription("Updated Description");
-        updatedPodcast.setUserId("test-user");
+        updatedPodcast.setUserId(TEST_USER_ID);
 
         Podcast result = podcastService.updatePodcast(1L, updatedPodcast);
 
         assertThat(result).isNotNull();
-        verify(podcastRepository).findById(1L);
+        verify(podcastRepository).findByIdAndUserId(1L, TEST_USER_ID);
         verify(podcastRepository).save(any(Podcast.class));
     }
 
     @Test
     void updatePodcast_WhenPodcastDoesNotExist_ShouldThrowException() {
-        when(podcastRepository.findById(1L)).thenReturn(Optional.empty());
+        when(podcastRepository.findByIdAndUserId(eq(1L), eq(TEST_USER_ID))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> podcastService.updatePodcast(1L, podcast))
+        Podcast updatedPodcast = new Podcast();
+        updatedPodcast.setUserId(TEST_USER_ID);
+
+        assertThatThrownBy(() -> podcastService.updatePodcast(1L, updatedPodcast))
             .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -148,12 +151,11 @@ class PodcastServiceImplTest {
     @Test
     void generateSamplePodcast_ShouldReturnValidPodcast() {
         // Given
-        String userId = "test-user";
         JsonNode mockSuggestion = createMockAISuggestion();
         when(aiService.generatePodcastSuggestion()).thenReturn(mockSuggestion);
 
         // When
-        Podcast result = podcastService.generateSamplePodcast(userId);
+        Podcast result = podcastService.generateSamplePodcast(TEST_USER_ID);
 
         // Then
         assertThat(result).isNotNull();
@@ -161,7 +163,7 @@ class PodcastServiceImplTest {
         assertThat(result.getDescription()).isNotEmpty();
         assertThat(result.getLength()).isBetween(15, 45);
         assertThat(result.getStatus()).isEqualTo(PodcastStatus.DRAFT);
-        assertThat(result.getUserId()).isEqualTo(userId);
+        assertThat(result.getUserId()).isEqualTo(TEST_USER_ID);
         
         // Context assertions
         assertThat(result.getContext()).isNotNull();
