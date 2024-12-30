@@ -33,13 +33,12 @@ public class PodcastServiceImpl implements PodcastService {
     public Page<Podcast> getAllPodcasts(String userId, Pageable pageable) {
         log.info("Fetching all podcasts for user {} with pagination", userId);
         try {
-            Page<Podcast> podcasts = podcastRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-            if (podcasts != null) {
-                log.info("Successfully retrieved {} podcasts for user {}", podcasts.getContent().size(), userId);
-            } else {
-                log.warn("Repository returned null page of podcasts for user {}", userId);
-                podcasts = Page.empty(pageable);
+            if (userId == null || userId.trim().isEmpty()) {
+                throw new IllegalArgumentException("User ID cannot be null or empty");
             }
+            Page<Podcast> podcasts = podcastRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+            log.info("Successfully retrieved {} podcasts for user {}", 
+                podcasts.getContent().size(), userId);
             return podcasts;
         } catch (DataAccessException e) {
             log.error("Database error while fetching podcasts for user {}: {}", userId, e.getMessage(), e);
@@ -87,15 +86,18 @@ public class PodcastServiceImpl implements PodcastService {
         log.info("Updating podcast with id: {} for user: {}", id, podcast.getUserId());
         try {
             validatePodcast(podcast);
+            
             return podcastRepository.findByIdAndUserId(id, podcast.getUserId())
                 .map(existingPodcast -> {
                     updatePodcastFields(existingPodcast, podcast);
                     Podcast updated = podcastRepository.save(existingPodcast);
-                    log.info("Successfully updated podcast with id: {} for user: {}", id, podcast.getUserId());
+                    log.info("Successfully updated podcast with id: {} for user: {}", 
+                        id, podcast.getUserId());
                     return updated;
                 })
                 .orElseThrow(() -> {
-                    log.warn("Failed to update - podcast not found with id: {} for user: {}", id, podcast.getUserId());
+                    log.warn("Failed to update - podcast not found with id: {} for user: {}", 
+                        id, podcast.getUserId());
                     return new ResourceNotFoundException("Podcast", "id", id);
                 });
         } catch (DataAccessException e) {
@@ -130,6 +132,7 @@ public class PodcastServiceImpl implements PodcastService {
         if (podcast.getUserId() == null || podcast.getUserId().trim().isEmpty()) {
             throw new IllegalArgumentException("Podcast userId cannot be empty");
         }
+        // Add any additional validation rules here
     }
 
     private void updatePodcastFields(Podcast existing, Podcast updated) {
@@ -138,7 +141,7 @@ public class PodcastServiceImpl implements PodcastService {
         existing.setIcon(updated.getIcon());
         existing.setLength(updated.getLength());
         existing.setStatus(updated.getStatus());
-        existing.setUserId(updated.getUserId());
+        // Don't update userId as it should remain the same
     }
 
     @Override
