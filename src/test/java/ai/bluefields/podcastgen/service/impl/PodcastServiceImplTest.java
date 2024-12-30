@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,16 +55,21 @@ class PodcastServiceImplTest {
 
     @Test
     void getAllPodcasts_ShouldReturnPageOfPodcasts() {
+        // Given
+        String userId = "test-user";
         List<Podcast> podcastList = List.of(podcast);
         Page<Podcast> podcastPage = new PageImpl<>(podcastList, pageable, 1);
-        when(podcastRepository.findAllByOrderByCreatedAtDesc(any(Pageable.class))).thenReturn(podcastPage);
+        when(podcastRepository.findByUserIdOrderByCreatedAtDesc(eq(userId), any(Pageable.class)))
+            .thenReturn(podcastPage);
 
-        Page<Podcast> result = podcastService.getAllPodcasts(pageable);
+        // When
+        Page<Podcast> result = podcastService.getAllPodcasts(userId, pageable);
 
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Test Podcast");
-        verify(podcastRepository).findAllByOrderByCreatedAtDesc(pageable);
+        verify(podcastRepository).findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
     @Test
@@ -142,11 +148,12 @@ class PodcastServiceImplTest {
     @Test
     void generateSamplePodcast_ShouldReturnValidPodcast() {
         // Given
+        String userId = "test-user";
         JsonNode mockSuggestion = createMockAISuggestion();
         when(aiService.generatePodcastSuggestion()).thenReturn(mockSuggestion);
 
         // When
-        Podcast result = podcastService.generateSamplePodcast();
+        Podcast result = podcastService.generateSamplePodcast(userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -154,6 +161,7 @@ class PodcastServiceImplTest {
         assertThat(result.getDescription()).isNotEmpty();
         assertThat(result.getLength()).isBetween(15, 45);
         assertThat(result.getStatus()).isEqualTo(PodcastStatus.DRAFT);
+        assertThat(result.getUserId()).isEqualTo(userId);
         
         // Context assertions
         assertThat(result.getContext()).isNotNull();
