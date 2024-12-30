@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -15,15 +16,16 @@ public class AuthController {
     @GetMapping("/user")
     public ResponseEntity<Map<String, Object>> getUser(@AuthenticationPrincipal OidcUser user) {
         if (user == null) {
-            return ResponseEntity.ok(Map.of());
+            return ResponseEntity.ok(new HashMap<>());
         }
         
-        return ResponseEntity.ok(Map.of(
-            "id", user.getSubject(),
-            "name", user.getFullName(),
-            "email", user.getEmail(),
-            "picture", user.getPicture(),
-            "roles", user.getAuthorities()
-        ));
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getSubject());
+        userInfo.put("name", user.getFullName());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("picture", user.getPicture());
+        userInfo.put("roles", user.getAuthorities());
+        
+        return ResponseEntity.ok(userInfo);
     }
 }
