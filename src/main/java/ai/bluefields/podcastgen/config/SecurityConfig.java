@@ -10,6 +10,12 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
+import org.springframework.http.RequestEntity;
+import org.springframework.util.MultiValueMap;
 import java.util.function.Consumer;
 
 @Configuration
@@ -19,20 +25,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, 
                                          ClientRegistrationRepository clientRegistrationRepository) throws Exception {
-        // Create custom authorization request resolver with PKCE
         DefaultOAuth2AuthorizationRequestResolver authorizationRequestResolver =
             new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, 
                 "/oauth2/authorization"
             );
 
-        // Enable PKCE
+        // Configure PKCE
         authorizationRequestResolver.setAuthorizationRequestCustomizer(
-            customizer -> customizer.attributes(attrs -> {
-                attrs.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
-                // Let Spring Security generate the code challenge
-                attrs.put("enablePkce", true);
-            })
+            customizer -> customizer
+                .attributes(attrs -> {
+                    attrs.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
+                    attrs.put("enablePkce", true);
+                })
+                .additionalParameters(params -> {
+                    params.put("code_challenge_method", "S256");
+                })
         );
 
         http
@@ -45,10 +53,38 @@ public class SecurityConfig {
                 .authorizationEndpoint(authorization -> authorization
                     .authorizationRequestResolver(authorizationRequestResolver)
                 )
+                .tokenEndpoint(token -> token
+                    .accessTokenResponseClient(accessTokenResponseClient())
+                )
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/login?error=true")
             );
         
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {
+        DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
+        
+        client.setRequestEntityConverter(new OAuth2AuthorizationCodeGrantRequestEntityConverter() {
+            @Override
+            public RequestEntity<?> convert(OAuth2AuthorizationCodeGrantRequest oauth2Request) {
+                RequestEntity<?> entity = super.convert(oauth2Request);
+                MultiValueMap<String, String> params = (MultiValueMap<String, String>) entity.getBody();
+                
+                // Ensure PKCE parameters are included
+                OAuth2AuthorizationRequest authorizationRequest = oauth2Request.getAuthorizationExchange()
+                    .getAuthorizationRequest();
+                String codeVerifier = authorizationRequest.getAttribute(PkceParameterNames.CODE_VERIFIER);
+                if (codeVerifier != null) {
+                    params.add(PkceParameterNames.CODE_VERIFIER, codeVerifier);
+                }
+                
+                return new RequestEntity<>(params, entity.getHeaders(), entity.getMethod(), entity.getUrl());
+            }
+        });
+        
+        return client;
     }
 }
