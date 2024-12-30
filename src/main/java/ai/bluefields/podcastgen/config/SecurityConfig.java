@@ -15,8 +15,10 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Temporarily allow all requests during debugging
-                .anyRequest().permitAll()
+                // Allow static resources without authentication
+                .requestMatchers("/assets/**", "/favicon.ico").permitAll()
+                // Require authentication for all other requests
+                .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .defaultSuccessUrl("/", true)
