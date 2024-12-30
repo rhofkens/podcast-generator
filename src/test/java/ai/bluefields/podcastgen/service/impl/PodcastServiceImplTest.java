@@ -122,11 +122,16 @@ class PodcastServiceImplTest {
 
     @Test
     void updatePodcast_WhenPodcastDoesNotExist_ShouldThrowException() {
+        // Given
         when(podcastRepository.findByIdAndUserId(eq(1L), eq(TEST_USER_ID))).thenReturn(Optional.empty());
-
+        
+        // Create a valid podcast object for update
         Podcast updatedPodcast = new Podcast();
         updatedPodcast.setUserId(TEST_USER_ID);
+        updatedPodcast.setTitle("Updated Title");
+        updatedPodcast.setDescription("Updated Description");
 
+        // When/Then
         assertThatThrownBy(() -> podcastService.updatePodcast(1L, updatedPodcast))
             .isInstanceOf(ResourceNotFoundException.class);
     }
