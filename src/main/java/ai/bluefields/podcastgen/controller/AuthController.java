@@ -40,15 +40,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
         }
-        
-        // Return the Zitadel logout URL
-        Map<String, String> result = new HashMap<>();
-        result.put("logoutUrl", env.getProperty("spring.security.oauth2.client.provider.zitadel.issuer-uri") + "/ui/console/end_session");
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok().build();
     }
 }

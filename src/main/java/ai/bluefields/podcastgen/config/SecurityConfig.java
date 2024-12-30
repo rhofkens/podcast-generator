@@ -18,9 +18,18 @@ public class SecurityConfig {
     @Autowired
     private Environment env;
     
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+    
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+        OidcClientInitiatedLogoutSuccessHandler handler = 
+            new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+        handler.setPostLogoutRedirectUri("{baseUrl}");
+        return handler;
+    }
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, 
-                                         ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         DefaultOAuth2AuthorizationRequestResolver authorizationRequestResolver =
             new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, 
@@ -50,10 +59,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    String issuerUri = env.getProperty("spring.security.oauth2.client.provider.zitadel.issuer-uri");
-                    response.sendRedirect(issuerUri + "/ui/console/end_session");
-                })
+                .logoutSuccessHandler(oidcLogoutSuccessHandler())
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")
