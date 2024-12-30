@@ -152,6 +152,11 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>zitadel</id>
+            <name>ZITADEL Repository</name>
+            <url>https://repo.zitadel.com/repository/maven-public</url>
+        </repository>
     </repositories>
 
     <build>
