@@ -1,6 +1,8 @@
 package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.model.PodcastGenerationStatus;
 import ai.bluefields.podcastgen.model.PodcastStatus;
@@ -40,10 +42,12 @@ public class PodcastController {
     private final PodcastGenerationService podcastGenerationService;
 
     @GetMapping
-    public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(Pageable pageable) {
+    public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(
+            Pageable pageable,
+            @AuthenticationPrincipal OidcUser oidcUser) {
         log.info("REST request to get all podcasts with pagination");
         try {
-            Page<Podcast> podcastPage = podcastService.getAllPodcasts(pageable);
+            Page<Podcast> podcastPage = podcastService.getAllPodcasts(oidcUser.getSubject(), pageable);
             
             PageResponseDTO<PodcastDTO> response = new PageResponseDTO<>();
             response.setContent(podcastPage.getContent().stream()
@@ -83,9 +87,12 @@ public class PodcastController {
     }
 
     @PostMapping
-    public ResponseEntity<Podcast> createPodcast(@Valid @RequestBody Podcast podcast) {
+    public ResponseEntity<Podcast> createPodcast(
+            @Valid @RequestBody Podcast podcast,
+            @AuthenticationPrincipal OidcUser oidcUser) {
         log.info("REST request to create new podcast with title: {}", podcast.getTitle());
         try {
+            podcast.setUserId(oidcUser.getSubject());
             Podcast result = podcastService.createPodcast(podcast);
             log.info("Successfully created podcast with id: {}", result.getId());
             return new ResponseEntity<>(result, HttpStatus.CREATED);
