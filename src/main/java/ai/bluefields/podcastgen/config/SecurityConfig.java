@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import java.util.function.Consumer;
 
 @Configuration
@@ -28,8 +29,9 @@ public class SecurityConfig {
         // Enable PKCE
         authorizationRequestResolver.setAuthorizationRequestCustomizer(
             customizer -> customizer.attributes(attrs -> {
-                attrs.put(OAuth2AuthorizationRequest.CODE_CHALLENGE_METHOD_ATTRIBUTE_NAME, "S256");
-                attrs.put(OAuth2AuthorizationRequest.CODE_CHALLENGE_ATTRIBUTE_NAME, "REQUIRED");
+                attrs.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
+                // Let Spring Security generate the code challenge
+                attrs.put("enablePkce", true);
             })
         );
 
