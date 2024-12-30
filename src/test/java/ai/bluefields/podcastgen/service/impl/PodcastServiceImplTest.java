@@ -136,6 +136,7 @@ class PodcastServiceImplTest {
         // Given
         when(podcastRepository.findById(1L)).thenReturn(Optional.of(podcast));
         when(podcastRepository.existsById(1L)).thenReturn(true);
+        podcast.setUserId(TEST_USER_ID); // Ensure podcast has the correct user ID
 
         // When
         podcastService.deletePodcast(1L);
