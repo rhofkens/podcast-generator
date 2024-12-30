@@ -46,10 +46,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         try {
-            await axios.post('/api/auth/logout');
-            window.location.href = '/';
+            const response = await axios.post('/api/auth/logout');
+            // Redirect to Zitadel's logout URL
+            if (response.data.logoutUrl) {
+                window.location.href = response.data.logoutUrl;
+            }
         } catch (err) {
             console.error('Logout error:', err);
+            // Fallback to home page if logout fails
+            window.location.href = '/';
         }
     };
 

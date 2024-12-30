@@ -1,5 +1,7 @@
 package ai.bluefields.podcastgen.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,9 @@ import java.util.HashMap;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    @Autowired
+    private Environment env;
+
     @GetMapping("/user")
     public ResponseEntity<Map<String, Object>> getUser(@AuthenticationPrincipal OidcUser user) {
         if (user == null) {
@@ -35,13 +40,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request, HttpServletResponse response) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
         }
         
-        return ResponseEntity.ok().build();
+        // Return the Zitadel logout URL
+        Map<String, String> result = new HashMap<>();
+        result.put("logoutUrl", env.getProperty("spring.security.oauth2.client.provider.zitadel.issuer-uri") + "/ui/console/end_session");
+        return ResponseEntity.ok(result);
     }
 }

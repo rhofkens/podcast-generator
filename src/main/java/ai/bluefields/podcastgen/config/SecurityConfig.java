@@ -8,10 +8,15 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    
+    @Autowired
+    private Environment env;
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, 
@@ -45,8 +50,12 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    String issuerUri = env.getProperty("spring.security.oauth2.client.provider.zitadel.issuer-uri");
+                    response.sendRedirect(issuerUri + "/ui/console/end_session");
+                })
                 .invalidateHttpSession(true)
+                .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")
             );
         
