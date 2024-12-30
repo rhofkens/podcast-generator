@@ -77,13 +77,10 @@ app:
 
 logging:
   level:
-    ai.bluefields.podcastgen: DEBUG
-    ai.bluefields.podcastgen.controller: DEBUG
-    ai.bluefields.podcastgen.model: DEBUG
-    org.springframework: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.boot.autoconfigure: DEBUG
+    root: INFO
+    ai.bluefields.podcastgen: INFO
+    org.springframework: INFO
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
     org.hibernate: WARN
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
