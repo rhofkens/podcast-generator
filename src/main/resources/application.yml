@@ -29,21 +29,6 @@ spring:
       api-key: ${OPENAI_API_KEY}
       model: gpt-4
       temperature: 0.7
-
-elevenlabs:
-  api:
-    key: ${ELEVENLABS_API_KEY}
-    voice-settings:
-      stability: 0.5
-      similarity-boost: 0.75
-    model-id: eleven_multilingual_v2
-
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
-spring:
   security:
     oauth2:
       client:
@@ -60,6 +45,19 @@ spring:
           zitadel:
             issuer-uri: https://${ZITADEL_DOMAIN}
             user-name-attribute: preferred_username
+
+elevenlabs:
+  api:
+    key: ${ELEVENLABS_API_KEY}
+    voice-settings:
+      stability: 0.5
+      similarity-boost: 0.75
+    model-id: eleven_multilingual_v2
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
 
 zitadel:
   org-id: ${ZITADEL_ORG_ID}
