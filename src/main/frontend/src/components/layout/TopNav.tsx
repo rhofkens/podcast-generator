@@ -12,7 +12,18 @@ import { Settings, User, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function TopNav() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
+
+  if (loading) {
+    return (
+      <header className="h-14 border-b flex items-center px-6 bg-white shadow-sm">
+        <div className="flex-1" />
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="h-14 border-b flex items-center px-6 bg-white shadow-sm">
