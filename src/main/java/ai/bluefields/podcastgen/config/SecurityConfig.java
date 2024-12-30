@@ -42,6 +42,12 @@ public class SecurityConfig {
                 )
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/login?error=true")
+            )
+            .logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
             );
         
         return http.build();
