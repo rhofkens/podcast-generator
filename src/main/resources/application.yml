@@ -43,6 +43,28 @@ server:
   servlet:
     context-path: /
 
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          zitadel:
+            client-id: ${ZITADEL_CLIENT_ID}
+            client-secret: ${ZITADEL_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+              - urn:zitadel:iam:org:project:roles
+        provider:
+          zitadel:
+            issuer-uri: https://${ZITADEL_DOMAIN}
+            user-name-attribute: preferred_username
+
+zitadel:
+  org-id: ${ZITADEL_ORG_ID}
+  domain: ${ZITADEL_DOMAIN}
+
 app:
   uploads:
     base-path: uploads
