@@ -45,7 +45,7 @@ public class PodcastController {
     public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(
             Pageable pageable,
             @AuthenticationPrincipal OidcUser oidcUser) {
-        log.info("REST request to get all podcasts with pagination");
+        log.info("REST request to get all podcasts with pagination for user: {}", oidcUser.getSubject());
         try {
             Page<Podcast> podcastPage = podcastService.getAllPodcasts(oidcUser.getSubject(), pageable);
             
@@ -58,7 +58,7 @@ public class PodcastController {
             response.setSize(podcastPage.getSize());
             response.setNumber(podcastPage.getNumber());
             
-            log.info("Successfully retrieved {} podcasts", podcastPage.getContent().size());
+            log.info("Successfully retrieved {} podcasts for user {}", podcastPage.getContent().size(), oidcUser.getSubject());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error retrieving all podcasts: {}", e.getMessage(), e);
@@ -68,16 +68,18 @@ public class PodcastController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Podcast> getPodcastById(
-            @PathVariable @Positive(message = "ID must be positive") Long id) {
-        log.info("REST request to get podcast by id: {}", id);
+            @PathVariable @Positive(message = "ID must be positive") Long id,
+            @AuthenticationPrincipal OidcUser oidcUser) {
+        log.info("REST request to get podcast by id: {} for user: {}", id, oidcUser.getSubject());
         try {
             return podcastService.getPodcastById(id)
+                    .filter(podcast -> podcast.getUserId().equals(oidcUser.getSubject()))
                     .map(podcast -> {
-                        log.info("Successfully retrieved podcast with id: {}", id);
+                        log.info("Successfully retrieved podcast with id: {} for user: {}", id, oidcUser.getSubject());
                         return ResponseEntity.ok(podcast);
                     })
                     .orElseGet(() -> {
-                        log.warn("Podcast not found with id: {}", id);
+                        log.warn("Podcast not found with id: {} for user: {}", id, oidcUser.getSubject());
                         return ResponseEntity.notFound().build();
                     });
         } catch (Exception e) {
@@ -90,11 +92,11 @@ public class PodcastController {
     public ResponseEntity<Podcast> createPodcast(
             @Valid @RequestBody Podcast podcast,
             @AuthenticationPrincipal OidcUser oidcUser) {
-        log.info("REST request to create new podcast with title: {}", podcast.getTitle());
+        log.info("REST request to create new podcast with title: {} for user: {}", podcast.getTitle(), oidcUser.getSubject());
         try {
             podcast.setUserId(oidcUser.getSubject());
             Podcast result = podcastService.createPodcast(podcast);
-            log.info("Successfully created podcast with id: {}", result.getId());
+            log.info("Successfully created podcast with id: {} for user: {}", result.getId(), oidcUser.getSubject());
             return new ResponseEntity<>(result, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid podcast data: {}", e.getMessage());
@@ -108,11 +110,13 @@ public class PodcastController {
     @PutMapping("/{id}")
     public ResponseEntity<Podcast> updatePodcast(
             @PathVariable @Positive(message = "ID must be positive") Long id,
-            @Valid @RequestBody Podcast podcast) {
-        log.info("REST request to update podcast with id: {}", id);
+            @Valid @RequestBody Podcast podcast,
+            @AuthenticationPrincipal OidcUser oidcUser) {
+        log.info("REST request to update podcast with id: {} for user: {}", id, oidcUser.getSubject());
         try {
+            podcast.setUserId(oidcUser.getSubject());
             Podcast result = podcastService.updatePodcast(id, podcast);
-            log.info("Successfully updated podcast with id: {}", id);
+            log.info("Successfully updated podcast with id: {} for user: {}", id, oidcUser.getSubject());
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid podcast data for update: {}", e.getMessage());
@@ -124,11 +128,12 @@ public class PodcastController {
     }
 
     @GetMapping("/sample")
-    public ResponseEntity<Podcast> getSamplePodcast() {
-        log.info("REST request to get sample podcast data");
+    public ResponseEntity<Podcast> getSamplePodcast(@AuthenticationPrincipal OidcUser oidcUser) {
+        log.info("REST request to get sample podcast data for user: {}", oidcUser.getSubject());
         try {
-            Podcast samplePodcast = podcastService.generateSamplePodcast();
-            log.info("Successfully generated sample podcast with title: {}", samplePodcast.getTitle());
+            Podcast samplePodcast = podcastService.generateSamplePodcast(oidcUser.getSubject());
+            log.info("Successfully generated sample podcast with title: {} for user: {}", 
+                    samplePodcast.getTitle(), oidcUser.getSubject());
             return ResponseEntity.ok(samplePodcast);
         } catch (Exception e) {
             log.error("Error generating sample podcast: {}", e.getMessage(), e);
@@ -191,11 +196,23 @@ public class PodcastController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePodcast(
-            @PathVariable @Positive(message = "ID must be positive") Long id) {
-        log.info("REST request to delete podcast with id: {}", id);
+            @PathVariable @Positive(message = "ID must be positive") Long id,
+            @AuthenticationPrincipal OidcUser oidcUser) {
+        log.info("REST request to delete podcast with id: {} for user: {}", id, oidcUser.getSubject());
         try {
-            podcastService.deletePodcast(id);
-            log.info("Successfully deleted podcast with id: {}", id);
+            // Verify the podcast belongs to the user before deletion
+            podcastService.getPodcastById(id)
+                .filter(podcast -> podcast.getUserId().equals(oidcUser.getSubject()))
+                .ifPresentOrElse(
+                    podcast -> {
+                        podcastService.deletePodcast(id);
+                        log.info("Successfully deleted podcast with id: {} for user: {}", id, oidcUser.getSubject());
+                    },
+                    () -> {
+                        log.warn("Podcast not found or unauthorized for deletion - id: {} user: {}", id, oidcUser.getSubject());
+                        throw new ResourceNotFoundException("Podcast", "id", id);
+                    }
+                );
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("Error deleting podcast {}: {}", id, e.getMessage(), e);
