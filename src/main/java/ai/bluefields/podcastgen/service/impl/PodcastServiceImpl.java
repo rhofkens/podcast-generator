@@ -30,19 +30,19 @@ public class PodcastServiceImpl implements PodcastService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Podcast> getAllPodcasts(Pageable pageable) {
-        log.info("Fetching all podcasts with pagination");
+    public Page<Podcast> getAllPodcasts(String userId, Pageable pageable) {
+        log.info("Fetching all podcasts for user {} with pagination", userId);
         try {
-            Page<Podcast> podcasts = podcastRepository.findAllByOrderByCreatedAtDesc(pageable);
+            Page<Podcast> podcasts = podcastRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
             if (podcasts != null) {
-                log.info("Successfully retrieved {} podcasts", podcasts.getContent().size());
+                log.info("Successfully retrieved {} podcasts for user {}", podcasts.getContent().size(), userId);
             } else {
-                log.warn("Repository returned null page of podcasts");
+                log.warn("Repository returned null page of podcasts for user {}", userId);
                 podcasts = Page.empty(pageable);
             }
             return podcasts;
         } catch (DataAccessException e) {
-            log.error("Database error while fetching all podcasts: {}", e.getMessage(), e);
+            log.error("Database error while fetching podcasts for user {}: {}", userId, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch podcasts", e);
         }
     }
@@ -84,18 +84,18 @@ public class PodcastServiceImpl implements PodcastService {
 
     @Override
     public Podcast updatePodcast(Long id, Podcast podcast) {
-        log.info("Updating podcast with id: {}", id);
+        log.info("Updating podcast with id: {} for user: {}", id, podcast.getUserId());
         try {
             validatePodcast(podcast);
-            return podcastRepository.findById(id)
+            return podcastRepository.findByIdAndUserId(id, podcast.getUserId())
                 .map(existingPodcast -> {
                     updatePodcastFields(existingPodcast, podcast);
                     Podcast updated = podcastRepository.save(existingPodcast);
-                    log.info("Successfully updated podcast with id: {}", id);
+                    log.info("Successfully updated podcast with id: {} for user: {}", id, podcast.getUserId());
                     return updated;
                 })
                 .orElseThrow(() -> {
-                    log.warn("Failed to update - podcast not found with id: {}", id);
+                    log.warn("Failed to update - podcast not found with id: {} for user: {}", id, podcast.getUserId());
                     return new ResourceNotFoundException("Podcast", "id", id);
                 });
         } catch (DataAccessException e) {
@@ -142,8 +142,8 @@ public class PodcastServiceImpl implements PodcastService {
     }
 
     @Override
-    public Podcast generateSamplePodcast() {
-        log.info("Generating sample podcast");
+    public Podcast generateSamplePodcast(String userId) {
+        log.info("Generating sample podcast for user: {}", userId);
         try {
             JsonNode suggestion = aiService.generatePodcastSuggestion();
             
@@ -152,7 +152,7 @@ public class PodcastServiceImpl implements PodcastService {
             podcast.setDescription(suggestion.get("description").asText());
             podcast.setLength(suggestion.get("length").asInt());
             podcast.setStatus(PodcastStatus.DRAFT);
-            podcast.setUserId("dev-user-123");
+            podcast.setUserId(userId);
 
             Context context = new Context();
             context.setDescriptionText(suggestion.get("contextDescription").asText());
