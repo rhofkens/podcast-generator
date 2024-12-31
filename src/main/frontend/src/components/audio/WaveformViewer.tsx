@@ -26,7 +26,7 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
       barRadius: 3,
       height: 48,
       normalize: true,
-      responsive: true,
+      autoScroll: true,
     })
 
     wavesurfer.load(url)
