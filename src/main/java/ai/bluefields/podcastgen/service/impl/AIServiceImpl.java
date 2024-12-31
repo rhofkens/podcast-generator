@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import ai.bluefields.podcastgen.util.WebPageValidator;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -329,6 +331,34 @@ public class AIServiceImpl implements AIService {
         }
     }
     
+    private JsonNode validateAndFixPodcastSuggestion(JsonNode suggestion) {
+        try {
+            String title = suggestion.get("title").asText();
+            String description = suggestion.get("contextDescription").asText();
+            String sourceUrl = suggestion.get("sourceUrl").asText();
+
+            // Validate URL accessibility
+            boolean isValid = WebPageValidator.isWebPageAccessible(sourceUrl);
+            
+            if (!isValid) {
+                // Create a modified response without the invalid URL
+                ObjectNode modifiedSuggestion = objectMapper.createObjectNode();
+                modifiedSuggestion.put("title", title);
+                modifiedSuggestion.put("description", suggestion.get("description").asText());
+                modifiedSuggestion.put("length", suggestion.get("length").asInt());
+                modifiedSuggestion.put("contextDescription", description);
+                modifiedSuggestion.put("sourceUrl", "");
+                return modifiedSuggestion;
+            }
+
+            // URL is valid, return original suggestion
+            return suggestion;
+        } catch (Exception e) {
+            log.error("Error validating podcast suggestion: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to validate podcast suggestion", e);
+        }
+    }
+
     @Override
     public JsonNode generatePodcastSuggestion() {
         String promptText = """
@@ -342,11 +372,11 @@ public class AIServiceImpl implements AIService {
             }
             
             Requirements for the URL:
-            - Must be a real, existing website
+            - Must be from a major, well-known website (Wikipedia, major news sites, educational institutions)
             - Must be relevant to the podcast topic
-            - Prefer well-known, reputable sources
-            - No social media links
             - Must be a specific article or page, not just a homepage
+            - No social media links
+            - The webpage must currently exist and be accessible
             
             IMPORTANT: Return ONLY the JSON object, no markdown formatting or additional text.
             """;
@@ -362,14 +392,16 @@ public class AIServiceImpl implements AIService {
                 .map(result -> result.getOutput().getContent())
                 .orElseThrow(() -> new RuntimeException("No response received from AI service"));
 
-            // Clean up the response by removing markdown formatting if present
+            // Clean up the response
             String cleanedResponse = aiResponse
-                .replaceAll("```json\\s*", "") // Remove opening markdown
-                .replaceAll("```\\s*$", "")    // Remove closing markdown
-                .trim();                       // Remove any extra whitespace
+                .replaceAll("```json\\s*", "")
+                .replaceAll("```\\s*$", "")
+                .trim();
 
             try {
-                return objectMapper.readTree(cleanedResponse);
+                JsonNode initialSuggestion = objectMapper.readTree(cleanedResponse);
+                // Validate and potentially fix the URL
+                return validateAndFixPodcastSuggestion(initialSuggestion);
             } catch (Exception e) {
                 log.error("Failed to parse AI response as JSON: {}", cleanedResponse, e);
                 throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
