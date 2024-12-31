@@ -30,9 +30,9 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
 
     const wavesurfer = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: '#9CA3AF', // gray-400
-      progressColor: '#6366F1', // indigo-500
-      cursorColor: '#4F46E5', // indigo-600
+      waveColor: '#9CA3AF',
+      progressColor: '#6366F1',
+      cursorColor: '#4F46E5',
       barWidth: 2,
       barGap: 1,
       barRadius: 3,
@@ -41,11 +41,7 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       autoScroll: true,
       interact: true,
       fillParent: true,
-      peaks: true,
-      splitChannels: false,
-      normalize: true,
-      minPxPerSec: 50,
-      plugins: []
+      minPxPerSec: 50
     })
 
     wavesurfer.load(url)

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Play, Pause, Loader2 } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Loader2 } from 'lucide-react'
 import { WaveformViewer } from './WaveformViewer'
 
 interface AudioPlayerProps {
@@ -9,7 +8,6 @@ interface AudioPlayerProps {
 
 export function AudioPlayer({ podcastId }: AudioPlayerProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,29 +52,7 @@ export function AudioPlayer({ podcastId }: AudioPlayerProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-8 h-8 p-0"
-          onClick={() => setIsPlaying(!isPlaying)}
-        >
-          {isPlaying ? (
-            <Pause className="h-4 w-4" />
-          ) : (
-            <Play className="h-4 w-4" />
-          )}
-          <span className="sr-only">
-            {isPlaying ? 'Pause' : 'Play'}
-          </span>
-        </Button>
-      </div>
-      
-      <WaveformViewer 
-        url={audioUrl}
-        playing={isPlaying}
-        onPlayPause={setIsPlaying}
-      />
+      <WaveformViewer url={audioUrl} />
     </div>
   )
 }
