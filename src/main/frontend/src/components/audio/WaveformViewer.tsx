@@ -41,8 +41,9 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       autoScroll: false,
       interact: true,
       fillParent: true,
-      minPxPerSec: 1,
-      maxCanvasWidth: 4000
+      minPxPerSec: 1,      // Reduced to prevent excessive width
+      fillParent: true,    // This ensures it fills the parent container
+      autoScroll: false    // Changed to prevent scrolling
     })
 
     // Ensure container has a fixed width
