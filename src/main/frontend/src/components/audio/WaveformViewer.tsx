@@ -40,7 +40,6 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
       height: 64,
       normalize: true,
       autoScroll: true,
-      barMinHeight: 1,
       interact: true,
       fillParent: true,
     })
