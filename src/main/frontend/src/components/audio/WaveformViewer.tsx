@@ -38,11 +38,19 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       barRadius: 3,
       height: 64,
       normalize: true,
-      autoScroll: true,
+      autoScroll: false,
       interact: true,
       fillParent: true,
-      minPxPerSec: 50
+      responsive: true,
+      minPxPerSec: 1,
+      maxCanvasWidth: 4000
     })
+
+    // Ensure container has a fixed width
+    if (containerRef.current.parentElement) {
+      containerRef.current.parentElement.style.width = '100%'
+      containerRef.current.style.width = '100%'
+    }
 
     wavesurfer.load(url)
 
@@ -104,7 +112,9 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow-sm border">
       <div className="relative w-full bg-gray-50 rounded-md p-4">
-        <div ref={containerRef} className="w-full" />
+        <div className="w-full overflow-hidden">
+          <div ref={containerRef} className="w-full" />
+        </div>
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-pulse flex space-x-4">
