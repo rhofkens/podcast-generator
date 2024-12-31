@@ -333,15 +333,21 @@ public class AIServiceImpl implements AIService {
     
     private JsonNode validateAndFixPodcastSuggestion(JsonNode suggestion) {
         try {
+            log.debug("Validating podcast suggestion: {}", suggestion);
+            
             String title = suggestion.get("title").asText();
             String description = suggestion.get("contextDescription").asText();
             String sourceUrl = suggestion.get("sourceUrl").asText();
-
-            // Validate URL accessibility
-            boolean isValid = WebPageValidator.isWebPageAccessible(sourceUrl);
             
-            if (!isValid) {
-                // Create a modified response without the invalid URL
+            log.debug("Extracted URL from suggestion: {}", sourceUrl);
+
+            // Validate and potentially fix the URL
+            String validatedUrl = ensureValidSourceUrl(sourceUrl, title, description);
+            log.debug("Validation result URL: {}", validatedUrl);
+            
+            // If we couldn't get a valid URL after retries
+            if (validatedUrl == null) {
+                log.warn("No valid URL could be generated, creating suggestion without URL");
                 ObjectNode modifiedSuggestion = objectMapper.createObjectNode();
                 modifiedSuggestion.put("title", title);
                 modifiedSuggestion.put("description", suggestion.get("description").asText());
@@ -351,7 +357,19 @@ public class AIServiceImpl implements AIService {
                 return modifiedSuggestion;
             }
 
-            // URL is valid, return original suggestion
+            // If URL is valid but different from original
+            if (!validatedUrl.equals(sourceUrl)) {
+                log.info("Using alternative valid URL: {} instead of original: {}", validatedUrl, sourceUrl);
+                ObjectNode modifiedSuggestion = objectMapper.createObjectNode();
+                modifiedSuggestion.put("title", title);
+                modifiedSuggestion.put("description", suggestion.get("description").asText());
+                modifiedSuggestion.put("length", suggestion.get("length").asInt());
+                modifiedSuggestion.put("contextDescription", description);
+                modifiedSuggestion.put("sourceUrl", validatedUrl);
+                return modifiedSuggestion;
+            }
+
+            log.debug("Original URL was valid, returning original suggestion");
             return suggestion;
         } catch (Exception e) {
             log.error("Error validating podcast suggestion: {}", e.getMessage(), e);
@@ -412,6 +430,67 @@ public class AIServiceImpl implements AIService {
         }
     }
 
+
+    private String ensureValidSourceUrl(String initialUrl, String title, String context) {
+        log.debug("Validating source URL: {}", initialUrl);
+        
+        // First check the initial URL
+        if (initialUrl != null && !initialUrl.trim().isEmpty()) {
+            boolean isAccessible = WebPageValidator.isWebPageAccessible(initialUrl);
+            log.debug("Initial URL {} accessibility check result: {}", initialUrl, isAccessible);
+            
+            if (isAccessible) {
+                return initialUrl;
+            }
+        }
+        
+        // If initial URL is not valid, try to generate alternatives
+        log.info("Initial URL {} is not accessible, attempting to generate alternatives", initialUrl);
+        
+        // Try up to 3 times to generate a valid URL
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                String prompt = String.format("""
+                    The webpage %s is not accessible. Generate a URL for a currently existing webpage 
+                    that discusses this topic:
+                    
+                    Title: %s
+                    Context: %s
+                    
+                    Requirements:
+                    - URL must be from a major, well-known website (e.g., Wikipedia, major news sites)
+                    - Webpage must currently exist and be accessible
+                    - Content must be relevant to the topic
+                    - Return only the URL, nothing else
+                    """, initialUrl, title, context);
+
+                ChatResponse response = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .chatResponse();
+
+                String newUrl = response.getResult().getOutput().getContent().trim();
+                log.debug("Generated alternative URL (attempt {}): {}", attempt + 1, newUrl);
+                
+                // Basic URL format validation
+                if (!newUrl.startsWith("http")) {
+                    newUrl = "https://" + newUrl;
+                }
+                
+                if (WebPageValidator.isWebPageAccessible(newUrl)) {
+                    log.info("Successfully generated accessible alternative URL: {}", newUrl);
+                    return newUrl;
+                }
+                
+                log.debug("Generated URL {} is not accessible, trying again", newUrl);
+            } catch (Exception e) {
+                log.warn("Error generating alternative URL on attempt {}: {}", attempt + 1, e.getMessage());
+            }
+        }
+        
+        log.warn("Failed to generate any accessible webpage URL after multiple attempts");
+        return null;
+    }
 
     private void validateJson(String json) {
         try {

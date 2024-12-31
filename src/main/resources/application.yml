@@ -80,6 +80,7 @@ logging:
     root: INFO
     ai.bluefields.podcastgen: INFO
     ai.bluefields.podcastgen.service.impl.AIServiceImpl: DEBUG
+    ai.bluefields.podcastgen.util.WebPageValidator: DEBUG
     org.springframework: INFO
     org.springframework.security: INFO
     org.springframework.security.oauth2: INFO
