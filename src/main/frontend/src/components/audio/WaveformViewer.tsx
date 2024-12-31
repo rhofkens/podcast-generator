@@ -41,7 +41,6 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       autoScroll: false,
       interact: true,
       fillParent: true,
-      responsive: true,
       minPxPerSec: 1,
       maxCanvasWidth: 4000
     })
