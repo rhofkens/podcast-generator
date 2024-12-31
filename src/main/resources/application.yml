@@ -58,6 +58,8 @@ elevenlabs:
     voice-settings:
       stability: 0.5
       similarity-boost: 0.75
+      speaker-boost: true
+      style-exaggeration: 0.45
     model-id: eleven_multilingual_v2
 
 server:

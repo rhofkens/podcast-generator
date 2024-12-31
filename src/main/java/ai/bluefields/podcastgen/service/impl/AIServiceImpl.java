@@ -46,6 +46,12 @@ public class AIServiceImpl implements AIService {
     @Value("${elevenlabs.api.model-id:eleven_multilingual_v2}")
     private String modelId;
 
+    @Value("${elevenlabs.api.voice-settings.speaker-boost:true}")
+    private boolean speakerBoost;
+
+    @Value("${elevenlabs.api.voice-settings.style-exaggeration:0.45}")
+    private double styleExaggeration;
+
     @Value("${app.uploads.voice-previews-path}")
     private String voicePreviewsPath;
 
@@ -641,6 +647,8 @@ public class AIServiceImpl implements AIService {
             ObjectNode voiceSettings = objectMapper.createObjectNode();
             voiceSettings.put("stability", voiceStability);
             voiceSettings.put("similarity_boost", similarityBoost);
+            voiceSettings.put("speaker_boost", speakerBoost);
+            voiceSettings.put("style_exaggeration", styleExaggeration);
             requestBody.set("voice_settings", voiceSettings);
             
             if (previousRequestIds != null && !previousRequestIds.isEmpty()) {
