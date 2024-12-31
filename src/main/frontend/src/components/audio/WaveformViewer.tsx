@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
+import TimelinePlugin from '@wavesurfer/timeline'
 import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Slider } from '../ui/slider'
@@ -42,6 +43,18 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       interact: true,
       fillParent: true,
       minPxPerSec: 1,      // Reduced to prevent excessive width
+      plugins: [
+        TimelinePlugin.create({
+          container: '#timeline',
+          primaryColor: '#84cc16',
+          secondaryColor: '#15803d',
+          primaryFontColor: '#374151',
+          secondaryFontColor: '#6b7280',
+          timeInterval: 15,
+          primaryLabelInterval: 5,
+          secondaryLabelInterval: 1
+        })
+      ]
     })
 
     // Ensure container has a fixed width
@@ -110,6 +123,7 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow-sm border">
       <div className="relative w-full bg-gray-50 rounded-md p-4">
+        <div id="timeline" className="w-full h-8" />
         <div className="w-full overflow-hidden">
           <div ref={containerRef} className="w-full" />
         </div>
