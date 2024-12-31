@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AudioPlayer } from '../AudioPlayer'
+import { AudioPlayer } from '../audio/AudioPlayer'
 import type { Podcast } from '../../types/podcast'
 
 import {
