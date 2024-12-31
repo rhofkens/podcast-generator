@@ -27,7 +27,7 @@
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "wavesurfer.js": "^7.4.12",
-    "@wavesurfer/react": "^1.0.8"
+    "@wavesurfer/react": "1.0.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
