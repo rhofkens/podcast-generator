@@ -38,12 +38,10 @@ export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
       barRadius: 3,
       height: 64,
       normalize: true,
-      autoScroll: false,
+      autoScroll: false,  // Changed to prevent scrolling
       interact: true,
       fillParent: true,
       minPxPerSec: 1,      // Reduced to prevent excessive width
-      fillParent: true,    // This ensures it fills the parent container
-      autoScroll: false    // Changed to prevent scrolling
     })
 
     // Ensure container has a fixed width
