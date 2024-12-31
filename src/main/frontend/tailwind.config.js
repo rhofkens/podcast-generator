@@ -18,9 +18,9 @@ module.exports = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         waveform: {
-          wave: '#4B5563',    // gray-600
-          progress: '#6366F1', // indigo-500
-          cursor: '#4F46E5',  // indigo-600
+          wave: '#84cc16',    // lime-500
+          progress: '#15803d', // green-700
+          cursor: '#22c55e',   // green-500
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
