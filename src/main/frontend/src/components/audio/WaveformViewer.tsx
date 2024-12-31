@@ -7,14 +7,13 @@ import { Slider } from '../ui/slider'
 interface WaveformViewerProps {
   url: string
   onReady?: () => void
-  playing?: boolean
-  onPlayPause?: (isPlaying: boolean) => void
 }
 
-export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: WaveformViewerProps) {
+export function WaveformViewer({ url, onReady }: WaveformViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wavesurferRef = useRef<WaveSurfer | null>(null)
   const [isReady, setIsReady] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState('0:00')
   const [duration, setDuration] = useState('0:00')
   const [volume, setVolume] = useState(1)
@@ -42,6 +41,11 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
       autoScroll: true,
       interact: true,
       fillParent: true,
+      peaks: true,
+      splitChannels: false,
+      normalize: true,
+      minPxPerSec: 50,
+      plugins: []
     })
 
     wavesurfer.load(url)
@@ -56,8 +60,8 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
       setCurrentTime(formatTime(wavesurfer.getCurrentTime()))
     })
 
-    wavesurfer.on('play', () => onPlayPause?.(true))
-    wavesurfer.on('pause', () => onPlayPause?.(false))
+    wavesurfer.on('play', () => setIsPlaying(true))
+    wavesurfer.on('pause', () => setIsPlaying(false))
 
     wavesurferRef.current = wavesurfer
 
@@ -66,24 +70,14 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
     }
   }, [url])
 
-  useEffect(() => {
-    if (!wavesurferRef.current || !isReady) return
-
-    if (playing) {
-      wavesurferRef.current.play()
-    } else {
-      wavesurferRef.current.pause()
-    }
-  }, [playing, isReady])
 
   const handlePlayPause = () => {
     if (!wavesurferRef.current) return
-    if (playing) {
+    if (isPlaying) {
       wavesurferRef.current.pause()
     } else {
       wavesurferRef.current.play()
     }
-    onPlayPause?.(!playing)
   }
 
   const handleRestart = () => {
@@ -135,7 +129,7 @@ export function WaveformViewer({ url, onReady, playing = false, onPlayPause }: W
             disabled={!isReady}
             className="h-10 w-10"
           >
-            {playing ? (
+            {isPlaying ? (
               <Pause className="h-5 w-5" />
             ) : (
               <Play className="h-5 w-5" />
