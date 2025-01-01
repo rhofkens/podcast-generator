@@ -778,6 +778,48 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
+    public String generateContextFromContent(String content, int targetLength) {
+        String promptText = String.format("""
+            Create a detailed podcast context from this content. The context will be used to generate 
+            an engaging podcast discussion.
+            
+            Content:
+            %s
+            
+            Requirements:
+            1. Target length: approximately %d words
+            2. Maintain key concepts, examples, and technical details
+            3. Structure the content for spoken discussion
+            4. Keep important statistics and data points
+            5. Include specific examples and case studies
+            6. Preserve expert insights and unique perspectives
+            7. Organize content in a logical flow for conversation
+            8. Keep technical terms but ensure they're explained naturally
+            
+            Focus on creating a rich context that will enable an engaging podcast discussion.
+            Return only the processed content, no additional formatting or metadata.
+            """, content, targetLength);
+        
+        try {
+            ChatResponse response = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .chatResponse();
+                
+            String processedContent = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"))
+                .trim();
+            
+            return processedContent;
+        } catch (Exception e) {
+            log.error("Failed to generate context: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate context: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription) {
         log.info("Rewriting scraped content for podcast: {}", podcastTitle);
         

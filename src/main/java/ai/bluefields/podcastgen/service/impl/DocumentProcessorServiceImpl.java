@@ -50,18 +50,20 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
                 .map(Document::getContent)
                 .collect(Collectors.joining("\n\n"));
             
-            // Process through AI service
-            String rewrittenContent = aiService.rewriteScrapedContent(
-                content,
-                file.getOriginalFilename(),
-                "Podcast based on document: " + file.getOriginalFilename()
-            );
+            // Calculate appropriate context length based on content size
+            int wordCount = content.split("\\s+").length;
+            int targetContextLength = calculateTargetContextLength(wordCount);
+            
+            log.info("Document word count: {}, target context length: {}", wordCount, targetContextLength);
+            
+            // Generate context with appropriate length
+            String processedContent = aiService.generateContextFromContent(content, targetContextLength);
             
             log.info("Successfully processed document: {}", file.getOriginalFilename());
             
             // Generate title and description using AI
-            String generatedTitle = aiService.generateTitleFromContent(rewrittenContent);
-            String generatedDescription = aiService.generateDescriptionFromContent(rewrittenContent);
+            String generatedTitle = aiService.generateTitleFromContent(processedContent);
+            String generatedDescription = aiService.generateDescriptionFromContent(processedContent);
             
             return ScrapedContentDTO.builder()
                 .content(rewrittenContent)
@@ -114,6 +116,27 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
         }
     }
     
+    private int calculateTargetContextLength(int sourceWordCount) {
+        // Base minimum context length
+        final int MIN_CONTEXT_LENGTH = 500;
+        // Maximum context length to keep processing manageable
+        final int MAX_CONTEXT_LENGTH = 3000;
+        // Target ratio of context length to source length
+        final double CONTEXT_RATIO = 0.3; // 30% of original content
+        
+        int targetLength = (int) (sourceWordCount * CONTEXT_RATIO);
+        
+        // Ensure minimum length
+        targetLength = Math.max(targetLength, MIN_CONTEXT_LENGTH);
+        // Cap at maximum length
+        targetLength = Math.min(targetLength, MAX_CONTEXT_LENGTH);
+        
+        log.debug("Calculated target context length: {} words from source length: {} words", 
+            targetLength, sourceWordCount);
+        
+        return targetLength;
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null) {
             return "";
