@@ -9,6 +9,7 @@ import { PodcastListPage } from './pages/PodcastListPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { PodcastWizard } from './components/wizard/PodcastWizard'
 import { PodcastEditView } from './components/podcast/PodcastEditView'
+import { Toaster } from './components/ui/toaster'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           </main>
         </div>
         </div>
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   )
