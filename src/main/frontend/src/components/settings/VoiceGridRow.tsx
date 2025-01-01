@@ -33,6 +33,7 @@ export function VoiceGridRow({ voice, isStandardVoice, onVoiceUpdated }: VoiceGr
       await voicesApi.setDefaultVoice(voice.id, voice.gender)
       onVoiceUpdated()
       toast({
+        variant: "success",
         title: "Success",
         description: `${voice.name} has been set as the default ${voice.gender.toLowerCase()} voice.`,
       })
