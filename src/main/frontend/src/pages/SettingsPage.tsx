@@ -1,6 +1,28 @@
+import { useEffect, useState } from 'react'
 import { Breadcrumb } from '../components/layout/Breadcrumb'
+import { VoicesGrid } from '../components/settings/VoicesGrid'
+import { Voice } from '../types/Voice'
 
 export function SettingsPage() {
+  const [standardVoices, setStandardVoices] = useState<Voice[]>([])
+  const [generatedVoices, setGeneratedVoices] = useState<Voice[]>([])
+
+  useEffect(() => {
+    // TODO: Replace with actual API calls
+    // For now using mock data
+    const fetchVoices = async () => {
+      // Mock data - replace with actual API calls later
+      setStandardVoices([
+        // Add some mock standard voices
+      ])
+      setGeneratedVoices([
+        // Add some mock generated voices
+      ])
+    }
+
+    fetchVoices()
+  }, [])
+
   return (
     <>
       <Breadcrumb 
@@ -10,10 +32,19 @@ export function SettingsPage() {
         ]} 
       />
       <div className="p-6">
-        <h2 className="text-2xl font-bold mb-6">Settings</h2>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-gray-600">Settings page content will be defined in a later stage.</p>
-        </div>
+        <h2 className="text-2xl font-bold mb-6">Voice Settings</h2>
+        
+        <VoicesGrid 
+          title="Standard Voices" 
+          voices={standardVoices} 
+          isStandardVoices={true}
+        />
+        
+        <VoicesGrid 
+          title="Generated Voices" 
+          voices={generatedVoices} 
+          isStandardVoices={false}
+        />
       </div>
     </>
   )
