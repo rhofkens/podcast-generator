@@ -16,6 +16,10 @@ interface VoiceGridRowProps {
 }
 
 export function VoiceGridRow({ voice, isStandardVoice }: VoiceGridRowProps) {
+  // Function to capitalize first letter
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -25,11 +29,13 @@ export function VoiceGridRow({ voice, isStandardVoice }: VoiceGridRowProps) {
         <VoiceTags tags={voice.tags} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">{voice.gender}</div>
+        <div className="text-sm text-gray-900">
+          {capitalizeFirstLetter(voice.gender)}
+        </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900">
-          {voice.isDefault ? '✓' : ''}
+          {voice.isDefault ? 'Yes' : 'No'}
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -44,7 +50,7 @@ export function VoiceGridRow({ voice, isStandardVoice }: VoiceGridRowProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>
-              Make default {voice.gender}
+              Set default {capitalizeFirstLetter(voice.gender)} voice
             </DropdownMenuItem>
             {!isStandardVoice && (
               <>
