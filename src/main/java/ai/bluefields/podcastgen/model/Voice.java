@@ -1,6 +1,7 @@
 package ai.bluefields.podcastgen.model;
 
 import ai.bluefields.podcastgen.config.hibernate.PostgreSQLTextArrayType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,6 +51,7 @@ public class Voice {
     private Gender gender;
     
     @Column(name = "is_default", nullable = false)
+    @JsonProperty("isDefault")
     private boolean isDefault = false;
     
     @Column(name = "audio_preview_path")
