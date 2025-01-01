@@ -14,36 +14,33 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const { user, loading: authLoading } = useAuth()
 
-  useEffect(() => {
-    const fetchVoices = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
+  const refreshVoices = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        // Fetch standard voices
-        const standardVoicesData = await voicesApi.getVoicesByType('STANDARD')
-        setStandardVoices(standardVoicesData)
+      const standardVoicesData = await voicesApi.getVoicesByType('STANDARD')
+      setStandardVoices(standardVoicesData)
 
-        // Only fetch generated voices if we have a user
-        if (user?.id) {
-          const generatedVoicesData = await voicesApi.getVoicesByUserIdAndType(
-            user.id,
-            'GENERATED'
-          )
-          setGeneratedVoices(generatedVoicesData)
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load voices'
-        setError(errorMessage)
-        console.error('Error fetching voices:', err)
-      } finally {
-        setIsLoading(false)
+      if (user?.id) {
+        const generatedVoicesData = await voicesApi.getVoicesByUserIdAndType(
+          user.id,
+          'GENERATED'
+        )
+        setGeneratedVoices(generatedVoicesData)
       }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load voices'
+      setError(errorMessage)
+      console.error('Error fetching voices:', err)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    // Only fetch voices once auth is no longer loading
+  useEffect(() => {
     if (!authLoading) {
-      fetchVoices()
+      refreshVoices()
     }
   }, [user?.id, authLoading])
 
@@ -96,12 +93,14 @@ export function SettingsPage() {
               title="Standard Voices" 
               voices={standardVoices} 
               isStandardVoices={true}
+              onVoiceUpdated={refreshVoices}
             />
             
             <VoicesGrid 
               title="Generated Voices" 
               voices={generatedVoices} 
               isStandardVoices={false}
+              onVoiceUpdated={refreshVoices}
             />
 
             {generatedVoices.length === 0 && (

@@ -5,9 +5,10 @@ interface VoicesGridProps {
   title: string
   voices: Voice[]
   isStandardVoices?: boolean
+  onVoiceUpdated: () => void
 }
 
-export function VoicesGrid({ title, voices, isStandardVoices = false }: VoicesGridProps) {
+export function VoicesGrid({ title, voices, isStandardVoices = false, onVoiceUpdated }: VoicesGridProps) {
   return (
     <div className="mt-6">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
@@ -40,7 +41,8 @@ export function VoicesGrid({ title, voices, isStandardVoices = false }: VoicesGr
               <VoiceGridRow 
                 key={voice.id} 
                 voice={voice} 
-                isStandardVoice={isStandardVoices} 
+                isStandardVoice={isStandardVoices}
+                onVoiceUpdated={onVoiceUpdated}
               />
             ))}
           </tbody>

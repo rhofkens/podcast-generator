@@ -22,5 +22,10 @@ export const voicesApi = {
   async getVoicesByUserIdAndType(userId: string, voiceType: Voice['voiceType']): Promise<Voice[]> {
     const response = await axios.get(`${API_BASE_URL}/user/${userId}/type/${voiceType}`)
     return response.data
+  },
+
+  async setDefaultVoice(voiceId: number, gender: Voice['gender']): Promise<Voice> {
+    const response = await axios.put(`${API_BASE_URL}/${voiceId}/default/${gender}`)
+    return response.data
   }
 }
