@@ -320,4 +320,23 @@ public class VoiceServiceImpl implements VoiceService {
         
         return voiceRepository.findByUserIdAndVoiceType(userId, voiceType);
     }
+
+    @Override
+    @Transactional
+    public Voice setDefaultVoice(Voice voice) {
+        log.debug("Setting voice {} as default for gender {}", voice.getId(), voice.getGender());
+        
+        // First, unset any existing default voice for this gender
+        List<Voice> currentDefaultVoices = voiceRepository.findByGenderAndIsDefaultTrue(voice.getGender());
+        for (Voice defaultVoice : currentDefaultVoices) {
+            if (!defaultVoice.getId().equals(voice.getId())) {
+                defaultVoice.setDefault(false);
+                voiceRepository.save(defaultVoice);
+            }
+        }
+        
+        // Set the new voice as default
+        voice.setDefault(true);
+        return voiceRepository.save(voice);
+    }
 }

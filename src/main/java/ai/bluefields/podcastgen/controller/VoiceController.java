@@ -233,10 +233,7 @@ public class VoiceController {
                 + voice.getGender() + ", requested gender: " + gender);
         }
         
-        // Set this voice as default and unset any other default voice for this gender
-        voice.setDefault(true);
-        Voice updatedVoice = voiceService.updateVoice(voice);
-        
+        Voice updatedVoice = voiceService.setDefaultVoice(voice);
         return ResponseEntity.ok(updatedVoice);
     }
 }

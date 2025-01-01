@@ -126,4 +126,12 @@ public interface VoiceService {
      * @throws IllegalArgumentException if userId is null/empty or voiceType is null
      */
     List<Voice> getVoicesByUserIdAndType(String userId, Voice.VoiceType voiceType);
+
+    /**
+     * Sets a voice as the default for its gender, unsetting any previous default.
+     *
+     * @param voice The voice to set as default
+     * @return The updated voice
+     */
+    Voice setDefaultVoice(Voice voice);
 }
