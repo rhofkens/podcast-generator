@@ -1,5 +1,6 @@
 package ai.bluefields.podcastgen.model;
 
+import ai.bluefields.podcastgen.config.hibernate.PostgreSQLTextArrayType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
