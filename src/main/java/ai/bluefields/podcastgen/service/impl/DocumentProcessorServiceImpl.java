@@ -66,7 +66,7 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
             String generatedDescription = aiService.generateDescriptionFromContent(processedContent);
             
             return ScrapedContentDTO.builder()
-                .content(rewrittenContent)
+                .content(processedContent)
                 .title(generatedTitle)
                 .description(generatedDescription)
                 .sourceUrl(null)
