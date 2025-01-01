@@ -59,9 +59,13 @@ public class DocumentProcessorServiceImpl implements DocumentProcessorService {
             
             log.info("Successfully processed document: {}", file.getOriginalFilename());
             
+            // Generate description
+            String generatedDescription = aiService.generateDescriptionFromContent(rewrittenContent);
+            
             return ScrapedContentDTO.builder()
                 .content(rewrittenContent)
                 .title(file.getOriginalFilename())
+                .description(generatedDescription)
                 .sourceUrl(null)
                 .build();
                 

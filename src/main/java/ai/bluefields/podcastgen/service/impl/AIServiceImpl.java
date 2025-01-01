@@ -694,6 +694,47 @@ public class AIServiceImpl implements AIService {
         }
     }
 
+    @Override 
+    public String generateDescriptionFromContent(String content) {
+        String promptText = String.format("""
+            Generate a concise, engaging description (maximum 200 characters) for a podcast based on this content:
+            
+            %s
+            
+            Requirements:
+            1. Capture the main topic and key points
+            2. Be engaging and interesting
+            3. Use natural, conversational language
+            4. Maximum 200 characters
+            5. Don't use phrases like "This podcast..." or "A discussion about..."
+            
+            Return only the description text, no additional formatting or metadata.
+            """, content);
+        
+        try {
+            ChatResponse response = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .chatResponse();
+                
+            String description = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"))
+                .trim();
+                
+            // Ensure it doesn't exceed 200 characters
+            if (description.length() > 200) {
+                description = description.substring(0, 197) + "...";
+            }
+            
+            return description;
+        } catch (Exception e) {
+            log.error("Failed to generate description: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate description: " + e.getMessage(), e);
+        }
+    }
+
     @Override
     public String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription) {
         log.info("Rewriting scraped content for podcast: {}", podcastTitle);

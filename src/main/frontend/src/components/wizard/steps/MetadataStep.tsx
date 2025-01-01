@@ -109,7 +109,18 @@ export function MetadataStep({
       const extractedData = await response.json();
       console.log('Extracted data:', extractedData);
 
-      // Update the context description with the extracted content
+      // Update all relevant fields if they haven't been edited
+      if (!editedFields.has('title')) {
+        handleInputChange('title', extractedData.title || '');
+        setEditedFields(prev => new Set([...prev, 'title']));
+      }
+
+      if (!editedFields.has('description')) {
+        handleInputChange('description', extractedData.description || '');
+        setEditedFields(prev => new Set([...prev, 'description']));
+      }
+
+      // Update the context description
       handleInputChange('contextDescription', extractedData.content || '');
       setEditedFields(prev => new Set([...prev, 'contextDescription']));
 

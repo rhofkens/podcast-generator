@@ -9,4 +9,5 @@ public class ScrapedContentDTO {
     private String content;
     private String sourceUrl;
     private String title;
+    private String description;
 }

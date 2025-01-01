@@ -13,4 +13,5 @@ public interface AIService {
     JsonNode generateAudioSegment(String text, String voiceId, List<String> previousRequestIds, 
         String previousText, String nextText);
     String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription);
+    String generateDescriptionFromContent(String content);
 }
