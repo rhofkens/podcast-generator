@@ -14,4 +14,5 @@ public interface AIService {
         String previousText, String nextText);
     String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription);
     String generateDescriptionFromContent(String content);
+    String generateTitleFromContent(String content);
 }

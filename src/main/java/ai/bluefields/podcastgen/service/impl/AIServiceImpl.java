@@ -736,6 +736,48 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
+    public String generateTitleFromContent(String content) {
+        String promptText = String.format("""
+            Generate an engaging, catchy podcast title based on this content:
+            
+            %s
+            
+            Requirements:
+            1. Maximum 60 characters
+            2. Capture the main topic in an intriguing way
+            3. Be creative but clear and professional
+            4. Avoid clickbait style
+            5. Don't use phrases like "A Podcast About..." or "Episode About..."
+            6. Make it memorable and shareable
+            
+            Return only the title text, no additional formatting or metadata.
+            """, content);
+        
+        try {
+            ChatResponse response = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .chatResponse();
+                
+            String title = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"))
+                .trim();
+                
+            // Ensure it doesn't exceed 60 characters
+            if (title.length() > 60) {
+                title = title.substring(0, 57) + "...";
+            }
+            
+            return title;
+        } catch (Exception e) {
+            log.error("Failed to generate title: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate title: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public String rewriteScrapedContent(String scrapedText, String podcastTitle, String podcastDescription) {
         log.info("Rewriting scraped content for podcast: {}", podcastTitle);
         
