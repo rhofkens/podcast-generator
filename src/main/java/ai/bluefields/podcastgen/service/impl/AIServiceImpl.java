@@ -780,24 +780,27 @@ public class AIServiceImpl implements AIService {
     @Override
     public String generateContextFromContent(String content, int targetLength) {
         String promptText = String.format("""
-            Create a detailed podcast context from this content. The context will be used to generate 
-            an engaging podcast discussion.
+            Create a detailed summary of this content that will later be used as source material 
+            for a podcast discussion.
             
             Content:
             %s
             
             Requirements:
             1. Target length: approximately %d words
-            2. Maintain key concepts, examples, and technical details
-            3. Structure the content for spoken discussion
-            4. Keep important statistics and data points
-            5. Include specific examples and case studies
-            6. Preserve expert insights and unique perspectives
-            7. Organize content in a logical flow for conversation
-            8. Keep technical terms but ensure they're explained naturally
+            2. Focus on:
+               - Key concepts and main ideas
+               - Important facts and statistics
+               - Notable examples and case studies
+               - Expert insights and unique perspectives
+               - Technical details with clear explanations
+            3. Format as a clear, well-organized summary
+            4. Maintain academic/professional tone
+            5. Do not include any dialogue or conversation elements
+            6. Do not add speaker labels or roles
+            7. Do not format as a podcast script
             
-            Focus on creating a rich context that will enable an engaging podcast discussion.
-            Return only the processed content, no additional formatting or metadata.
+            Return only the processed summary, no additional formatting or metadata.
             """, content, targetLength);
         
         try {
