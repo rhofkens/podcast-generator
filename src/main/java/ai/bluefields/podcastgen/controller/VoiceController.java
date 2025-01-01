@@ -210,4 +210,33 @@ public class VoiceController {
         log.debug("Handling IllegalArgumentException: {}", ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
+
+    /**
+     * Sets a voice as the default for a specific gender.
+     *
+     * @param id The ID of the voice to set as default
+     * @param gender The gender for which this voice should be default
+     * @return The updated voice
+     */
+    @PutMapping("/{id}/default/{gender}")
+    public ResponseEntity<Voice> setDefaultVoice(
+            @PathVariable Long id,
+            @PathVariable Voice.Gender gender) {
+        log.debug("REST request to set Voice {} as default {} voice", id, gender);
+        
+        Voice voice = voiceService.getVoiceById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Voice not found with ID: " + id));
+                
+        if (voice.getGender() != gender) {
+            throw new IllegalArgumentException(
+                "Cannot set voice as default for different gender. Voice gender: " 
+                + voice.getGender() + ", requested gender: " + gender);
+        }
+        
+        // Set this voice as default and unset any other default voice for this gender
+        voice.setDefault(true);
+        Voice updatedVoice = voiceService.updateVoice(voice);
+        
+        return ResponseEntity.ok(updatedVoice);
+    }
 }
