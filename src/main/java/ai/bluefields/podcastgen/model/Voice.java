@@ -30,6 +30,7 @@ public class Voice {
     @Column(nullable = false)
     private String name;
     
+    @Type(PostgreSQLTextArrayType.class)
     @Column(columnDefinition = "text[]")
     private String[] tags;
     

@@ -19,7 +19,7 @@ public interface VoiceRepository extends JpaRepository<Voice, Long> {
     
     List<Voice> findByIsDefaultTrue();
     
-    @Query("SELECT v FROM Voice v WHERE :tag = ANY(v.tags)")
+    @Query(value = "SELECT * FROM voices v WHERE v.tags @> ARRAY[:tag]", nativeQuery = true)
     List<Voice> findByTag(@Param("tag") String tag);
     
     @Query("SELECT v FROM Voice v WHERE v.voiceType = :voiceType AND v.gender = :gender")
