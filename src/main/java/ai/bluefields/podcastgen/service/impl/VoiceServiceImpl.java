@@ -302,4 +302,22 @@ public class VoiceServiceImpl implements VoiceService {
             throw new IllegalArgumentException("Gender cannot be null");
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Voice> getVoicesByUserIdAndType(String userId, Voice.VoiceType voiceType) {
+        log.debug("Fetching voices by user ID: {} and type: {}", userId, voiceType);
+        
+        if (!StringUtils.hasText(userId)) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (voiceType == null) {
+            throw new IllegalArgumentException("Voice type cannot be null");
+        }
+        
+        return voiceRepository.findByUserIdAndVoiceType(userId, voiceType);
+    }
 }

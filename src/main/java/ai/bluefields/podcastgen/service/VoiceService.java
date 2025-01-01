@@ -116,4 +116,14 @@ public interface VoiceService {
      * @throws IllegalArgumentException if either parameter is null
      */
     List<Voice> getVoicesByTypeAndGender(Voice.VoiceType voiceType, Voice.Gender gender);
+
+    /**
+     * Retrieves voices associated with a specific user and voice type.
+     *
+     * @param userId The ID of the user
+     * @param voiceType The type of voices to retrieve
+     * @return List of voices matching both the user ID and voice type
+     * @throws IllegalArgumentException if userId is null/empty or voiceType is null
+     */
+    List<Voice> getVoicesByUserIdAndType(String userId, Voice.VoiceType voiceType);
 }
