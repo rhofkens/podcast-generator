@@ -563,9 +563,10 @@ export function ParticipantsStep({
           setActiveParticipantIndex(null)
         }
       }}
-      voices={availableVoices.filter(voice => 
-        voice.gender === participants[activeParticipantIndex || 0]?.gender
-      )}
+      voices={availableVoices.filter(voice => {
+        const participantGender = participants[activeParticipantIndex || 0]?.gender
+        return participantGender ? voice.gender === participantGender : false
+      })}
       selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId ? 
         parseInt(participants[activeParticipantIndex || 0]?.syntheticVoiceId) : 
         undefined}
