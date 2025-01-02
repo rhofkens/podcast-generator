@@ -553,23 +553,24 @@ export function ParticipantsStep({
       )}
       </div>
       <VoiceSelectionModal
-      isOpen={isVoiceModalOpen}
-      onClose={() => setIsVoiceModalOpen(false)}
-      onSelect={(voice) => {
-        if (activeParticipantIndex !== null) {
-          updateParticipant(activeParticipantIndex, 'syntheticVoiceId', voice.externalVoiceId)
-          updateParticipant(activeParticipantIndex, 'voicePreviewUrl', voice.audioPreviewPath)
-          setIsVoiceModalOpen(false)
-          setActiveParticipantIndex(null)
-        }
-      }}
-      voices={availableVoices.filter(voice => {
-        const participantGender = participants[activeParticipantIndex || 0]?.gender
-        return participantGender ? voice.gender === participantGender : false
-      })}
-      selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId ? 
-        parseInt(participants[activeParticipantIndex || 0]?.syntheticVoiceId) : 
-        undefined}
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onSelect={(voice) => {
+          if (activeParticipantIndex !== null) {
+            updateParticipant(activeParticipantIndex, 'syntheticVoiceId', voice.externalVoiceId)
+            updateParticipant(activeParticipantIndex, 'voicePreviewUrl', voice.audioPreviewPath)
+            setIsVoiceModalOpen(false)
+            setActiveParticipantIndex(null)
+          }
+        }}
+        voices={availableVoices.filter(voice => {
+          const participantGender = participants[activeParticipantIndex || 0]?.gender
+          return participantGender ? voice.gender === participantGender : false
+        })}
+        selectedVoiceId={(() => {
+          const voiceId = participants[activeParticipantIndex || 0]?.syntheticVoiceId
+          return voiceId ? parseInt(voiceId) : undefined
+        })()}
       />
     </>
   )
