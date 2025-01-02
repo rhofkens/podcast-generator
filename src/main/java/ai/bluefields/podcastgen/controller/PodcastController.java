@@ -1,18 +1,16 @@
 package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
+import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import ai.bluefields.podcastgen.model.Participant;
 import ai.bluefields.podcastgen.model.PodcastGenerationStatus;
-import ai.bluefields.podcastgen.model.PodcastStatus;
 import ai.bluefields.podcastgen.service.AIService;
 import ai.bluefields.podcastgen.service.PodcastGenerationService;
 import com.fasterxml.jackson.databind.JsonNode;
 import ai.bluefields.podcastgen.dto.TranscriptGenerationRequest;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import ai.bluefields.podcastgen.dto.PageResponseDTO;
