@@ -25,6 +25,7 @@ export function VoiceSelectionModal({
   voices,
   selectedVoiceId
 }: VoiceSelectionModalProps) {
+  const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -56,14 +57,10 @@ export function VoiceSelectionModal({
                 <tr
                   key={voice.id}
                   onClick={() => {
-                    // Just update the selected voice ID, don't close the modal
-                    const selectedVoice = voices.find(v => v.id === voice.id)
-                    if (selectedVoice) {
-                      onSelect(selectedVoice)
-                    }
+                    setSelectedVoice(voice)
                   }}
                   className={`hover:bg-gray-50 cursor-pointer ${
-                    selectedVoiceId === voice.id ? 'bg-blue-50' : ''
+                    selectedVoice?.id === voice.id ? 'bg-green-50' : ''
                   }`}
                 >
                   <td className="px-4 py-2">{voice.name}</td>
@@ -95,13 +92,13 @@ export function VoiceSelectionModal({
           </Button>
           <Button 
             onClick={() => {
-              const selectedVoice = voices.find(v => v.id === selectedVoiceId)
               if (selectedVoice) {
                 onSelect(selectedVoice)
                 onClose()
               }
             }}
-            disabled={!selectedVoiceId}
+            disabled={!selectedVoice}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Select voice
           </Button>
