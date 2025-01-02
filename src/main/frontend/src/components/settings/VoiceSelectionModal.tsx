@@ -74,7 +74,9 @@ export function VoiceSelectionModal({
                     </div>
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
+                    </div>
                   </td>
                 </tr>
               ))}
