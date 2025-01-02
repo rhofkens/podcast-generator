@@ -567,10 +567,6 @@ export function ParticipantsStep({
           const participantGender = participants[activeParticipantIndex || 0]?.gender
           return participantGender ? voice.gender === participantGender : false
         })}
-        selectedVoiceId={(() => {
-          const voiceId = participants[activeParticipantIndex || 0]?.syntheticVoiceId
-          return voiceId ? parseInt(voiceId) : undefined
-        })()}
       />
     </>
   )
