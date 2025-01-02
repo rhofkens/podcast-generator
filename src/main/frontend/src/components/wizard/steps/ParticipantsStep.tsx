@@ -557,10 +557,10 @@ export function ParticipantsStep({
         onClose={() => setIsVoiceModalOpen(false)}
         onSelect={(voice) => {
           if (activeParticipantIndex !== null) {
+            // Just update the participant's voice info, don't close the modal
             updateParticipant(activeParticipantIndex, 'syntheticVoiceId', voice.externalVoiceId)
             updateParticipant(activeParticipantIndex, 'voicePreviewUrl', voice.audioPreviewPath)
-            setIsVoiceModalOpen(false)
-            setActiveParticipantIndex(null)
+            // Don't close modal here - let user confirm with the Select voice button
           }
         }}
         voices={availableVoices.filter(voice => {

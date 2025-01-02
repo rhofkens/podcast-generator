@@ -55,7 +55,13 @@ export function VoiceSelectionModal({
               {voices.map((voice) => (
                 <tr
                   key={voice.id}
-                  onClick={() => onSelect(voice)}
+                  onClick={() => {
+                    // Just update the selected voice ID, don't close the modal
+                    const selectedVoice = voices.find(v => v.id === voice.id)
+                    if (selectedVoice) {
+                      onSelect(selectedVoice)
+                    }
+                  }}
                   className={`hover:bg-gray-50 cursor-pointer ${
                     selectedVoiceId === voice.id ? 'bg-blue-50' : ''
                   }`}
