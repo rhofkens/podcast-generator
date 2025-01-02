@@ -30,6 +30,11 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+#### local preview files and podcast files
+uploads/
+
+
+
 ### STS ###
 .apt_generated
 .classpath
