@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Voice } from '../../types/Voice'
 import { MiniAudioPlayer } from './MiniAudioPlayer'
 import { Volume2 } from 'lucide-react'
@@ -15,15 +16,13 @@ interface VoiceSelectionModalProps {
   onClose: () => void
   onSelect: (voice: Voice) => void
   voices: Voice[]
-  selectedVoiceId?: number
 }
 
 export function VoiceSelectionModal({
   isOpen,
   onClose,
   onSelect,
-  voices,
-  selectedVoiceId
+  voices
 }: VoiceSelectionModalProps) {
   const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null)
   return (
