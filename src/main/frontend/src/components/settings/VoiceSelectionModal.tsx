@@ -1,11 +1,14 @@
 import { Voice } from '../../types/Voice'
 import { MiniAudioPlayer } from './MiniAudioPlayer'
 import { Volume2 } from 'lucide-react'
-import {
-  Tooltip,
-} from '../ui/tooltip'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip'
 
 interface VoiceSelectionModalProps {
   isOpen: boolean
