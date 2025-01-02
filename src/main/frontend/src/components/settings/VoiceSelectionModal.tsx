@@ -49,14 +49,14 @@ export function VoiceSelectionModal({
                     </Tooltip>
                   </TooltipProvider>
                 </th>
-                <th className="px-4 py-2 text-left">Select</th>
               </tr>
             </thead>
             <tbody>
               {voices.map((voice) => (
                 <tr
                   key={voice.id}
-                  className={`hover:bg-gray-50 ${
+                  onClick={() => onSelect(voice)}
+                  className={`hover:bg-gray-50 cursor-pointer ${
                     selectedVoiceId === voice.id ? 'bg-blue-50' : ''
                   }`}
                 >
@@ -75,15 +75,6 @@ export function VoiceSelectionModal({
                   </td>
                   <td className="px-4 py-2 text-center">
                     <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
-                  </td>
-                  <td className="px-4 py-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => onSelect(voice)}
-                      className={selectedVoiceId === voice.id ? 'bg-blue-100' : ''}
-                    >
-                      {selectedVoiceId === voice.id ? 'Selected' : 'Select'}
-                    </Button>
                   </td>
                 </tr>
               ))}
@@ -104,7 +95,7 @@ export function VoiceSelectionModal({
             }}
             disabled={!selectedVoiceId}
           >
-            Use selected voice
+            Select voice
           </Button>
         </DialogFooter>
       </DialogContent>
