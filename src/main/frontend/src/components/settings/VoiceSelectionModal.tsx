@@ -39,14 +39,14 @@ export function VoiceSelectionModal({
                 <th className="px-4 py-2 text-left">Tags</th>
                 <th className="px-4 py-2 text-left">Gender</th>
                 <th className="px-4 py-2 text-left">Preview</th>
+                <th className="px-4 py-2 text-left">Select</th>
               </tr>
             </thead>
             <tbody>
               {voices.map((voice) => (
                 <tr
                   key={voice.id}
-                  onClick={() => onSelect(voice)}
-                  className={`cursor-pointer hover:bg-gray-50 ${
+                  className={`hover:bg-gray-50 ${
                     selectedVoiceId === voice.id ? 'bg-blue-50' : ''
                   }`}
                 >
@@ -75,6 +75,15 @@ export function VoiceSelectionModal({
                   <td className="px-4 py-2 capitalize">{voice.gender}</td>
                   <td className="px-4 py-2">
                     <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => onSelect(voice)}
+                      className={selectedVoiceId === voice.id ? 'bg-blue-100' : ''}
+                    >
+                      {selectedVoiceId === voice.id ? 'Selected' : 'Select'}
+                    </Button>
                   </td>
                 </tr>
               ))}
