@@ -1,6 +1,6 @@
 import { Voice } from '../../types/Voice'
 import { MiniAudioPlayer } from './MiniAudioPlayer'
-import { Info } from 'lucide-react'
+import { Info, Volume2 } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -37,8 +37,18 @@ export function VoiceSelectionModal({
               <tr className="border-b">
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Tags</th>
-                <th className="px-4 py-2 text-left">Gender</th>
-                <th className="px-4 py-2 text-left">Preview</th>
+                <th className="px-4 py-2 text-center">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Volume2 className="h-4 w-4" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Listen to voice</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </th>
                 <th className="px-4 py-2 text-left">Select</th>
               </tr>
             </thead>
@@ -72,8 +82,7 @@ export function VoiceSelectionModal({
                       </Tooltip>
                     </TooltipProvider>
                   </td>
-                  <td className="px-4 py-2 capitalize">{voice.gender}</td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2 text-center">
                     <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
                   </td>
                   <td className="px-4 py-2">
