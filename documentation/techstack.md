@@ -30,4 +30,8 @@ We will generate multiple audio segments with speakers taking turns, so we will
 have to stitch the segments together. The best practice with elevenlabs API is 
 documented on this page https://elevenlabs.io/docs/developer-guides/how-to-use-request-stitching
 
+### 1.7 Subscription management and payments
+
+We will use Stripe to define a tiered subscription model with basic-good-best plans.  
+The plans have a monthly flat rate.  Invoices and payments are done via stripe checkout.
 
