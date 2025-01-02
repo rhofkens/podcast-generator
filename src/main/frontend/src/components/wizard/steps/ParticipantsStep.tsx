@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { cn } from '../../../lib/utils'
+import { VoiceSelectionModal } from '../../settings/VoiceSelectionModal'
+import { Voice } from '../../../types/Voice'
 
 interface Participant {
   id?: number;
@@ -39,6 +41,9 @@ export function ParticipantsStep({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [activeParticipantIndex, setActiveParticipantIndex] = useState<number | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
 
   useEffect(() => {
     // If in edit mode, mark ALL fields as edited immediately on mount
@@ -73,6 +78,20 @@ export function ParticipantsStep({
       }
     }
   }, [podcastId, editMode]);
+
+  useEffect(() => {
+    const loadVoices = async () => {
+      try {
+        const response = await fetch('/api/voices')
+        if (!response.ok) throw new Error('Failed to load voices')
+        const data = await response.json()
+        setAvailableVoices(data)
+      } catch (error) {
+        console.error('Error loading voices:', error)
+      }
+    }
+    loadVoices()
+  }, [])
 
   const loadSampleParticipants = async () => {
     // Don't load sample data if in edit mode
@@ -376,61 +395,70 @@ export function ParticipantsStep({
               </div>
 
               <div className="col-span-2 mt-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between space-x-4">
                   <button
-                      onClick={() => saveAndGenerateVoicePreview(participant, index)}
-                      disabled={!!participant.isGeneratingVoice}
-                      className={cn(
-                          "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                          !!participant.isGeneratingVoice
-                              ? "bg-gray-200 cursor-not-allowed"
-                              : "bg-primary text-primary-foreground hover:bg-primary/90"
-                      )}
+                    onClick={() => {
+                      setActiveParticipantIndex(index)
+                      setIsVoiceModalOpen(true)
+                    }}
+                    className="px-4 py-2 rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/90"
                   >
-                      {!!participant.isGeneratingVoice ? (
-                          <span className="flex items-center space-x-2">
-                              <svg 
-                                  className="animate-spin h-5 w-5" 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  fill="none" 
-                                  viewBox="0 0 24 24"
-                              >
-                                  <circle 
-                                      className="opacity-25" 
-                                      cx="12" 
-                                      cy="12" 
-                                      r="10" 
-                                      stroke="currentColor" 
-                                      strokeWidth="4"
-                                  ></circle>
-                                  <path 
-                                      className="opacity-75" 
-                                      fill="currentColor" 
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                              </svg>
-                              <span>Generating...</span>
-                          </span>
-                      ) : participant.voicePreviewUrl ? (
-                          "Regenerate Voice Preview"
-                      ) : (
-                          "Generate Voice Preview"
-                      )}
+                    Select voice from library
+                  </button>
+                  <button
+                    onClick={() => saveAndGenerateVoicePreview(participant, index)}
+                    disabled={!!participant.isGeneratingVoice}
+                    className={cn(
+                      "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                      !!participant.isGeneratingVoice
+                        ? "bg-gray-200 cursor-not-allowed"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    )}
+                  >
+                    {!!participant.isGeneratingVoice ? (
+                      <span className="flex items-center space-x-2">
+                        <svg 
+                          className="animate-spin h-5 w-5" 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          fill="none" 
+                          viewBox="0 0 24 24"
+                        >
+                          <circle 
+                            className="opacity-25" 
+                            cx="12" 
+                            cy="12" 
+                            r="10" 
+                            stroke="currentColor" 
+                            strokeWidth="4"
+                          ></circle>
+                          <path 
+                            className="opacity-75" 
+                            fill="currentColor" 
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Generating...</span>
+                      </span>
+                    ) : participant.voicePreviewUrl ? (
+                      "Regenerate Voice Preview"
+                    ) : (
+                      "Generate Voice Preview"
+                    )}
                   </button>
                 </div>
                 
                 {participant.voicePreviewUrl && (
-                    <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">Voice Preview</h4>
-                        <audio 
-                            controls 
-                            className="w-full"
-                            key={participant.voicePreviewUrl}
-                        >
-                            <source src={participant.voicePreviewUrl} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Voice Preview</h4>
+                    <audio 
+                      controls 
+                      className="w-full"
+                      key={participant.voicePreviewUrl}
+                    >
+                      <source src={participant.voicePreviewUrl} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
                 )}
               </div>
             </div>
@@ -523,5 +551,21 @@ export function ParticipantsStep({
         </div>
       )}
     </div>
+    <VoiceSelectionModal
+      isOpen={isVoiceModalOpen}
+      onClose={() => setIsVoiceModalOpen(false)}
+      onSelect={(voice) => {
+        if (activeParticipantIndex !== null) {
+          updateParticipant(activeParticipantIndex, 'syntheticVoiceId', voice.externalVoiceId)
+          updateParticipant(activeParticipantIndex, 'voicePreviewUrl', voice.audioPreviewPath)
+          setIsVoiceModalOpen(false)
+          setActiveParticipantIndex(null)
+        }
+      }}
+      voices={availableVoices.filter(voice => 
+        voice.gender === participants[activeParticipantIndex || 0]?.gender
+      )}
+      selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId}
+    />
   )
 }
