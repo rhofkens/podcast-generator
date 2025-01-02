@@ -296,8 +296,9 @@ export function ParticipantsStep({
     participants.every(p => p.name && p.gender && p.role && p.roleDescription)
 
   return (
-    <div className="p-6">
-      <div className="space-y-6 mb-6">
+    <>
+      <div className="p-6">
+        <div className="space-y-6 mb-6">
         {participants.map((participant, index) => (
           <div key={participant.id || `new-${index}`} className="bg-white p-4 rounded-lg border">
             <div className="flex justify-between items-start mb-4">
@@ -550,8 +551,8 @@ export function ParticipantsStep({
           </button>
         </div>
       )}
-    </div>
-    <VoiceSelectionModal
+      </div>
+      <VoiceSelectionModal
       isOpen={isVoiceModalOpen}
       onClose={() => setIsVoiceModalOpen(false)}
       onSelect={(voice) => {
@@ -566,6 +567,7 @@ export function ParticipantsStep({
         voice.gender === participants[activeParticipantIndex || 0]?.gender
       )}
       selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId}
-    />
+      />
+    </>
   )
 }
