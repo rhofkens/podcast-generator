@@ -566,7 +566,9 @@ export function ParticipantsStep({
       voices={availableVoices.filter(voice => 
         voice.gender === participants[activeParticipantIndex || 0]?.gender
       )}
-      selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId}
+      selectedVoiceId={participants[activeParticipantIndex || 0]?.syntheticVoiceId ? 
+        parseInt(participants[activeParticipantIndex || 0]?.syntheticVoiceId) : 
+        undefined}
       />
     </>
   )
