@@ -236,4 +236,33 @@ public class VoiceController {
         Voice updatedVoice = voiceService.setDefaultVoice(voice);
         return ResponseEntity.ok(updatedVoice);
     }
+
+    /**
+     * Retrieves the default voice for a specific gender.
+     *
+     * @param gender The gender for which to get the default voice
+     * @return List containing the default voice for the specified gender
+     */
+    @GetMapping("/default/{gender}")
+    public ResponseEntity<List<Voice>> getDefaultVoiceByGender(@PathVariable Voice.Gender gender) {
+        log.debug("REST request to get default Voice for gender: {}", gender);
+        List<Voice> voices = voiceService.getVoicesByGenderAndIsDefaultTrue(gender);
+        return ResponseEntity.ok(voices);
+    }
+
+    /**
+     * Retrieves the default voice for a specific user and gender.
+     *
+     * @param userId The ID of the user
+     * @param gender The gender for which to get the default voice
+     * @return List containing the user's default voice for the specified gender
+     */
+    @GetMapping("/user/{userId}/default/{gender}")
+    public ResponseEntity<List<Voice>> getUserDefaultVoiceByGender(
+            @PathVariable String userId,
+            @PathVariable Voice.Gender gender) {
+        log.debug("REST request to get default Voice for user: {} and gender: {}", userId, gender);
+        List<Voice> userDefaultVoices = voiceService.getUserDefaultVoicesByGender(userId, gender);
+        return ResponseEntity.ok(userDefaultVoices);
+    }
 }
