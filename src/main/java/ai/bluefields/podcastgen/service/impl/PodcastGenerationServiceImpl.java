@@ -183,7 +183,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                     newVoice.setName(participant.getName() + "'s Voice");
                     newVoice.setExternalVoiceId(voiceId);
                     newVoice.setVoiceType(Voice.VoiceType.GENERATED);
-                    newVoice.setGender(Voice.Gender.valueOf(participant.getGender().toUpperCase()));
+                    newVoice.setGender(Voice.Gender.valueOf(participant.getGender().toLowerCase()));
                     newVoice.setDefault(false);
                     newVoice.setUserId(podcast.getUserId()); // Associate with the podcast creator
                     
