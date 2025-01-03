@@ -84,54 +84,55 @@ export function VoiceGridRow({ voice, isStandardVoice, onVoiceUpdated }: VoiceGr
   }
 
   return (
-    <tr>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm font-medium text-gray-900">{voice.name}</div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <VoiceTags tags={voice.tags} />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">
-          {capitalizeFirstLetter(voice.gender)}
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">
-          {voice.isDefault ? 'Yes' : 'No'}
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem 
-              onClick={handleSetDefault}
-              disabled={isLoading || voice.isDefault}
-            >
-              Set default {capitalizeFirstLetter(voice.gender)} voice
-            </DropdownMenuItem>
-            {!isStandardVoice && (
+    <>
+      <tr>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm font-medium text-gray-900">{voice.name}</div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <VoiceTags tags={voice.tags} />
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">
+            {capitalizeFirstLetter(voice.gender)}
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">
+            {voice.isDefault ? 'Yes' : 'No'}
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <MiniAudioPlayer audioUrl={voice.audioPreviewPath} />
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem 
-                onClick={() => setShowDeleteDialog(true)}
-                className="text-red-600"
-                disabled={isLoading}
+                onClick={handleSetDefault}
+                disabled={isLoading || voice.isDefault}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                Set default {capitalizeFirstLetter(voice.gender)} voice
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </td>
-    </tr>
+              {!isStandardVoice && (
+                <DropdownMenuItem 
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-red-600"
+                  disabled={isLoading}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </td>
+      </tr>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
