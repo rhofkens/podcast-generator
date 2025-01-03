@@ -883,7 +883,7 @@ public class AIServiceImpl implements AIService {
             1. Return exactly 5 most relevant tags
             2. Each tag should be:
                - Single word or hyphenated-words
-               - Lowercase
+               - Capitalized first letter
                - No spaces or special characters
                - Descriptive of voice qualities
             3. Include mix of:
@@ -892,7 +892,7 @@ public class AIServiceImpl implements AIService {
                - Demographic tags if relevant
             4. Format as comma-separated list
             
-            Return ONLY the tags in format: tag1,tag2,tag3,tag4,tag5
+            Return ONLY the tags in format: Tag1,Tag2,Tag3,Tag4,Tag5
             """,
             participant.getGender(),
             participant.getAge(),
@@ -913,20 +913,25 @@ public class AIServiceImpl implements AIService {
                 .orElseThrow(() -> new RuntimeException("No response received from AI service"))
                 .trim();
                 
-            // Split and clean the tags
+            // Split and clean the tags, capitalizing first letter
             return Arrays.stream(tags.split(","))
                 .map(String::trim)
                 .filter(tag -> !tag.isEmpty())
-                .map(tag -> tag.toLowerCase().replaceAll("[^a-z0-9-]", ""))
+                .map(tag -> {
+                    // Clean the tag and ensure first letter is capitalized
+                    String cleanTag = tag.toLowerCase().replaceAll("[^a-z0-9-]", "");
+                    return cleanTag.substring(0, 1).toUpperCase() + cleanTag.substring(1);
+                })
                 .toArray(String[]::new);
                 
         } catch (Exception e) {
             log.error("Failed to generate voice tags: {}", e.getMessage(), e);
-            // Fallback to basic tags if AI fails
+            // Fallback to basic tags if AI fails, with capitalized first letters
             return new String[]{
-                participant.getGender().toLowerCase(),
-                "age-" + participant.getAge(),
-                "role-" + participant.getRole().toLowerCase().replaceAll("\\s+", "-")
+                participant.getGender().substring(0, 1).toUpperCase() + participant.getGender().substring(1),
+                "Age-" + participant.getAge(),
+                "Role-" + participant.getRole().substring(0, 1).toUpperCase() + 
+                    participant.getRole().toLowerCase().substring(1).replaceAll("\\s+", "-")
             };
         }
     }
