@@ -11,6 +11,7 @@ interface Participant {
   role: string;
   roleDescription: string;
   voiceCharacteristics: string;
+  selectedVoice?: Voice;
   voicePreviewId?: string;
   voicePreviewUrl?: string;
   syntheticVoiceId?: string;
@@ -44,6 +45,25 @@ export function ParticipantsStep({
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [activeParticipantIndex, setActiveParticipantIndex] = useState<number | null>(null);
   const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
+
+  const getDefaultVoice = async (gender: string, userId?: string) => {
+    try {
+      if (userId) {
+        const userDefaultResponse = await fetch(`/api/voices/user/${userId}/default/${gender}`);
+        const userDefaultVoices = await userDefaultResponse.json();
+        if (userDefaultVoices && userDefaultVoices.length > 0) {
+          return userDefaultVoices[0];
+        }
+      }
+      
+      const systemDefaultResponse = await fetch(`/api/voices/default/${gender}`);
+      const systemDefaultVoices = await systemDefaultResponse.json();
+      return systemDefaultVoices && systemDefaultVoices.length > 0 ? systemDefaultVoices[0] : null;
+    } catch (error) {
+      console.error('Error fetching default voice:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     // If in edit mode, mark ALL fields as edited immediately on mount
@@ -254,7 +274,7 @@ export function ParticipantsStep({
     onChange([...participants, newParticipant]);
   };
 
-  const updateParticipant = (index: number, field: keyof Participant, value: any) => {
+  const updateParticipant = async (index: number, field: keyof Participant, value: any) => {
     // Only clear value on first edit if not in edit mode
     if (!editMode && !isFieldEdited(index, field)) {
       value = '';
@@ -267,6 +287,20 @@ export function ParticipantsStep({
       [field]: value,
       isDirty: true // Add a flag to track changes
     };
+
+    // If gender is being updated, try to set default voice
+    if (field === 'gender' && value) {
+      const defaultVoice = await getDefaultVoice(value, user?.id);
+      if (defaultVoice) {
+        newParticipants[index] = {
+          ...newParticipants[index],
+          selectedVoice: defaultVoice,
+          voicePreviewUrl: defaultVoice.audioPreviewPath,
+          syntheticVoiceId: defaultVoice.externalVoiceId
+        };
+      }
+    }
+
     onChange(newParticipants);
   };
 
@@ -393,6 +427,38 @@ export function ParticipantsStep({
                   onFocus={() => handleFieldFocus(index, 'voiceCharacteristics')}
                   rows={2}
                 />
+              </div>
+
+              <div className="col-span-2 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Voice Selection</label>
+                  <div className="flex items-center space-x-2 p-2 border rounded bg-gray-50">
+                    <span className="text-sm">
+                      {participant.selectedVoice ? participant.selectedVoice.name : 
+                       participant.voicePreviewId ? `${participant.name} - generated` : 
+                       'No voice selected'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  {(participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl) && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium mb-1">Voice Preview</label>
+                      <audio 
+                        controls 
+                        className="w-full h-8"
+                        key={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl}
+                      >
+                        <source 
+                          src={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl} 
+                          type="audio/mpeg" 
+                        />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="col-span-2 mt-4">
@@ -557,10 +623,16 @@ export function ParticipantsStep({
         onClose={() => setIsVoiceModalOpen(false)}
         onSelect={(voice) => {
           if (activeParticipantIndex !== null) {
-            // Just update the participant's voice info, don't close the modal
-            updateParticipant(activeParticipantIndex, 'syntheticVoiceId', voice.externalVoiceId)
-            updateParticipant(activeParticipantIndex, 'voicePreviewUrl', voice.audioPreviewPath)
-            // Don't close modal here - let user confirm with the Select voice button
+            const updatedParticipants = [...participants];
+            updatedParticipants[activeParticipantIndex] = {
+              ...updatedParticipants[activeParticipantIndex],
+              selectedVoice: voice,
+              voicePreviewUrl: voice.audioPreviewPath,
+              syntheticVoiceId: voice.externalVoiceId,
+              voicePreviewId: undefined
+            };
+            onChange(updatedParticipants);
+            setIsVoiceModalOpen(false);
           }
         }}
         voices={availableVoices.filter(voice => {
