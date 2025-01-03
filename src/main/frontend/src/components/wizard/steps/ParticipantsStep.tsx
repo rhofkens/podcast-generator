@@ -444,20 +444,22 @@ export function ParticipantsStep({
                 </div>
                 
                 <div>
-                  {(participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl) && (
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium mb-1">Voice Preview</label>
-                      <audio 
-                        controls 
-                        className="w-full h-8"
-                        key={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl}
-                      >
-                        <source 
-                          src={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl} 
-                          type="audio/mpeg" 
-                        />
-                        Your browser does not support the audio element.
-                      </audio>
+                  <label className="block text-sm font-medium mb-1">Voice Preview</label>
+                  {(participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl) ? (
+                    <audio 
+                      controls 
+                      className="w-full h-8"
+                      key={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl}
+                    >
+                      <source 
+                        src={participant.selectedVoice?.audioPreviewPath || participant.voicePreviewUrl} 
+                        type="audio/mpeg" 
+                      />
+                      Your browser does not support the audio element.
+                    </audio>
+                  ) : (
+                    <div className="flex items-center space-x-2 p-2 border rounded bg-gray-50 text-gray-500">
+                      <span className="text-sm">No preview available</span>
                     </div>
                   )}
                 </div>
