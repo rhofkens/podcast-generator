@@ -256,14 +256,28 @@ export function ParticipantsStep({
         const updatedParticipant = await response.json();
         console.log('Voice preview generated:', updatedParticipant);
 
-        // Create final updated state
+        // Create final updated state with all necessary voice-related fields
         const finalParticipants = participants.map((p, i) => 
             i === index 
                 ? { 
                     ...p,
                     ...updatedParticipant,
+                    selectedVoice: {
+                        id: updatedParticipant.voiceId,
+                        name: `${updatedParticipant.name} - generated`,
+                        externalVoiceId: updatedParticipant.syntheticVoiceId,
+                        audioPreviewPath: updatedParticipant.voicePreviewUrl,
+                        gender: updatedParticipant.gender.toLowerCase(),
+                        voiceType: 'GENERATED',
+                        tags: [],
+                        isDefault: false
+                    },
+                    voicePreviewUrl: updatedParticipant.voicePreviewUrl,
+                    syntheticVoiceId: updatedParticipant.syntheticVoiceId,
+                    voicePreviewId: updatedParticipant.voicePreviewId,
                     isGeneratingVoice: false,
-                    isNew: false
+                    isNew: false,
+                    isDirty: true
                 } 
                 : p
         );
