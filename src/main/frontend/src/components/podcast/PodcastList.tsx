@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '../audio/AudioPlayer'
-import type { Podcast } from '../../types/podcast'
+import type { Podcast, PodcastsResponse } from '../../types/podcast'
+import { Button } from '../ui/button'
 
 import {
   DropdownMenu,
@@ -207,16 +208,20 @@ export function PodcastList() {
   const [podcasts, setPodcasts] = useState<ExtendedPodcast[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const PAGE_SIZE = 5
 
   useEffect(() => {
     const fetchPodcasts = async () => {
       try {
-        const response = await fetch('/api/podcasts')
+        const response = await fetch(`/api/podcasts?page=${currentPage}&size=${PAGE_SIZE}`)
         if (!response.ok) {
           throw new Error('Failed to fetch podcasts')
         }
-        const data = await response.json()
+        const data: PodcastsResponse = await response.json()
         setPodcasts(data.content)
+        setTotalPages(data.totalPages)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load podcasts')
       } finally {
@@ -225,7 +230,7 @@ export function PodcastList() {
     }
 
     fetchPodcasts()
-  }, [])
+  }, [currentPage])
 
   if (loading) {
     return (
@@ -258,6 +263,28 @@ export function PodcastList() {
       {podcasts.map((podcast) => (
         <PodcastCard key={podcast.id} podcast={podcast} />
       ))}
+      
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            disabled={currentPage === 0}
+          >
+            Previous
+          </Button>
+          <span className="flex items-center px-4">
+            Page {currentPage + 1} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={currentPage === totalPages - 1}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
