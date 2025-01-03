@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AudioPlayer } from '../audio/AudioPlayer'
 import type { Podcast, PodcastsResponse } from '../../types/podcast'
-import { Button } from '../ui/button'
 
 import {
   DropdownMenu,
