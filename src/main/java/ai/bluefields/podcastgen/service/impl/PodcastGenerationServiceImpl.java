@@ -189,9 +189,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                     
                     // Add voice characteristics as tags
                     if (participant.getVoiceCharacteristics() != null && !participant.getVoiceCharacteristics().isEmpty()) {
-                        newVoice.setTags(Arrays.asList(
-                            participant.getVoiceCharacteristics().split(",\\s*")
-                        ));
+                        newVoice.setTags(participant.getVoiceCharacteristics().split(",\\s*"));
                     }
                     
                     // Set the audio preview path from the preview
