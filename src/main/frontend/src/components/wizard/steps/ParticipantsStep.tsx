@@ -50,17 +50,28 @@ export function ParticipantsStep({
 
   const getDefaultVoice = async (gender: string, userId?: string) => {
     try {
+      console.log(`Fetching default voice for gender: ${gender}, userId: ${userId}`);
+      
       if (userId) {
+        console.log('Attempting to fetch user-specific default voice');
         const userDefaultResponse = await fetch(`/api/voices/user/${userId}/default/${gender}`);
         const userDefaultVoices = await userDefaultResponse.json();
         if (userDefaultVoices && userDefaultVoices.length > 0) {
+          console.log('Found user-specific default voice:', userDefaultVoices[0]);
           return userDefaultVoices[0];
         }
       }
       
+      console.log('Fetching system default voice');
       const systemDefaultResponse = await fetch(`/api/voices/default/${gender}`);
       const systemDefaultVoices = await systemDefaultResponse.json();
-      return systemDefaultVoices && systemDefaultVoices.length > 0 ? systemDefaultVoices[0] : null;
+      if (systemDefaultVoices && systemDefaultVoices.length > 0) {
+        console.log('Found system default voice:', systemDefaultVoices[0]);
+        return systemDefaultVoices[0];
+      }
+      
+      console.log('No default voice found');
+      return null;
     } catch (error) {
       console.error('Error fetching default voice:', error);
       return null;
@@ -90,6 +101,35 @@ export function ParticipantsStep({
   useEffect(() => {
     console.log('Participants state changed:', participants);
   }, [participants]);
+
+  useEffect(() => {
+    const loadDefaultVoicesForParticipants = async () => {
+      const updatedParticipants = await Promise.all(
+        participants.map(async (participant) => {
+          // Only load default voice if no voice is selected and gender is set
+          if (!participant.selectedVoice && participant.gender) {
+            const defaultVoice = await getDefaultVoice(participant.gender, user?.id);
+            if (defaultVoice) {
+              return {
+                ...participant,
+                selectedVoice: defaultVoice,
+                voicePreviewUrl: defaultVoice.audioPreviewPath,
+                syntheticVoiceId: defaultVoice.externalVoiceId
+              };
+            }
+          }
+          return participant;
+        })
+      );
+
+      // Only update if there were changes
+      if (JSON.stringify(updatedParticipants) !== JSON.stringify(participants)) {
+        onChange(updatedParticipants);
+      }
+    };
+
+    loadDefaultVoicesForParticipants();
+  }, [participants.map(p => p.gender).join(','), user?.id]); // Dependency on gender changes and user ID
 
   useEffect(() => {
     if (podcastId) {
@@ -262,7 +302,6 @@ export function ParticipantsStep({
     }
   };
   const addParticipant = () => {
-    // Only add to local state, no API call yet
     const newParticipant = {
       name: '',
       gender: '',
@@ -270,7 +309,7 @@ export function ParticipantsStep({
       role: '',
       roleDescription: '',
       voiceCharacteristics: '',
-      isNew: true // Flag to track unsaved participants
+      isNew: true
     };
 
     onChange([...participants, newParticipant]);
