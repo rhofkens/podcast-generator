@@ -134,4 +134,23 @@ public interface VoiceService {
      * @return The updated voice
      */
     Voice setDefaultVoice(Voice voice);
+
+    /**
+     * Retrieves default voices for a specific gender.
+     *
+     * @param gender The gender to filter by
+     * @return List of default voices for the specified gender
+     * @throws IllegalArgumentException if gender is null
+     */
+    List<Voice> getVoicesByGenderAndIsDefaultTrue(Voice.Gender gender);
+
+    /**
+     * Retrieves default voices for a specific user and gender.
+     *
+     * @param userId The ID of the user
+     * @param gender The gender to filter by
+     * @return List of default voices for the specified user and gender
+     * @throws IllegalArgumentException if userId is null/empty or gender is null
+     */
+    List<Voice> getUserDefaultVoicesByGender(String userId, Voice.Gender gender);
 }

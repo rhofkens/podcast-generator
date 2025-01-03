@@ -31,4 +31,13 @@ public interface VoiceRepository extends JpaRepository<Voice, Long> {
     List<Voice> findByUserIdAndVoiceType(String userId, Voice.VoiceType voiceType);
     
     List<Voice> findByGenderAndIsDefaultTrue(Voice.Gender gender);
+    
+    /**
+     * Find voices by user ID and gender.
+     *
+     * @param userId The ID of the user
+     * @param gender The gender to filter by
+     * @return List of voices matching both criteria
+     */
+    List<Voice> findByUserIdAndGender(String userId, Voice.Gender gender);
 }

@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the VoiceService interface that handles voice-related operations.
@@ -338,5 +339,44 @@ public class VoiceServiceImpl implements VoiceService {
         // Set the new voice as default
         voice.setDefault(true);
         return voiceRepository.save(voice);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Voice> getVoicesByGenderAndIsDefaultTrue(Voice.Gender gender) {
+        log.debug("Fetching default voices for gender: {}", gender);
+        
+        if (gender == null) {
+            throw new IllegalArgumentException("Gender cannot be null");
+        }
+        
+        return voiceRepository.findByGenderAndIsDefaultTrue(gender);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Voice> getUserDefaultVoicesByGender(String userId, Voice.Gender gender) {
+        log.debug("Fetching default voices for user: {} and gender: {}", userId, gender);
+        
+        if (!StringUtils.hasText(userId)) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (gender == null) {
+            throw new IllegalArgumentException("Gender cannot be null");
+        }
+        
+        // First get all user's voices of the specified gender
+        List<Voice> userVoices = voiceRepository.findByUserIdAndGender(userId, gender);
+        
+        // Filter to only return default voices
+        return userVoices.stream()
+            .filter(Voice::isDefault)
+            .collect(Collectors.toList());
     }
 }
