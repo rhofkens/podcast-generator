@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '../../../lib/utils'
 import { VoiceSelectionModal } from '../../settings/VoiceSelectionModal'
 import { Voice } from '../../../types/Voice'
+import { useAuth } from '../../../contexts/AuthContext'
 
 interface Participant {
   id?: number;
@@ -39,6 +40,7 @@ export function ParticipantsStep({
   editMode = false,
   hideControls = false
 }: ParticipantsStepProps) {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
