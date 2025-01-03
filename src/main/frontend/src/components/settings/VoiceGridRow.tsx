@@ -1,4 +1,4 @@
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Trash2 } from 'lucide-react'
 import { Voice } from '../../types/Voice'
 import { Button } from '../ui/button'
 import {
@@ -11,6 +11,16 @@ import { MiniAudioPlayer } from './MiniAudioPlayer'
 import { VoiceTags } from './VoiceTags'
 import { voicesApi } from '../../api/voicesApi'
 import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
 import { useToast } from '../ui/use-toast'
 
 interface VoiceGridRowProps {
@@ -21,6 +31,7 @@ interface VoiceGridRowProps {
 
 export function VoiceGridRow({ voice, isStandardVoice, onVoiceUpdated }: VoiceGridRowProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { toast } = useToast()
 
   const capitalizeFirstLetter = (str: string) => {
@@ -48,6 +59,30 @@ export function VoiceGridRow({ voice, isStandardVoice, onVoiceUpdated }: VoiceGr
       setIsLoading(false)
     }
   }
+
+  const handleDelete = async () => {
+    try {
+      setIsLoading(true)
+      await voicesApi.deleteVoice(voice.id)
+      onVoiceUpdated()
+      toast({
+        variant: "success",
+        title: "Success",
+        description: `${voice.name} has been deleted.`,
+      })
+    } catch (error) {
+      console.error('Failed to delete voice:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete voice. Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
+      setShowDeleteDialog(false)
+    }
+  }
+
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -84,18 +119,41 @@ export function VoiceGridRow({ voice, isStandardVoice, onVoiceUpdated }: VoiceGr
               Set default {capitalizeFirstLetter(voice.gender)} voice
             </DropdownMenuItem>
             {!isStandardVoice && (
-              <>
-                <DropdownMenuItem>
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
-                  Delete
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-red-600"
+                disabled={isLoading}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
     </tr>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the voice "{voice.name}". 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

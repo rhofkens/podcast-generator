@@ -27,5 +27,9 @@ export const voicesApi = {
   async setDefaultVoice(voiceId: number, gender: Voice['gender']): Promise<Voice> {
     const response = await axios.put(`${API_BASE_URL}/${voiceId}/default/${gender}`)
     return response.data
+  },
+
+  async deleteVoice(voiceId: number): Promise<void> {
+    await axios.delete(`${API_BASE_URL}/${voiceId}`)
   }
 }
