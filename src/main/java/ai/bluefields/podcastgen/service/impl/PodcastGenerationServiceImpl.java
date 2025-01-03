@@ -19,6 +19,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import ai.bluefields.podcastgen.model.Voice;
+import ai.bluefields.podcastgen.service.VoiceService;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -51,6 +54,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     
     private final PodcastRepository podcastRepository;
     private final AIService aiService;
+    private final VoiceService voiceService;
     private final PodcastGenerationWebSocketHandler webSocketHandler;
     private final AppProperties appProperties;
     private final Executor executor = Executors.newFixedThreadPool(5);
@@ -148,44 +152,79 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     }
 
     private void generateVoicesForParticipants(Podcast podcast) {
-        log.info("Generating voices for {} participants in podcast {}", 
+        log.info("Processing voices for {} participants in podcast {}", 
             podcast.getParticipants().size(), podcast.getId());
         
         for (Participant participant : podcast.getParticipants()) {
             try {
-                // Skip if voice already generated
-                if (participant.getSyntheticVoiceId() != null) {
-                    log.debug("Participant {} already has synthetic voice {}", 
+                // Case 1: Voice already selected from library or previously generated
+                if (participant.getSyntheticVoiceId() != null && participant.getVoicePreviewId() == null) {
+                    log.debug("Participant {} already has synthetic voice {} from library", 
                         participant.getName(), participant.getSyntheticVoiceId());
                     continue;
                 }
 
-                // Check if we have a preview ID
-                if (participant.getVoicePreviewId() == null) {
-                    log.error("Participant {} has no voice preview ID", participant.getName());
-                    throw new RuntimeException("Voice preview ID missing for participant " + 
+                // Case 2: Voice needs to be generated from preview
+                if (participant.getVoicePreviewId() != null) {
+                    log.info("Generating persistent voice from preview for participant {}", 
                         participant.getName());
+
+                    // Create persistent voice from preview
+                    JsonNode voiceResponse = aiService.createVoiceFromPreview(
+                        participant.getName(), 
+                        participant.getVoicePreviewId()
+                    );
+
+                    // Extract voice ID from response
+                    String voiceId = voiceResponse.get("voice_id").asText();
+                    
+                    // Create a new Voice entity
+                    Voice newVoice = new Voice();
+                    newVoice.setName(participant.getName() + "'s Voice");
+                    newVoice.setExternalVoiceId(voiceId);
+                    newVoice.setVoiceType(Voice.VoiceType.GENERATED);
+                    newVoice.setGender(Voice.Gender.valueOf(participant.getGender().toUpperCase()));
+                    newVoice.setDefault(false);
+                    newVoice.setUserId(podcast.getUserId()); // Associate with the podcast creator
+                    
+                    // Add voice characteristics as tags
+                    if (participant.getVoiceCharacteristics() != null && !participant.getVoiceCharacteristics().isEmpty()) {
+                        newVoice.setTags(Arrays.asList(
+                            participant.getVoiceCharacteristics().split(",\\s*")
+                        ));
+                    }
+                    
+                    // Set the audio preview path from the preview
+                    newVoice.setAudioPreviewPath(participant.getVoicePreviewUrl());
+
+                    try {
+                        // Save the voice to the library
+                        Voice savedVoice = voiceService.createVoice(newVoice);
+                        log.info("Saved generated voice to library with ID: {}", savedVoice.getId());
+                        
+                        // Update participant with synthetic voice ID
+                        participant.setSyntheticVoiceId(voiceId);
+                        
+                        log.info("Generated and saved synthetic voice {} for participant {}", 
+                            voiceId, participant.getName());
+                    } catch (Exception e) {
+                        log.error("Failed to save voice to library: {}", e.getMessage());
+                        // Continue with generation even if saving to library fails
+                        participant.setSyntheticVoiceId(voiceId);
+                    }
+                    
+                    continue;
                 }
 
-                // Create persistent voice from preview
-                JsonNode voiceResponse = aiService.createVoiceFromPreview(
-                    participant.getName(), 
-                    participant.getVoicePreviewId()
-                );
-
-                // Extract voice ID from response
-                String voiceId = voiceResponse.get("voice_id").asText();
-                
-                // Update participant with synthetic voice ID
-                participant.setSyntheticVoiceId(voiceId);
-                
-                log.info("Generated synthetic voice {} for participant {}", 
-                    voiceId, participant.getName());
+                // If we get here, we have neither a synthetic voice ID nor a preview ID
+                log.error("Participant {} has no voice selection or preview", participant.getName());
+                throw new RuntimeException("No voice information available for participant " + 
+                    participant.getName());
 
             } catch (Exception e) {
-                log.error("Failed to generate voice for participant {}: {}", 
+                log.error("Failed to process voice for participant {}: {}", 
                     participant.getName(), e.getMessage(), e);
-                throw new RuntimeException("Voice generation failed for participant " + 
+                throw new RuntimeException("Voice processing failed for participant " + 
                     participant.getName(), e);
             }
         }
