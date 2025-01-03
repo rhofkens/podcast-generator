@@ -7,7 +7,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -29,6 +34,12 @@ public class VoiceServiceImpl implements VoiceService {
     private static final Logger log = LoggerFactory.getLogger(VoiceServiceImpl.class);
     
     private final VoiceRepository voiceRepository;
+    
+    @Value("${elevenlabs.api.key}")
+    private String apiKey;
+
+    @Value("${elevenlabs.api.url:https://api.elevenlabs.io}")
+    private String apiUrl;
 
     /**
      * Creates a new voice profile in the system.
@@ -247,10 +258,40 @@ public class VoiceServiceImpl implements VoiceService {
         }
         
         try {
-            if (!voiceRepository.existsById(id)) {
-                throw new EntityNotFoundException("Voice not found with ID: " + id);
+            Voice voice = voiceRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Voice not found with ID: " + id));
+                
+            // If this is a generated voice, delete it from ElevenLabs first
+            if (voice.getVoiceType() == Voice.VoiceType.GENERATED && 
+                StringUtils.hasText(voice.getExternalVoiceId())) {
+                
+                log.debug("Deleting generated voice from ElevenLabs first: {}", voice.getExternalVoiceId());
+                
+                try {
+                    RestTemplate restTemplate = new RestTemplate();
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.set("xi-api-key", apiKey);
+                    
+                    HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+                    
+                    restTemplate.exchange(
+                        apiUrl + "/v1/voices/" + voice.getExternalVoiceId(),
+                        HttpMethod.DELETE,
+                        requestEntity,
+                        Void.class
+                    );
+                    
+                    log.info("Successfully deleted voice from ElevenLabs: {}", voice.getExternalVoiceId());
+                } catch (Exception e) {
+                    log.error("Failed to delete voice from ElevenLabs: {}", voice.getExternalVoiceId(), e);
+                    throw new RuntimeException("Failed to delete voice from ElevenLabs", e);
+                }
             }
+            
+            // Now delete from our database
             voiceRepository.deleteById(id);
+            log.info("Successfully deleted voice from database: {}", id);
+            
         } catch (Exception e) {
             log.error("Failed to delete voice with ID: {}", id, e);
             throw new RuntimeException("Failed to delete voice: " + e.getMessage(), e);
