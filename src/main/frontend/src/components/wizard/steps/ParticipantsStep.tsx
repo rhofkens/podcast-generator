@@ -549,10 +549,8 @@ export function ParticipantsStep({
                         </svg>
                         <span>Generating...</span>
                       </span>
-                    ) : participant.voicePreviewUrl ? (
-                      "Regenerate Voice Preview"
                     ) : (
-                      "Generate Voice Preview"
+                      "Generate new voice"
                     )}
                   </button>
                 </div>
