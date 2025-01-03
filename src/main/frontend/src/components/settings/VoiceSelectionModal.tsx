@@ -59,7 +59,7 @@ export function VoiceSelectionModal({
                     setSelectedVoice(voice)
                   }}
                   className={`hover:bg-gray-50 cursor-pointer ${
-                    selectedVoice?.id === voice.id ? 'bg-green-50' : ''
+                    selectedVoice?.id === voice.id ? 'bg-gray-100' : ''
                   }`}
                 >
                   <td className="px-4 py-2">{voice.name}</td>
