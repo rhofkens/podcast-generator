@@ -59,6 +59,18 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
     private final AppProperties appProperties;
     private final Executor executor = Executors.newFixedThreadPool(5);
 
+    private String formatVoiceName(String fullName) {
+        String[] nameParts = fullName.trim().split("\\s+");
+        if (nameParts.length > 1) {
+            // Get first name and first letter of last name
+            return String.format("%s %s.", 
+                nameParts[0], 
+                nameParts[nameParts.length - 1].substring(0, 1));
+        }
+        // If only one name, return it as is
+        return nameParts[0];
+    }
+
     @Override
     @Transactional
     public CompletableFuture<Void> generatePodcast(Long podcastId) {
@@ -180,7 +192,7 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                     
                     // Create a new Voice entity
                     Voice newVoice = new Voice();
-                    newVoice.setName(participant.getName() + "'s Voice");
+                    newVoice.setName(formatVoiceName(participant.getName()));
                     newVoice.setExternalVoiceId(voiceId);
                     newVoice.setVoiceType(Voice.VoiceType.GENERATED);
                     newVoice.setGender(Voice.Gender.valueOf(participant.getGender().toLowerCase()));
