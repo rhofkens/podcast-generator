@@ -187,9 +187,25 @@ public class PodcastGenerationServiceImpl implements PodcastGenerationService {
                     newVoice.setDefault(false);
                     newVoice.setUserId(podcast.getUserId()); // Associate with the podcast creator
                     
-                    // Add voice characteristics as tags
+                    // Generate AI tags for the voice
                     if (participant.getVoiceCharacteristics() != null && !participant.getVoiceCharacteristics().isEmpty()) {
-                        newVoice.setTags(participant.getVoiceCharacteristics().split(",\\s*"));
+                        try {
+                            String[] aiGeneratedTags = aiService.generateVoiceTags(participant);
+                            newVoice.setTags(aiGeneratedTags);
+                            log.debug("Generated AI tags for voice {}: {}", 
+                                participant.getName(), 
+                                String.join(", ", aiGeneratedTags));
+                        } catch (Exception e) {
+                            log.warn("Failed to generate AI tags for voice {}, using basic tags: {}", 
+                                participant.getName(), 
+                                e.getMessage());
+                            // Fallback to basic tags
+                            newVoice.setTags(new String[]{
+                                participant.getGender().toLowerCase(),
+                                "age-" + participant.getAge(),
+                                "role-" + participant.getRole().toLowerCase().replaceAll("\\s+", "-")
+                            });
+                        }
                     }
                     
                     // Set the audio preview path from the preview

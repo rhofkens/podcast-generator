@@ -870,4 +870,67 @@ public class AIServiceImpl implements AIService {
             throw new RuntimeException("Content rewriting failed: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public String[] generateVoiceTags(Participant participant) {
+        String promptText = String.format("""
+            Generate up to 5 relevant tags for a voice profile based on these characteristics:
+            
+            Gender: %s
+            Age: %d
+            Role: %s
+            Role Description: %s
+            Voice Characteristics: %s
+            
+            Requirements:
+            1. Return exactly 5 most relevant tags
+            2. Each tag should be:
+               - Single word or hyphenated-words
+               - Lowercase
+               - No spaces or special characters
+               - Descriptive of voice qualities
+            3. Include mix of:
+               - Voice tone/quality tags
+               - Speaking style tags
+               - Demographic tags if relevant
+            4. Format as comma-separated list
+            
+            Return ONLY the tags in format: tag1,tag2,tag3,tag4,tag5
+            """,
+            participant.getGender(),
+            participant.getAge(),
+            participant.getRole(),
+            participant.getRoleDescription(),
+            participant.getVoiceCharacteristics()
+        );
+        
+        try {
+            ChatResponse response = chatClient.prompt()
+                .user(promptText)
+                .call()
+                .chatResponse();
+                
+            String tags = Optional.ofNullable(response)
+                .map(ChatResponse::getResult)
+                .map(result -> result.getOutput().getContent())
+                .orElseThrow(() -> new RuntimeException("No response received from AI service"))
+                .trim();
+                
+            // Split and clean the tags
+            return Arrays.stream(tags.split(","))
+                .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
+                .map(tag -> tag.toLowerCase().replaceAll("[^a-z0-9-]", ""))
+                .toArray(String[]::new);
+                
+        } catch (Exception e) {
+            log.error("Failed to generate voice tags: {}", e.getMessage(), e);
+            // Fallback to basic tags if AI fails
+            return new String[]{
+                participant.getGender().toLowerCase(),
+                "age-" + participant.getAge(),
+                "role-" + participant.getRole().toLowerCase().replaceAll("\\s+", "-")
+            };
+        }
+    }
 }

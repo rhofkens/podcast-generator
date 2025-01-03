@@ -16,4 +16,11 @@ public interface AIService {
     String generateDescriptionFromContent(String content);
     String generateTitleFromContent(String content);
     String generateContextFromContent(String content, int targetLength);
+    
+    /**
+     * Generates relevant voice tags based on participant information.
+     * @param participant The participant containing voice and role information
+     * @return Array of relevant tags (maximum 5)
+     */
+    String[] generateVoiceTags(Participant participant);
 }
