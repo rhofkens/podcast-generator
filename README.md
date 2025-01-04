@@ -42,6 +42,34 @@ CREATE USER podcastadmin WITH ENCRYPTED PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE podcast_db TO podcastadmin;
 ```
 
+### Zitadel Setup
+
+This application uses Zitadel for OAuth2 authentication. Follow these steps to set up your Zitadel instance:
+
+1. Create a Zitadel account at [console.zitadel.ch](https://console.zitadel.ch) or set up your own instance
+
+2. Create a new Project in Zitadel
+   - Go to Projects → New
+   - Give your project a name (e.g., "Podcast Generator")
+
+3. Create an OAuth2 Application
+   - In your project, go to Applications → New
+   - Choose "Web Application"
+   - Set the following:
+     - Name: Podcast Generator
+     - RedirectURLs: 
+       - `http://localhost:8080/login/oauth2/code/zitadel` (development)
+       - `https://your-domain/login/oauth2/code/zitadel` (production)
+     - Post Logout URLs:
+       - `http://localhost:8080` (development)
+       - `https://your-domain` (production)
+     - Enable PKCE (Proof Key for Code Exchange)
+
+4. Note down the following values for your `.env` file:
+   - ZITADEL_DOMAIN (e.g., `my-instance.zitadel.cloud`)
+   - ZITADEL_CLIENT_ID (from your application settings)
+   - ZITADEL_ORG_ID (your organization ID)
+
 ### Environment Variables
 
 Create a `.env` file in the root directory with:
