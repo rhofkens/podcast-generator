@@ -6,9 +6,9 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:podcast_db}
-    username: ${DB_USERNAME:podcastadmin}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${PODCASTGEN_DB_HOST:localhost}:${PODCASTGEN_DB_PORT:5432}/${PODCASTGEN_DB_NAME:podcast_db}
+    username: ${PODCASTGEN_DB_USERNAME:podcastadmin}
+    password: ${PODCASTGEN_DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
