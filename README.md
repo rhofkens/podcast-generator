@@ -8,12 +8,8 @@ Web app that generates cool podcasts
    cd podcast-generator
    ```
 
-2. Create the database:
-   ```bash
-   # Login as postgres user
-   sudo -u postgres psql
-
-   # Create database and user
+2. Set up the PostgreSQL database:
+   ```sql
    CREATE DATABASE podcast_db;
    CREATE USER podcastadmin WITH ENCRYPTED PASSWORD 'your_password';
    GRANT ALL PRIVILEGES ON DATABASE podcast_db TO podcastadmin;
