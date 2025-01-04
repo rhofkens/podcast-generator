@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { WizardStepBar } from './WizardStepBar'
 import { MetadataStep } from './steps/MetadataStep'
 import { ParticipantsStep } from './steps/ParticipantsStep'
@@ -49,6 +49,7 @@ interface PodcastWizardProps {
 
 export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(0)
   const [podcastId, setPodcastId] = useState<string | null>(
     id || localStorage.getItem('currentPodcastId')
@@ -220,7 +221,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
             podcastId={podcastId}
             onBack={() => setCurrentStep(2)}
             onComplete={() => {
-              window.location.href = '/podcasts'
+              navigate('/podcasts')
             }}
           />
         )
