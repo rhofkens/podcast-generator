@@ -11,7 +11,7 @@ Database is PostgreSQL.
 
 ### 1.3.  Frontend
 
-We use React with JSX and Tailwind CSS, shadcn/ui and Vite.
+We use React with TSX and Tailwind CSS, shadcn/ui and Vite.
 
 ### 1.4.  User management and authentication
 

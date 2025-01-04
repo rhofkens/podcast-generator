@@ -180,8 +180,8 @@ The UI can be broken down in the following sections:
 
 #### 5.4. New podcast wizard
 
-- 3 step wizard the follows the main user flow as documented in [the mermaid flow diagra](podcast-creation-flow.mermaid)
-- The wizard has a process step navigation bar at the top, 3 steps
+- 4 step wizard the follows the main user flow as documented in [the mermaid flow diagra](podcast-creation-flow.mermaid)
+- The wizard has a process step navigation bar at the top, 4 steps
 - Step 1: podcast metadata and context information
 	- sub-section Settings: title, description, length 
 	- sub-section Context: 
@@ -199,6 +199,10 @@ The UI can be broken down in the following sections:
 	- edit / save actions
 	- generate podcast button (active when saved)
 	- this puts a podcast generation task in the queue and returns to the podcast list view.  Progress indicator of queued task visible in the list item.
+- Step 4: podcast generation
+  - show progress of the podcast creation in the various phases
+  - use a terminal-style progress reporting
+  - options to push to background, cancel and re-generate
 
 
 ### 5. Security Architecture

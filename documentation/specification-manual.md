@@ -6,11 +6,7 @@
 - Application goal: Users can generate fun podcasts with a couple of clicks.  They can define the subject, the participants, the voices and the length of the podcast.  The application generates the podcast transcript and then converts that transcript into an mp3 file that the user can download.
 - Target audience: this is a B2C application, targeting non-professional computer users
 
-### 1.2. Functional requirements
-
-#### 1.2.1 
-
-### 1.3 Main workflow
+### 1.2 Main workflow
 
 - Two roles:  
 

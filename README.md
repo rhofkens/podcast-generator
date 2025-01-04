@@ -4,12 +4,40 @@ An application that leverages AI to generate engaging podcasts from user-provide
 
 ## Goal of this app
 
-My main goal was to create a **non-trivial application** that uses **enterprise-grade coding patterns** using a **100% Ai-driven coding** approach. The idea was to create an application that really does something useful, with coding standards and best practices that would be acceptable by a tech enterprise.  
+My main goal was to create a **non-trivial application** that uses **enterprise-grade coding patterns** using a **100% Ai-driven coding** approach. The idea was to create an application that really does something useful, with coding standards and best practices that would be acceptable by a tech enterprise. It also includes some **typical enterprise-level requirements** like using an **external IDP (Identity Provider) and MFA.** 
+
 I wanted to prove that Ai-driven coding can be used in an enterprise context, going far beyond the nice but way-too-simple demos that are circulating on youtube & co.
 
-## Ai-driven coding setup & experience
+## Ai-driven coding setup 
 
+The way I think about Ai-driven coding is that I work with a virtual team that consists of various Ai models and tools. I used the following setup for Ai-driven coding:
 
+- **Perplexity** - my trusted academic researcher
+- **o1 and Claud Sonnet** - my solution architects
+- **Claude Sonnet 3.5 2024-10-22 via API** - my senior coder
+- **Claude Haiku 3.5 2024-10-22 via API** - my tireless assistant that creates the diffs & merges all changes
+- **[aider.chat](https://aider.chat)** - my coding buddy who ties everything together.  **Aider is an amazing coding agent that fits right into your SDLC.**  It ties together your prompts, model responses, codebase and IDE in a natural Ai-driven coding workflow.  **Highly recommended**.  Aider needs some instructions to prompt the models in the right way of course:
+   - Coding best practices - see [CONVENTIONS.md](/CONVENTIONS.md).  Generated with o1 and manual edits.
+   - Techstack definition - see [techstack.md](/documentation/techstack.md ).  Manual work.
+   - Architecture guidelines - see [specification-architecture.md](/documentation/specification-architecture.md ).  Mix of gpt4o generated content and manual content.
+   - Specification of user flow - see [specification-manual](/documentation/specification-manual.md).  Manual work.
+
+I used **aider in architect mode**, which lets you validate the code produced by the Ai before adding it to the codebase. Recommended.
+
+## Ai-driven coding experience
+
+It's been an amazing experience.  **_Ai wrote >99% of the code in this repo!_**
+
+My tasks:
+* providing the spec
+* orchestrating the implementation in phases (data model first, then services, then REST controllers etc)
+* prompting in the right way
+* checking the proposed solution and providing guidance
+* testing the application
+* pointing out bugs
+
+It's clear: the Ai models still make a lot of (sometime foolish) mistakes.  But they can correct the bugs.  And in general they crank out high-quality code at a breath-taking speed.
+**I was able to create this complete application in a couple of weekends of prompting, a fraction of the time it would have taken to code things manually.**
 
 ## Features
 
@@ -173,10 +201,6 @@ npm run dev
 - [ ] Add draft saving capabilities
 - [ ] Improve error handling and recovery
 - [ ] Add batch podcast generation
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
