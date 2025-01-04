@@ -2,14 +2,24 @@
 
 An application that leverages AI to generate engaging podcasts from user-provided topics and contexts. The system handles the entire process from content planning to audio generation, creating natural-sounding conversations between AI-generated participants.
 
+## Goal of this app
+
+My main goal was to create a **non-trivial application** that uses **enterprise-grade coding patterns** using a **100% Ai-driven coding** approach. The idea was to create an application that really does something useful, with coding standards and best practices that would be acceptable by a tech enterprise.  
+I wanted to prove that Ai-driven coding can be used in an enterprise context, going far beyond the nice but way-too-simple demos that are circulating on youtube & co.
+
+## Ai-driven coding setup & experience
+
+
+
 ## Features
 
 - 🎙️ Generate multi-speaker podcasts from text descriptions
+- 🎯 Context-aware discussion generation based on external sources like websites or uploaded documents
 - 🗣️ Custom voice generation for participants
 - 📝 AI-driven content generation and conversation flow
 - 🔊 High-quality audio synthesis
 - 📊 Real-time generation progress tracking
-- 🎯 Context-aware discussion generation
+
 
 ## Installation
 
