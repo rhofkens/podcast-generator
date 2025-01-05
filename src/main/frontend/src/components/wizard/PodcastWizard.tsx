@@ -133,7 +133,7 @@ export function PodcastWizard({ editMode = false }: PodcastWizardProps) {
   const [metadata, setMetadata] = useState({
     title: '',
     description: '',
-    length: 30,
+    length: 7,
     contextDescription: '',
     contextUrl: undefined as string | undefined,
     contextFile: undefined as File | undefined

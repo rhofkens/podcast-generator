@@ -380,14 +380,14 @@ export function MetadataStep({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
+            <input
+              type="text"
               value={data.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               className={cn(
                 "w-full p-2 border rounded",
                 (!editMode && !editedFields.has('description')) ? "italic text-gray-400" : "text-gray-900"
               )}
-              rows={3}
               onFocus={() => handleFieldFocus('description')}
             />
           </div>
