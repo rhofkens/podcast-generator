@@ -81,9 +81,7 @@ function PodcastCard({ podcast }: PodcastCardProps) {
         <div className="flex-1">
           <h3 className="text-lg font-semibold">{podcast.title}</h3>
           <p className="text-gray-600 mt-1">{podcast.description}</p>
-          <div className="flex gap-4 mt-2 text-sm text-gray-500">
-            <span>{Math.floor(podcast.length / 60)} minutes</span>
-            <span>•</span>
+          <div className="flex mt-2 text-sm text-gray-500">
             <span className={
               podcast.generationStatus?.toLowerCase() === 'error' 
                 ? 'text-red-600' 
