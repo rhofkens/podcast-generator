@@ -193,6 +193,12 @@ export function MetadataStep({
       setSampleError(null)
       
       const response = await fetch('/api/podcasts/sample')
+      if (response.status === 405) {
+        // Sample data loading is disabled, just set loading to false
+        setIsLoadingSample(false);
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to load sample data')
       }

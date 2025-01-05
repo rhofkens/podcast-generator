@@ -38,6 +38,9 @@ public class PodcastController {
     private final PodcastService podcastService;
     private final AIService aiService;
     private final PodcastGenerationService podcastGenerationService;
+    
+    @Value("${app.features.load-sample-data:false}")
+    private boolean loadSampleDataEnabled;
 
     @GetMapping
     public ResponseEntity<PageResponseDTO<PodcastDTO>> getAllPodcasts(
@@ -127,6 +130,10 @@ public class PodcastController {
 
     @GetMapping("/sample")
     public ResponseEntity<Podcast> getSamplePodcast(@AuthenticationPrincipal OidcUser oidcUser) {
+        if (!loadSampleDataEnabled) {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+        }
+
         log.info("REST request to get sample podcast data for user: {}", oidcUser.getSubject());
         try {
             Podcast samplePodcast = podcastService.generateSamplePodcast(oidcUser.getSubject());

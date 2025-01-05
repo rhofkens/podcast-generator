@@ -71,6 +71,8 @@ zitadel:
   domain: ${ZITADEL_DOMAIN}
 
 app:
+  features:
+    load-sample-data: false
   uploads:
     base-path: uploads
     voice-previews-path: ${app.uploads.base-path}/voice-previews
