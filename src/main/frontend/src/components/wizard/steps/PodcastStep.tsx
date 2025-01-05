@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { PodcastGenerationWebSocket } from '../../../utils/websocket';
-import { AudioPlayer } from '../../../components/AudioPlayer';
 
 interface PodcastStepProps {
     podcastId: string | null;
@@ -183,12 +182,6 @@ export function PodcastStep({ podcastId, onBack, onComplete }: PodcastStepProps)
                 {error && (
                     <div className="bg-red-50 text-red-500 p-4 rounded-lg mb-6">
                         {error}
-                    </div>
-                )}
-
-                {generationState.status === 'COMPLETED' && generationState.audioUrl && (
-                    <div className="mb-6">
-                        <AudioPlayer podcastId={podcastId || ''} />
                     </div>
                 )}
 
