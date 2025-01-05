@@ -1,0 +1,5 @@
+﻿Name;Tags;external_voice_ID;voice_type;user_ID;audio_preview_path;stability;similarity_boostspeak;style_exaggeration;speaker_boost
+Daniel;News,British,Authorative,Middle-Aged,Male;onwK4e9ZLuTAKqWW03F9;STANDARD;;;0.35;0.75;0.45;TRUE
+J. Audiobook;Narrative & Story, British, Professional,Young,Male;4u5cJuSmHP9d6YRolsOu;STANDARD;;;0.35;0.75;0.45;TRUE
+Alice;News,British,Confident,Middle-Aged,Female;Xb7hH8MSUJpSbSDYk0k2;STANDARD;;;0.35;0.75;0.45;TRUE
+Matilda;Narrative,American,Friendly,Middle-Aged,Female;XrExE9yKIg1WjnnlVkGX;STANDARD;;;0.35;0.75;0.45;TRUE
