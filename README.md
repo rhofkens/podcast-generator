@@ -13,7 +13,7 @@ I wanted to prove that Ai-driven coding can be used in an enterprise context, go
 The way I think about Ai-driven coding is that I work with a virtual team that consists of various Ai models and tools. I used the following setup for Ai-driven coding:
 
 - **Perplexity** - my trusted academic researcher
-- **o1 and Claud Sonnet** - my solution architects
+- **o1 and Claude Sonnet** - my solution architects
 - **Claude Sonnet 3.5 2024-10-22 via API** - my senior coder
 - **Claude Haiku 3.5 2024-10-22 via API** - my tireless assistant that creates the diffs & merges all changes
 - **[aider.chat](https://aider.chat)** - my coding buddy who ties everything together.  **Aider is an amazing coding agent that fits right into your SDLC.**  It ties together your prompts, model responses, codebase and IDE in a natural Ai-driven coding workflow.  **Highly recommended**.  Aider needs some instructions to prompt the models in the right way of course:
@@ -28,13 +28,14 @@ I used **aider in architect mode**, which lets you validate the code produced by
 
 It's been an amazing experience.  **_Ai wrote >99% of the code in this repo!_**
 
-My tasks:
+My tasks mainly consisted of guiding the Ai:
 * providing the spec
 * orchestrating the implementation in phases (data model first, then services, then REST controllers etc)
 * prompting in the right way
 * checking the proposed solution and providing guidance
 * testing the application
 * pointing out bugs
+* writing some code in very rare occasions
 
 It's clear: the Ai models still make a lot of (sometime foolish) mistakes.  But they can correct the bugs.  And in general they crank out high-quality code at a breath-taking speed.
 **I was able to create this complete application in a couple of weekends of prompting, a fraction of the time it would have taken to code things manually.**
@@ -181,6 +182,11 @@ npm run dev
 
 ## Potential Improvements
 
+### Known bugs
+
+There are several issues with the podcast editing feature, depending on the state of the podcast.
+Background processing doesn't work as expected.
+
 ### Technical Improvements
 - [ ] Implement caching for generated audio segments
 - [ ] Add background audio mixing capabilities
@@ -192,15 +198,20 @@ npm run dev
 - [ ] Add collaborative editing features
 - [ ] Implement podcast templates
 - [ ] Add support for music integration
-- [ ] Create a voice library management system
 - [ ] Add export options for different platforms
 
 ### User Experience
-- [ ] Add preview mode for voice selection
-- [ ] Implement undo/redo functionality
-- [ ] Add draft saving capabilities
+- [ ] Improve podcast editing & draft saving
 - [ ] Improve error handling and recovery
-- [ ] Add batch podcast generation
+
+### Code quality
+- [ ] Add unit tests for services layer
+- [ ] Improve test coverage for REST API layer
+- [ ] Add integration tests 
+- [ ] Add load tests
+- [ ] Add security testing in build pipeline - SAST, SCA, DAST 
+- [ ] Add load testing and soak testing
+- [ ] and more...
 
 ## License
 
