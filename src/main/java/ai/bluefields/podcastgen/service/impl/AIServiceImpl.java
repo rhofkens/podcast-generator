@@ -746,8 +746,9 @@ public class AIServiceImpl implements AIService {
             4. Avoid clickbait style
             5. Don't use phrases like "A Podcast About..." or "Episode About..."
             6. Make it memorable and shareable
+            7. Do not include any quotation marks
             
-            Return only the title text, no additional formatting or metadata.
+            Return only the title text, no additional formatting, quotes, or metadata.
             """, content);
         
         try {
@@ -760,7 +761,8 @@ public class AIServiceImpl implements AIService {
                 .map(ChatResponse::getResult)
                 .map(result -> result.getOutput().getContent())
                 .orElseThrow(() -> new RuntimeException("No response received from AI service"))
-                .trim();
+                .trim()
+                .replaceAll("[\"']", ""); // Remove any quotes that might still be present
                 
             // Ensure it doesn't exceed 60 characters
             if (title.length() > 60) {
