@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { Download, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 
 // Extended Podcast type for our needs
 interface ExtendedPodcast extends Podcast {
@@ -73,6 +73,17 @@ function PodcastCard({ podcast }: PodcastCardProps) {
 
   const handleEdit = () => {
     navigate(`/podcasts/edit/${podcast.id}`)
+  }
+
+  const handleDownload = () => {
+    if (podcast.audioUrl) {
+      const link = document.createElement('a')
+      link.href = podcast.audioUrl
+      link.download = `${podcast.title}.mp3`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 
   return (
@@ -166,6 +177,15 @@ function PodcastCard({ podcast }: PodcastCardProps) {
               <Pencil className="mr-2 h-4 w-4" />
               <span>Edit</span>
             </DropdownMenuItem>
+            {podcast.generationStatus === 'COMPLETED' && (
+              <DropdownMenuItem 
+                onClick={handleDownload}
+                className="cursor-pointer"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                <span>Download audio</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem 
               onClick={() => setShowDeleteDialog(true)} 
               className="text-red-600 cursor-pointer"
