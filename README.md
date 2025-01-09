@@ -37,7 +37,7 @@ My tasks mainly consisted of guiding the Ai:
 * pointing out bugs
 * writing some code in very rare occasions
 
-It's clear: the Ai models still make a lot of (sometime foolish) mistakes.  But they can correct the bugs.  And in general they crank out high-quality code at a breath-taking speed.
+It's clear: the Ai models still make a lot of (sometime foolish) mistakes.  But they can correct the bugs themselves with some guidance, often simply feeding back output from tests or build errors.  And in general they crank out high-quality code at a breath-taking speed.
 **I was able to create this complete application in a couple of weekends of prompting, a fraction of the time it would have taken to code things manually.**
 
 ## Features
@@ -193,6 +193,7 @@ Background processing doesn't work as expected.
 - [ ] Implement batch processing for large podcasts
 - [ ] Add audio post-processing options
 - [ ] Implement voice cloning capabilities
+- [ ] Smarter, iterative prompting for transcript creation
 
 ### Feature Improvements
 - [ ] Add collaborative editing features
