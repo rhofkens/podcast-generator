@@ -2,6 +2,7 @@ package ai.bluefields.podcastgen.controller;
 
 import ai.bluefields.podcastgen.dto.PodcastDTO;
 import ai.bluefields.podcastgen.exception.ResourceNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import ai.bluefields.podcastgen.model.PodcastGenerationStatus;
