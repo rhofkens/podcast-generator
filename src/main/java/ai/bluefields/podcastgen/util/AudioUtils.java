@@ -2,12 +2,15 @@ package ai.bluefields.podcastgen.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
 import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
-import javazoom.spi.mpeg.sampled.file.MpegAudioFileFormat;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
@@ -22,8 +25,9 @@ public class AudioUtils {
         tempDir.mkdirs();
         
         try {
-            // Create temporary output file
-            File outputFile = new File(tempDir, "output.mp3");
+            // Create temporary output files
+            File wavFile = new File(tempDir, "output.wav");
+            File mp3File = new File(tempDir, "final.mp3");
             
             // First, collect all AudioInputStreams with consistent format
             List<AudioInputStream> audioStreams = new ArrayList<>();
@@ -62,38 +66,26 @@ public class AudioUtils {
                 audioStreams
             );
             
-            // Write the concatenated audio to the output file
+            // Write the concatenated audio to WAV file
             AudioSystem.write(
                 concatenatedStream,
                 AudioFileFormat.Type.WAVE,
-                outputFile
+                wavFile
             );
-            
-            // Convert the WAV back to MP3 using AudioSystem
-            AudioInputStream wavStream = AudioSystem.getAudioInputStream(outputFile);
-            File mp3File = new File(tempDir, "final.mp3");
-            
-            // Get supported audio file types
-            AudioFileFormat.Type[] types = AudioSystem.getAudioFileTypes(wavStream);
-            AudioFileFormat.Type mp3Type = null;
-            
-            // Find MP3 type from available types
-            for (AudioFileFormat.Type type : types) {
-                if (type.getExtension().equalsIgnoreCase("mp3")) {
-                    mp3Type = type;
-                    break;
-                }
-            }
-            
-            if (mp3Type == null) {
-                throw new IllegalStateException("MP3 encoding is not supported. Make sure mp3spi is properly included.");
-            }
-            
-            AudioSystem.write(
-                wavStream,
-                mp3Type,
-                mp3File
-            );
+
+            // Convert WAV to MP3 using JAVE2
+            AudioAttributes audio = new AudioAttributes();
+            audio.setCodec("libmp3lame");
+            audio.setBitRate(192000); // 192 kbps
+            audio.setChannels(targetFormat.getChannels());
+            audio.setSamplingRate((int) targetFormat.getSampleRate());
+
+            EncodingAttributes attrs = new EncodingAttributes();
+            attrs.setOutputFormat("mp3");
+            attrs.setAudioAttributes(audio);
+
+            Encoder encoder = new Encoder();
+            encoder.encode(new MultimediaObject(wavFile), mp3File, attrs);
             
             // Read the final MP3 file into byte array
             byte[] mp3Data = new byte[(int) mp3File.length()];
