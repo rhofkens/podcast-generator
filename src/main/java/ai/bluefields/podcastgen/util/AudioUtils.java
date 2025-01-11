@@ -6,6 +6,7 @@ import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Enumeration;
 import javazoom.jl.converter.Converter;
 
 public class AudioUtils {
@@ -34,7 +35,7 @@ public class AudioUtils {
         try {
             // Step 1: Convert each MP3 to PCM and concatenate to WAV
             try (AudioInputStream concatenatedStream = new AudioInputStream(
-                    new SequenceInputStream(new WavInputStreamSequence(mp3Files, commonFormat)),
+                    new SequenceInputStream(createInputStreamEnumeration(mp3Files, commonFormat)),
                     commonFormat,
                     AudioSystem.NOT_SPECIFIED)) {
                 
@@ -67,28 +68,28 @@ public class AudioUtils {
         }
     }
 
-    // Helper class to sequence multiple WAV input streams
-    private static class WavInputStreamSequence extends SequenceInputStream {
-        public WavInputStreamSequence(List<Path> mp3Files, AudioFormat targetFormat) throws Exception {
-            super(new Enumeration<InputStream>() {
-                private int index = 0;
-                
-                @Override
-                public boolean hasMoreElements() {
-                    return index < mp3Files.size();
+    // Helper method to create input stream enumeration
+    private static Enumeration<InputStream> createInputStreamEnumeration(
+            List<Path> mp3Files, 
+            AudioFormat targetFormat) {
+        return new Enumeration<InputStream>() {
+            private int index = 0;
+            
+            @Override
+            public boolean hasMoreElements() {
+                return index < mp3Files.size();
+            }
+            
+            @Override
+            public InputStream nextElement() {
+                try {
+                    Path mp3File = mp3Files.get(index++);
+                    AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile());
+                    return AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to process MP3 file at index " + (index-1), e);
                 }
-                
-                @Override
-                public InputStream nextElement() {
-                    try {
-                        Path mp3File = mp3Files.get(index++);
-                        AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile());
-                        return AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to process MP3 file at index " + (index-1), e);
-                    }
-                }
-            });
-        }
+            }
+        };
     }
 }
