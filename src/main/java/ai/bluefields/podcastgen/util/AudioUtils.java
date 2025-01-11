@@ -19,6 +19,154 @@ public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
     private static final long MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
     private static final int MAX_RETRIES = 3;
+    private static final ExecutorService executor = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors()
+    );
+
+    public static class AudioValidator {
+        private static final int[] SUPPORTED_SAMPLE_RATES = {44100, 48000};
+        private static final int[] SUPPORTED_BIT_RATES = {128000, 192000, 256000, 320000};
+        
+        public static void validateFormat(AudioFormat format) throws IllegalArgumentException {
+            boolean validSampleRate = false;
+            for (int rate : SUPPORTED_SAMPLE_RATES) {
+                if (Math.abs(format.getSampleRate() - rate) < 0.1) {
+                    validSampleRate = true;
+                    break;
+                }
+            }
+            
+            if (!validSampleRate) {
+                throw new IllegalArgumentException("Unsupported sample rate: " + format.getSampleRate());
+            }
+            
+            if (format.getChannels() != 1 && format.getChannels() != 2) {
+                throw new IllegalArgumentException("Unsupported channel count: " + format.getChannels());
+            }
+        }
+        
+        public static EncodingAttributes getNormalizedEncodingAttributes(AudioFormat inputFormat) {
+            AudioAttributes audio = new AudioAttributes();
+            audio.setCodec("libmp3lame");
+            audio.setSamplingRate(findClosestValue(inputFormat.getSampleRate(), SUPPORTED_SAMPLE_RATES));
+            audio.setBitRate(findClosestValue(192000, SUPPORTED_BIT_RATES));
+            audio.setChannels(Math.min(2, inputFormat.getChannels()));
+            
+            EncodingAttributes attrs = new EncodingAttributes();
+            attrs.setOutputFormat("mp3");
+            attrs.setAudioAttributes(audio);
+            return attrs;
+        }
+        
+        private static int findClosestValue(float value, int[] supportedValues) {
+            int closest = supportedValues[0];
+            for (int supported : supportedValues) {
+                if (Math.abs(value - supported) < Math.abs(value - closest)) {
+                    closest = supported;
+                }
+            }
+            return closest;
+        }
+    }
+
+    public static class AudioProcessingMetrics {
+        private final long startTime;
+        private final Map<String, Long> stageDurations = new HashMap<>();
+        private String currentStage;
+        private long currentStageStart;
+        
+        public AudioProcessingMetrics() {
+            this.startTime = System.currentTimeMillis();
+        }
+        
+        public void startStage(String stage) {
+            if (currentStage != null) {
+                endStage();
+            }
+            currentStage = stage;
+            currentStageStart = System.currentTimeMillis();
+        }
+        
+        public void endStage() {
+            if (currentStage != null) {
+                long duration = System.currentTimeMillis() - currentStageStart;
+                stageDurations.put(currentStage, duration);
+                currentStage = null;
+            }
+        }
+        
+        public void logMetrics() {
+            long totalDuration = System.currentTimeMillis() - startTime;
+            log.info("Audio processing completed in {}ms", totalDuration);
+            stageDurations.forEach((stage, duration) -> 
+                log.info("Stage '{}' took {}ms", stage, duration));
+        }
+    }
+
+    public static class AudioQualityChecker {
+        private static final double MIN_RMS_THRESHOLD = 0.01;
+        private static final double MAX_RMS_THRESHOLD = 0.9;
+        
+        public static void checkAudioQuality(File audioFile) throws Exception {
+            try (AudioInputStream ais = AudioSystem.getAudioInputStream(audioFile)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                double sumSquares = 0;
+                long samples = 0;
+                
+                while ((bytesRead = ais.read(buffer)) != -1) {
+                    for (int i = 0; i < bytesRead; i += 2) {
+                        short sample = (short) ((buffer[i+1] << 8) | (buffer[i] & 0xFF));
+                        double normalized = sample / 32768.0;
+                        sumSquares += normalized * normalized;
+                        samples++;
+                    }
+                }
+                
+                double rms = Math.sqrt(sumSquares / samples);
+                if (rms < MIN_RMS_THRESHOLD) {
+                    throw new Exception("Audio level too low: " + rms);
+                }
+                if (rms > MAX_RMS_THRESHOLD) {
+                    throw new Exception("Audio level too high (possible clipping): " + rms);
+                }
+            }
+        }
+    }
+
+    public static class AudioResourceManager implements AutoCloseable {
+        private final List<File> temporaryFiles = new ArrayList<>();
+        private final List<AudioInputStream> openStreams = new ArrayList<>();
+        
+        public File createTempFile(String prefix, String suffix) throws IOException {
+            File temp = File.createTempFile(prefix, suffix);
+            temporaryFiles.add(temp);
+            return temp;
+        }
+        
+        public AudioInputStream openAudioStream(File file) throws Exception {
+            AudioInputStream stream = AudioSystem.getAudioInputStream(file);
+            openStreams.add(stream);
+            return stream;
+        }
+        
+        @Override
+        public void close() {
+            for (AudioInputStream stream : openStreams) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    log.warn("Failed to close audio stream", e);
+                }
+            }
+            
+            for (File file : temporaryFiles) {
+                if (!file.delete()) {
+                    log.warn("Failed to delete temporary file: {}", file);
+                }
+            }
+        }
+    }
     
     public interface AudioProcessingProgressListener {
         void onProgress(String stage, int progress);
