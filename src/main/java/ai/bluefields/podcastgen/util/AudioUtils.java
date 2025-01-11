@@ -6,10 +6,7 @@ import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
-import javazoom.spi.mpeg.sampled.file.MpegAudioFileFormat;
-import javazoom.spi.mpeg.sampled.file.MpegEncoding;
-import javazoom.spi.mpeg.sampled.file.MpegFileFormatType;
+import javazoom.jl.converter.Converter;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
@@ -30,87 +27,68 @@ public class AudioUtils {
             false        // Little endian
         );
 
-        ByteArrayOutputStream concatenatedPCM = new ByteArrayOutputStream();
-        
-        // Step 1: Convert each MP3 to PCM and concatenate
-        for (Path mp3File : mp3Files) {
-            log.debug("Processing MP3 file: {}", mp3File);
-            
-            try (AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile())) {
-                // Convert MP3 to PCM format
-                AudioInputStream pcmStream = AudioSystem.getAudioInputStream(commonFormat, mp3Stream);
-                
-                // Read PCM data
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = pcmStream.read(buffer)) != -1) {
-                    concatenatedPCM.write(buffer, 0, bytesRead);
-                }
-                
-                pcmStream.close();
-            } catch (Exception e) {
-                log.error("Error processing MP3 file {}: {}", mp3File, e.getMessage());
-                throw new RuntimeException("Failed to process MP3 file: " + mp3File, e);
-            }
-        }
-        
-        // Step 2: Convert concatenated PCM back to MP3
-        byte[] pcmData = concatenatedPCM.toByteArray();
-        AudioInputStream concatenatedStream = new AudioInputStream(
-            new ByteArrayInputStream(pcmData),
-            commonFormat,
-            pcmData.length / commonFormat.getFrameSize()
-        );
-
-        // Create temporary file for the MP3
-        File tempFile = File.createTempFile("concat", ".mp3");
+        // Create temporary files
+        File tempWavFile = File.createTempFile("concat", ".wav");
+        File tempMp3File = File.createTempFile("concat", ".mp3");
         
         try {
-            // Configure MP3 encoding parameters
-            Map<String, Object> encodingProperties = Map.of(
-                "bitrate", Integer.valueOf(192000),
-                "channels", Integer.valueOf(2),
-                "quality", Integer.valueOf(0),           // 0 = highest quality
-                "vbr", Boolean.FALSE,                    // Use CBR
-                "mode", Integer.valueOf(1),              // 1 = Joint Stereo
-                "copyright", Boolean.FALSE,
-                "original", Boolean.TRUE
-            );
+            // Step 1: Convert each MP3 to PCM and concatenate to WAV
+            try (AudioInputStream concatenatedStream = new AudioInputStream(
+                    new SequenceInputStream(new WavInputStreamSequence(mp3Files, commonFormat)),
+                    commonFormat,
+                    AudioSystem.NOT_SPECIFIED)) {
+                
+                // Write concatenated PCM data to WAV file
+                AudioSystem.write(concatenatedStream, AudioFileFormat.Type.WAVE, tempWavFile);
+            }
 
-            // Create MP3 audio format
-            AudioFormat mp3Format = new AudioFormat(
-                new MpegEncoding("MPEG1L3"),
-                44100.0f,
-                AudioSystem.NOT_SPECIFIED,
-                2,
-                AudioSystem.NOT_SPECIFIED,
-                AudioSystem.NOT_SPECIFIED,
-                false,
-                encodingProperties
-            );
-
-            // Write MP3 file with configured format
-            AudioFileFormat.Type mp3FileType = new MpegFileFormatType("MP3", "mp3");
-            AudioSystem.write(
-                AudioSystem.getAudioInputStream(mp3Format, concatenatedStream),
-                mp3FileType,
-                tempFile
-            );
+            // Step 2: Convert WAV to MP3 using JLayer
+            Converter converter = new Converter();
+            converter.convert(tempWavFile.getPath(), tempMp3File.getPath(), null, null);
 
             // Read the resulting MP3 file
-            byte[] mp3Data = new byte[(int) tempFile.length()];
-            try (FileInputStream fis = new FileInputStream(tempFile)) {
+            byte[] mp3Data = new byte[(int) tempMp3File.length()];
+            try (FileInputStream fis = new FileInputStream(tempMp3File)) {
                 if (fis.read(mp3Data) != mp3Data.length) {
                     throw new IOException("Could not read entire MP3 file");
                 }
             }
             
             return mp3Data;
+            
         } finally {
-            // Ensure temp file is deleted
-            if (!tempFile.delete()) {
-                log.warn("Failed to delete temporary file: {}", tempFile);
+            // Clean up temporary files
+            if (!tempWavFile.delete()) {
+                log.warn("Failed to delete temporary WAV file: {}", tempWavFile);
             }
+            if (!tempMp3File.delete()) {
+                log.warn("Failed to delete temporary MP3 file: {}", tempMp3File);
+            }
+        }
+    }
+
+    // Helper class to sequence multiple WAV input streams
+    private static class WavInputStreamSequence extends SequenceInputStream {
+        public WavInputStreamSequence(List<Path> mp3Files, AudioFormat targetFormat) throws Exception {
+            super(new Enumeration<InputStream>() {
+                private int index = 0;
+                
+                @Override
+                public boolean hasMoreElements() {
+                    return index < mp3Files.size();
+                }
+                
+                @Override
+                public InputStream nextElement() {
+                    try {
+                        Path mp3File = mp3Files.get(index++);
+                        AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile());
+                        return AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to process MP3 file at index " + (index-1), e);
+                    }
+                }
+            });
         }
     }
 }
