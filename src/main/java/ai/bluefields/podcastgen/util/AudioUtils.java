@@ -6,7 +6,9 @@ import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.Player;
 import javazoom.jl.converter.Converter;
 
 public class AudioUtils {
@@ -17,39 +19,34 @@ public class AudioUtils {
             throw new IllegalArgumentException("No MP3 files provided");
         }
 
-        // Define high-quality audio format (44.1kHz, 16-bit, stereo)
-        AudioFormat commonFormat = new AudioFormat(
-            AudioFormat.Encoding.PCM_SIGNED,
-            44100.0f,    // Sample rate
-            16,          // Sample size in bits
-            2,           // Channels
-            4,           // Frame size (bytes)
-            44100.0f,    // Frame rate
-            false        // Little endian
-        );
-
-        // Create temporary files
-        File tempWavFile = File.createTempFile("concat", ".wav");
-        File tempMp3File = File.createTempFile("concat", ".mp3");
+        // Create temporary directory for intermediate files
+        File tempDir = new File(System.getProperty("java.io.tmpdir"), "podcast-concat-" + System.currentTimeMillis());
+        tempDir.mkdirs();
         
         try {
-            // Step 1: Convert each MP3 to PCM and concatenate to WAV
-            try (AudioInputStream concatenatedStream = new AudioInputStream(
-                    new SequenceInputStream(createInputStreamEnumeration(mp3Files, commonFormat)),
-                    commonFormat,
-                    AudioSystem.NOT_SPECIFIED)) {
-                
-                // Write concatenated PCM data to WAV file
-                AudioSystem.write(concatenatedStream, AudioFileFormat.Type.WAVE, tempWavFile);
-            }
-
-            // Step 2: Convert WAV to MP3 using JLayer
+            // Step 1: Convert each MP3 to WAV first
+            List<File> wavFiles = new ArrayList<>();
             Converter converter = new Converter();
-            converter.convert(tempWavFile.getPath(), tempMp3File.getPath(), null, null);
-
-            // Read the resulting MP3 file
-            byte[] mp3Data = new byte[(int) tempMp3File.length()];
-            try (FileInputStream fis = new FileInputStream(tempMp3File)) {
+            
+            for (int i = 0; i < mp3Files.size(); i++) {
+                File wavFile = new File(tempDir, "segment_" + i + ".wav");
+                converter.convert(mp3Files.get(i).toString(), wavFile.getPath());
+                wavFiles.add(wavFile);
+            }
+            
+            // Step 2: Concatenate WAV files
+            File concatenatedWav = new File(tempDir, "concatenated.wav");
+            try (AudioInputStream concatenatedStream = concatenateWavFiles(wavFiles)) {
+                AudioSystem.write(concatenatedStream, AudioFileFormat.Type.WAVE, concatenatedWav);
+            }
+            
+            // Step 3: Convert final WAV back to MP3
+            File outputMp3 = new File(tempDir, "output.mp3");
+            converter.convert(concatenatedWav.getPath(), outputMp3.getPath());
+            
+            // Read the final MP3 file
+            byte[] mp3Data = new byte[(int) outputMp3.length()];
+            try (FileInputStream fis = new FileInputStream(outputMp3)) {
                 if (fis.read(mp3Data) != mp3Data.length) {
                     throw new IOException("Could not read entire MP3 file");
                 }
@@ -58,38 +55,79 @@ public class AudioUtils {
             return mp3Data;
             
         } finally {
-            // Clean up temporary files
-            if (!tempWavFile.delete()) {
-                log.warn("Failed to delete temporary WAV file: {}", tempWavFile);
-            }
-            if (!tempMp3File.delete()) {
-                log.warn("Failed to delete temporary MP3 file: {}", tempMp3File);
-            }
+            // Clean up temporary directory and all files
+            deleteDirectory(tempDir);
         }
     }
-
-    // Helper method to create input stream enumeration
-    private static Enumeration<InputStream> createInputStreamEnumeration(
-            List<Path> mp3Files, 
-            AudioFormat targetFormat) {
-        return new Enumeration<InputStream>() {
-            private int index = 0;
-            
-            @Override
-            public boolean hasMoreElements() {
-                return index < mp3Files.size();
-            }
-            
-            @Override
-            public InputStream nextElement() {
-                try {
-                    Path mp3File = mp3Files.get(index++);
-                    AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile());
-                    return AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to process MP3 file at index " + (index-1), e);
+    
+    private static AudioInputStream concatenateWavFiles(List<File> wavFiles) throws Exception {
+        if (wavFiles.isEmpty()) {
+            throw new IllegalArgumentException("No WAV files to concatenate");
+        }
+        
+        // Get format of first file - all files should match this format after conversion
+        AudioInputStream firstStream = AudioSystem.getAudioInputStream(wavFiles.get(0));
+        AudioFormat format = firstStream.getFormat();
+        firstStream.close();
+        
+        // Create a list of audio input streams
+        List<AudioInputStream> audioStreams = new ArrayList<>();
+        long totalFrames = 0;
+        
+        for (File wavFile : wavFiles) {
+            AudioInputStream stream = AudioSystem.getAudioInputStream(wavFile);
+            totalFrames += stream.getFrameLength();
+            audioStreams.add(stream);
+        }
+        
+        // Create a new audio input stream that concatenates all streams
+        return new SequenceAudioInputStream(format, audioStreams);
+    }
+    
+    private static void deleteDirectory(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteDirectory(file);
                 }
             }
-        };
+        }
+        if (!dir.delete()) {
+            log.warn("Failed to delete temporary file: {}", dir);
+        }
+    }
+    
+    private static class SequenceAudioInputStream extends AudioInputStream {
+        private final List<AudioInputStream> audioStreams;
+        private int currentStreamIndex = 0;
+        
+        public SequenceAudioInputStream(AudioFormat format, List<AudioInputStream> audioStreams) {
+            super(new ByteArrayInputStream(new byte[0]), format, AudioSystem.NOT_SPECIFIED);
+            this.audioStreams = new ArrayList<>(audioStreams);
+        }
+        
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (currentStreamIndex >= audioStreams.size()) {
+                return -1;
+            }
+            
+            int bytesRead = audioStreams.get(currentStreamIndex).read(b, off, len);
+            while (bytesRead == -1 && currentStreamIndex < audioStreams.size() - 1) {
+                currentStreamIndex++;
+                bytesRead = audioStreams.get(currentStreamIndex).read(b, off, len);
+            }
+            
+            return bytesRead;
+        }
+        
+        @Override
+        public void close() throws IOException {
+            for (AudioInputStream stream : audioStreams) {
+                stream.close();
+            }
+            super.close();
+        }
     }
 }
