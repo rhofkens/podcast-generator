@@ -43,12 +43,12 @@ public class AudioUtils {
                     AudioFormat baseFormat = audioStream.getFormat();
                     targetFormat = new AudioFormat(
                         AudioFormat.Encoding.PCM_SIGNED,
-                        baseFormat.getSampleRate(),
-                        16,
-                        baseFormat.getChannels(),
-                        baseFormat.getChannels() * 2,
-                        baseFormat.getSampleRate(),
-                        false
+                        44100, // Fixed sample rate for better compatibility
+                        16,    // Standard bit depth
+                        2,     // Stereo
+                        4,     // Frame size (2 channels * 2 bytes per sample)
+                        44100, // Frame rate same as sample rate
+                        false  // Little endian
                     );
                 }
                 
@@ -76,9 +76,11 @@ public class AudioUtils {
             // Convert WAV to MP3 using JAVE2
             AudioAttributes audio = new AudioAttributes();
             audio.setCodec("libmp3lame");
-            audio.setBitRate(192000); // 192 kbps
-            audio.setChannels(targetFormat.getChannels());
-            audio.setSamplingRate((int) targetFormat.getSampleRate());
+            audio.setBitRate(192000);        // 192 kbps
+            audio.setChannels(2);            // Stereo
+            audio.setSamplingRate(44100);    // CD quality
+            audio.setQuality(3);             // Good quality setting (1-5)
+            audio.setVolume(100);            // Keep original volume
 
             EncodingAttributes attrs = new EncodingAttributes();
             attrs.setOutputFormat("mp3");
@@ -86,6 +88,13 @@ public class AudioUtils {
 
             Encoder encoder = new Encoder();
             encoder.encode(new MultimediaObject(wavFile), mp3File, attrs);
+            
+            // Verify the output file exists and has content
+            if (!mp3File.exists() || mp3File.length() == 0) {
+                throw new IOException("MP3 encoding failed - output file is empty or missing");
+            }
+            
+            log.debug("Generated MP3 file size: {} bytes", mp3File.length());
             
             // Read the final MP3 file into byte array
             byte[] mp3Data = new byte[(int) mp3File.length()];
