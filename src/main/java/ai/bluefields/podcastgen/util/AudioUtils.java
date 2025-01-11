@@ -31,26 +31,46 @@ public class AudioUtils {
         Runtime.getRuntime().availableProcessors()
     );
 
+    /**
+     * Validates and normalizes audio formats to ensure compatibility.
+     * Supports standard audio formats commonly used in podcast production.
+     */
     public static class AudioValidator {
+        private static final Logger log = LoggerFactory.getLogger(AudioValidator.class);
+        
         private static final int[] SUPPORTED_SAMPLE_RATES = {44100, 48000};
         private static final int[] SUPPORTED_BIT_RATES = {128000, 192000, 256000, 320000};
         
+        /**
+         * Validates an audio format against supported specifications.
+         * 
+         * @param format AudioFormat to validate
+         * @throws IllegalArgumentException if format is not supported
+         */
         public static void validateFormat(AudioFormat format) throws IllegalArgumentException {
+            log.debug("Validating audio format: sampleRate={}, channels={}, encoding={}", 
+                format.getSampleRate(), format.getChannels(), format.getEncoding());
+            
             boolean validSampleRate = false;
             for (int rate : SUPPORTED_SAMPLE_RATES) {
                 if (Math.abs(format.getSampleRate() - rate) < 0.1) {
                     validSampleRate = true;
+                    log.debug("Found matching sample rate: {}", rate);
                     break;
                 }
             }
             
             if (!validSampleRate) {
+                log.error("Unsupported sample rate: {}", format.getSampleRate());
                 throw new IllegalArgumentException("Unsupported sample rate: " + format.getSampleRate());
             }
             
             if (format.getChannels() != 1 && format.getChannels() != 2) {
+                log.error("Unsupported channel count: {}", format.getChannels());
                 throw new IllegalArgumentException("Unsupported channel count: " + format.getChannels());
             }
+            
+            log.debug("Audio format validation successful");
         }
         
         public static EncodingAttributes getNormalizedEncodingAttributes(AudioFormat inputFormat) {
@@ -77,7 +97,12 @@ public class AudioUtils {
         }
     }
 
+    /**
+     * Tracks and reports audio processing metrics for performance monitoring.
+     */
     public static class AudioProcessingMetrics {
+        private static final Logger log = LoggerFactory.getLogger(AudioProcessingMetrics.class);
+        
         private final long startTime;
         private final Map<String, Long> stageDurations = new HashMap<>();
         private String currentStage;
@@ -85,59 +110,109 @@ public class AudioUtils {
         
         public AudioProcessingMetrics() {
             this.startTime = System.currentTimeMillis();
+            log.debug("Started new audio processing metrics tracking");
         }
         
+        /**
+         * Starts timing a new processing stage.
+         */
         public void startStage(String stage) {
             if (currentStage != null) {
                 endStage();
             }
             currentStage = stage;
             currentStageStart = System.currentTimeMillis();
+            log.debug("Started timing stage: {}", stage);
         }
         
+        /**
+         * Ends timing for the current stage and records duration.
+         */
         public void endStage() {
             if (currentStage != null) {
                 long duration = System.currentTimeMillis() - currentStageStart;
                 stageDurations.put(currentStage, duration);
+                log.debug("Ended stage '{}': {}ms", currentStage, duration);
                 currentStage = null;
             }
         }
         
+        /**
+         * Logs complete metrics for the audio processing operation.
+         */
         public void logMetrics() {
             long totalDuration = System.currentTimeMillis() - startTime;
             log.info("Audio processing completed in {}ms", totalDuration);
-            stageDurations.forEach((stage, duration) -> 
-                log.info("Stage '{}' took {}ms", stage, duration));
+            
+            // Log individual stage durations
+            stageDurations.forEach((stage, duration) -> {
+                double percentage = (duration * 100.0) / totalDuration;
+                log.info("Stage '{}' took {}ms ({:.1f}%)", stage, duration, percentage);
+            });
+            
+            // Log performance summary
+            log.info("Performance summary:");
+            log.info("- Total stages: {}", stageDurations.size());
+            log.info("- Average stage duration: {}ms", 
+                stageDurations.values().stream().mapToLong(l -> l).average().orElse(0));
+            log.info("- Longest stage: {}", 
+                stageDurations.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(e -> String.format("%s (%dms)", e.getKey(), e.getValue()))
+                    .orElse("N/A"));
         }
     }
 
+    /**
+     * Checks audio quality metrics to ensure output meets minimum standards.
+     */
     public static class AudioQualityChecker {
+        private static final Logger log = LoggerFactory.getLogger(AudioQualityChecker.class);
+        
         private static final double MIN_RMS_THRESHOLD = 0.01;
         private static final double MAX_RMS_THRESHOLD = 0.9;
         
+        /**
+         * Analyzes audio file for quality metrics including RMS levels.
+         */
         public static void checkAudioQuality(File audioFile) throws Exception {
+            log.debug("Starting audio quality check for: {}", audioFile.getName());
+            
             try (AudioInputStream ais = AudioSystem.getAudioInputStream(audioFile)) {
+                log.debug("Audio format: {}", ais.getFormat());
+                
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 double sumSquares = 0;
                 long samples = 0;
+                double maxLevel = 0;
                 
                 while ((bytesRead = ais.read(buffer)) != -1) {
                     for (int i = 0; i < bytesRead; i += 2) {
                         short sample = (short) ((buffer[i+1] << 8) | (buffer[i] & 0xFF));
                         double normalized = sample / 32768.0;
                         sumSquares += normalized * normalized;
+                        maxLevel = Math.max(maxLevel, Math.abs(normalized));
                         samples++;
                     }
                 }
                 
                 double rms = Math.sqrt(sumSquares / samples);
+                log.debug("Audio analysis results:");
+                log.debug("- RMS level: {}", rms);
+                log.debug("- Peak level: {}", maxLevel);
+                log.debug("- Total samples: {}", samples);
+                
                 if (rms < MIN_RMS_THRESHOLD) {
+                    log.error("Audio level too low: {}", rms);
                     throw new Exception("Audio level too low: " + rms);
                 }
                 if (rms > MAX_RMS_THRESHOLD) {
+                    log.error("Audio level too high (possible clipping): {}", rms);
                     throw new Exception("Audio level too high (possible clipping): " + rms);
                 }
+                
+                log.info("Audio quality check passed: RMS={}, Peak={}", rms, maxLevel);
             }
         }
     }
