@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileFormat;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
@@ -71,9 +72,26 @@ public class AudioUtils {
             // Convert the WAV back to MP3 using AudioSystem
             AudioInputStream wavStream = AudioSystem.getAudioInputStream(outputFile);
             File mp3File = new File(tempDir, "final.mp3");
+            
+            // Get supported audio file types
+            AudioFileFormat.Type[] types = AudioSystem.getAudioFileTypes(wavStream);
+            AudioFileFormat.Type mp3Type = null;
+            
+            // Find MP3 type from available types
+            for (AudioFileFormat.Type type : types) {
+                if (type.getExtension().equalsIgnoreCase("mp3")) {
+                    mp3Type = type;
+                    break;
+                }
+            }
+            
+            if (mp3Type == null) {
+                throw new IllegalStateException("MP3 encoding is not supported. Make sure mp3spi is properly included.");
+            }
+            
             AudioSystem.write(
                 wavStream,
-                AudioFileFormat.Type.MP3,
+                mp3Type,
                 mp3File
             );
             
