@@ -217,50 +217,119 @@ public class AudioUtils {
         }
     }
 
+    /**
+     * Manages audio processing resources and ensures proper cleanup.
+     * Handles temporary files and audio streams in a safe manner.
+     */
     public static class AudioResourceManager implements AutoCloseable {
+        private static final Logger log = LoggerFactory.getLogger(AudioResourceManager.class);
+        
         private final List<File> temporaryFiles = new ArrayList<>();
         private final List<AudioInputStream> openStreams = new ArrayList<>();
         
+        /**
+         * Creates a temporary file and tracks it for cleanup.
+         * 
+         * @param prefix The prefix string for the temporary file
+         * @param suffix The suffix string for the temporary file
+         * @return The created temporary file
+         * @throws IOException if file creation fails
+         */
         public File createTempFile(String prefix, String suffix) throws IOException {
+            log.debug("Creating temporary file with prefix='{}', suffix='{}'", prefix, suffix);
             File temp = File.createTempFile(prefix, suffix);
             temporaryFiles.add(temp);
+            log.debug("Created temporary file: {}", temp.getAbsolutePath());
             return temp;
         }
         
+        /**
+         * Opens an audio input stream and tracks it for cleanup.
+         * 
+         * @param file The audio file to open
+         * @return AudioInputStream for the file
+         * @throws Exception if stream creation fails
+         */
         public AudioInputStream openAudioStream(File file) throws Exception {
-            AudioInputStream stream = AudioSystem.getAudioInputStream(file);
-            openStreams.add(stream);
-            return stream;
+            log.debug("Opening audio stream for file: {}", file.getAbsolutePath());
+            try {
+                AudioInputStream stream = AudioSystem.getAudioInputStream(file);
+                openStreams.add(stream);
+                log.debug("Successfully opened audio stream: format={}", stream.getFormat());
+                return stream;
+            } catch (Exception e) {
+                log.error("Failed to open audio stream for file {}: {}", file.getName(), e.getMessage());
+                throw e;
+            }
         }
         
+        /**
+         * Closes all tracked resources and cleans up temporary files.
+         * Implements AutoCloseable for use in try-with-resources.
+         */
         @Override
         public void close() {
+            log.debug("Closing AudioResourceManager - cleaning up {} streams and {} temporary files", 
+                openStreams.size(), temporaryFiles.size());
+            
+            // Close audio streams
             for (AudioInputStream stream : openStreams) {
                 try {
                     stream.close();
+                    log.trace("Closed audio stream successfully");
                 } catch (IOException e) {
-                    log.warn("Failed to close audio stream", e);
+                    log.warn("Failed to close audio stream: {}", e.getMessage());
                 }
             }
+            openStreams.clear();
             
+            // Delete temporary files
             for (File file : temporaryFiles) {
-                if (!file.delete()) {
-                    log.warn("Failed to delete temporary file: {}", file);
+                if (file.exists()) {
+                    if (file.delete()) {
+                        log.trace("Deleted temporary file: {}", file.getAbsolutePath());
+                    } else {
+                        log.warn("Failed to delete temporary file: {}", file.getAbsolutePath());
+                        // Schedule for deletion on JVM exit as fallback
+                        file.deleteOnExit();
+                    }
                 }
             }
+            temporaryFiles.clear();
+            
+            log.debug("AudioResourceManager cleanup completed");
         }
     }
     
+    /**
+     * Interface for tracking audio processing progress.
+     */
     public interface AudioProcessingProgressListener {
+        /**
+         * Called to update processing progress.
+         * 
+         * @param stage Current processing stage description
+         * @param progress Progress percentage (0-100)
+         */
         void onProgress(String stage, int progress);
     }
     
+    /**
+     * Configuration class for audio format settings.
+     * Provides standardized audio format configurations for consistent processing.
+     */
     public static class AudioFormatConfig {
+        private static final Logger log = LoggerFactory.getLogger(AudioFormatConfig.class);
+        
         private final int sampleRate;
         private final int channels;
         private final int bitRate;
         private final String codec;
         
+        /**
+         * Default high-quality audio configuration.
+         * CD quality stereo at 192kbps.
+         */
         public static final AudioFormatConfig DEFAULT = new AudioFormatConfig(
             44100,  // CD quality
             2,      // Stereo
@@ -268,20 +337,80 @@ public class AudioUtils {
             "libmp3lame"
         );
         
+        /**
+         * Creates a new audio format configuration.
+         * 
+         * @param sampleRate Sample rate in Hz
+         * @param channels Number of audio channels
+         * @param bitRate Bit rate in bits per second
+         * @param codec Audio codec name
+         */
         public AudioFormatConfig(int sampleRate, int channels, int bitRate, String codec) {
+            log.debug("Creating AudioFormatConfig: sampleRate={}, channels={}, bitRate={}, codec={}", 
+                sampleRate, channels, bitRate, codec);
+            
             this.sampleRate = sampleRate;
             this.channels = channels;
             this.bitRate = bitRate;
             this.codec = codec;
         }
         
+        /**
+         * Converts configuration to JAVE2 AudioAttributes.
+         * 
+         * @return AudioAttributes configured according to this format
+         */
         public AudioAttributes toAudioAttributes() {
+            log.debug("Converting AudioFormatConfig to AudioAttributes");
+            
             AudioAttributes attrs = new AudioAttributes();
             attrs.setCodec(codec);
             attrs.setBitRate(bitRate);
             attrs.setChannels(channels);
             attrs.setSamplingRate(sampleRate);
+            
+            log.debug("Created AudioAttributes: {}", attrs);
             return attrs;
+        }
+        
+        /**
+         * Creates a custom format configuration with validation.
+         * 
+         * @param sampleRate Sample rate in Hz
+         * @param channels Number of channels
+         * @param bitRate Bit rate in bps
+         * @param codec Codec name
+         * @return Validated AudioFormatConfig
+         * @throws IllegalArgumentException if parameters are invalid
+         */
+        public static AudioFormatConfig custom(int sampleRate, int channels, int bitRate, String codec) {
+            log.debug("Creating custom AudioFormatConfig");
+            
+            // Validate parameters
+            if (sampleRate <= 0) {
+                log.error("Invalid sample rate: {}", sampleRate);
+                throw new IllegalArgumentException("Sample rate must be positive");
+            }
+            if (channels <= 0) {
+                log.error("Invalid channel count: {}", channels);
+                throw new IllegalArgumentException("Channel count must be positive");
+            }
+            if (bitRate <= 0) {
+                log.error("Invalid bit rate: {}", bitRate);
+                throw new IllegalArgumentException("Bit rate must be positive");
+            }
+            if (codec == null || codec.trim().isEmpty()) {
+                log.error("Invalid codec: {}", codec);
+                throw new IllegalArgumentException("Codec cannot be null or empty");
+            }
+            
+            return new AudioFormatConfig(sampleRate, channels, bitRate, codec);
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("AudioFormatConfig[%dHz, %dch, %dkbps, %s]", 
+                sampleRate, channels, bitRate/1000, codec);
         }
     }
     
