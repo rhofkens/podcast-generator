@@ -60,53 +60,45 @@ public class AudioUtils {
             commonFormat,
             pcmData.length / commonFormat.getFrameSize()
         );
-        
+
         // Create temporary file for the MP3
         File tempFile = File.createTempFile("concat", ".mp3");
         
-        // Set up audio format with high quality MP3 parameters
-        AudioFormat.Encoding mp3Encoding = new AudioFormat.Encoding("MP3");
-        AudioFormat mp3Format = new AudioFormat(
-            mp3Encoding,
-            44100.0f,    // Sample rate
-            16,          // Sample size in bits
-            2,           // Channels
-            -1,          // Frame size (compressed)
-            -1,          // Frame rate (compressed)
-            false        // Little endian
-        );
+        try {
+            // Configure MP3 encoding parameters using mp3spi
+            Map<String, Object> encodingProperties = Map.of(
+                "mp3.bitrate", "192000",
+                "mp3.channels", "2",
+                "mp3.quality", "0",           // 0 = highest quality
+                "mp3.vbr", "false",          // Use CBR
+                "mp3.mode", "1",             // 1 = Joint Stereo
+                "mp3.copyright", "false",
+                "mp3.original", "true"
+            );
 
-        // Set up format properties for high quality MP3
-        Map<String, Object> properties = Map.of(
-            "bitrate", 192000,          // 192 kbps
-            "quality", 0,               // Highest quality
-            "channel_mode", "stereo",   // Stereo mode
-            "vbr", false,              // Constant bitrate
-            "encoding_quality", 0       // Highest encoding quality
-        );
+            // Create MP3 file type with encoding properties
+            AudioFileFormat.Type mp3Type = new AudioFileTypes.Mp3FileType(
+                AudioFileFormat.Type.WAVE,    // Base type
+                encodingProperties
+            );
 
-        AudioFileFormat.Type mp3FileType = new AudioFileTypes.Mp3FileType(
-            "MP3",
-            "mp3",
-            properties
-        );
+            // Write MP3 file with configured properties
+            AudioSystem.write(concatenatedStream, mp3Type, tempFile);
 
-        // Write to temporary file with high quality settings
-        AudioSystem.write(
-            new AudioInputStream(concatenatedStream, mp3Format, concatenatedStream.getFrameLength()),
-            mp3FileType,
-            tempFile
-        );
-
-        // Read the resulting MP3 file
-        byte[] mp3Data = new byte[(int) tempFile.length()];
-        try (FileInputStream fis = new FileInputStream(tempFile)) {
-            fis.read(mp3Data);
+            // Read the resulting MP3 file
+            byte[] mp3Data = new byte[(int) tempFile.length()];
+            try (FileInputStream fis = new FileInputStream(tempFile)) {
+                if (fis.read(mp3Data) != mp3Data.length) {
+                    throw new IOException("Could not read entire MP3 file");
+                }
+            }
+            
+            return mp3Data;
+        } finally {
+            // Ensure temp file is deleted
+            if (!tempFile.delete()) {
+                log.warn("Failed to delete temporary file: {}", tempFile);
+            }
         }
-
-        // Clean up
-        tempFile.delete();
-        
-        return mp3Data;
     }
 }
