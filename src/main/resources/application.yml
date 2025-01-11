@@ -82,6 +82,7 @@ logging:
   level:
     root: INFO
     ai.bluefields.podcastgen: INFO
+    ai.bluefields.podcastgen.util: DEBUG
     ai.bluefields.podcastgen.service.impl.AIServiceImpl: DEBUG
     ai.bluefields.podcastgen.util.WebPageValidator: DEBUG
     org.springframework: INFO
@@ -89,3 +90,4 @@ logging:
     org.springframework.security.oauth2: INFO
     org.springframework.web.client.RestTemplate: INFO
     org.hibernate: WARN
+
