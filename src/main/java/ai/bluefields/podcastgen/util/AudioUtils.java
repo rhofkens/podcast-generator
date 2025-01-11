@@ -19,19 +19,38 @@ public class AudioUtils {
             throw new IllegalArgumentException("No MP3 files provided");
         }
 
-        // Create temporary directory for intermediate files
         File tempDir = new File(System.getProperty("java.io.tmpdir"), "podcast-concat-" + System.currentTimeMillis());
         tempDir.mkdirs();
         
         try {
-            // Step 1: Convert each MP3 to WAV first
+            // Step 1: Convert each MP3 to WAV using a more robust approach
             List<File> wavFiles = new ArrayList<>();
-            Converter converter = new Converter();
             
             for (int i = 0; i < mp3Files.size(); i++) {
                 File wavFile = new File(tempDir, "segment_" + i + ".wav");
-                converter.convert(mp3Files.get(i).toString(), wavFile.getPath());
+                try (AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3Files.get(i).toFile())) {
+                    // Get base format
+                    AudioFormat baseFormat = mp3Stream.getFormat();
+                    
+                    // Create target format
+                    AudioFormat targetFormat = new AudioFormat(
+                        AudioFormat.Encoding.PCM_SIGNED,
+                        baseFormat.getSampleRate(),
+                        16,
+                        baseFormat.getChannels(),
+                        baseFormat.getChannels() * 2,
+                        baseFormat.getSampleRate(),
+                        false
+                    );
+                    
+                    // Convert to PCM
+                    try (AudioInputStream pcmStream = AudioSystem.getAudioInputStream(targetFormat, mp3Stream)) {
+                        // Write WAV file
+                        AudioSystem.write(pcmStream, AudioFileFormat.Type.WAVE, wavFile);
+                    }
+                }
                 wavFiles.add(wavFile);
+                log.debug("Converted MP3 file {} to WAV", mp3Files.get(i));
             }
             
             // Step 2: Concatenate WAV files
@@ -40,14 +59,26 @@ public class AudioUtils {
                 AudioSystem.write(concatenatedStream, AudioFileFormat.Type.WAVE, concatenatedWav);
             }
             
-            // Step 3: Convert final WAV back to MP3
+            // Step 3: Convert final WAV back to MP3 using a custom approach
             File outputMp3 = new File(tempDir, "output.mp3");
-            converter.convert(concatenatedWav.getPath(), outputMp3.getPath());
+            try (FileInputStream wavInput = new FileInputStream(concatenatedWav)) {
+                try (FileOutputStream mp3Output = new FileOutputStream(outputMp3)) {
+                    Converter converter = new Converter();
+                    // Use a different convert method that takes streams
+                    converter.convert(wavInput, mp3Output, null, null);
+                }
+            }
             
             // Read the final MP3 file
             byte[] mp3Data = new byte[(int) outputMp3.length()];
             try (FileInputStream fis = new FileInputStream(outputMp3)) {
-                if (fis.read(mp3Data) != mp3Data.length) {
+                int bytesRead = 0;
+                int offset = 0;
+                while (offset < mp3Data.length && 
+                       (bytesRead = fis.read(mp3Data, offset, mp3Data.length - offset)) != -1) {
+                    offset += bytesRead;
+                }
+                if (offset != mp3Data.length) {
                     throw new IOException("Could not read entire MP3 file");
                 }
             }
@@ -65,19 +96,24 @@ public class AudioUtils {
             throw new IllegalArgumentException("No WAV files to concatenate");
         }
         
-        // Get format of first file - all files should match this format after conversion
+        // Get format of first file
         AudioInputStream firstStream = AudioSystem.getAudioInputStream(wavFiles.get(0));
         AudioFormat format = firstStream.getFormat();
         firstStream.close();
         
-        // Create a list of audio input streams
+        // Create list of compatible audio streams
         List<AudioInputStream> audioStreams = new ArrayList<>();
-        long totalFrames = 0;
-        
         for (File wavFile : wavFiles) {
-            AudioInputStream stream = AudioSystem.getAudioInputStream(wavFile);
-            totalFrames += stream.getFrameLength();
-            audioStreams.add(stream);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(wavFile);
+            AudioFormat streamFormat = audioStream.getFormat();
+            
+            // Ensure format compatibility
+            if (!format.matches(streamFormat)) {
+                AudioInputStream convertedStream = AudioSystem.getAudioInputStream(format, audioStream);
+                audioStreams.add(convertedStream);
+            } else {
+                audioStreams.add(audioStream);
+            }
         }
         
         // Create a new audio input stream that concatenates all streams
