@@ -7,8 +7,9 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import org.tritonus.share.sampled.AudioFileTypes;
-import org.tritonus.share.sampled.file.TAudioFileFormat;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileFormat;
+import javazoom.spi.mpeg.sampled.file.MpegEncoding;
+import javazoom.spi.mpeg.sampled.file.MpegFileFormatType;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
@@ -65,25 +66,36 @@ public class AudioUtils {
         File tempFile = File.createTempFile("concat", ".mp3");
         
         try {
-            // Configure MP3 encoding parameters using mp3spi
+            // Configure MP3 encoding parameters
             Map<String, Object> encodingProperties = Map.of(
-                "mp3.bitrate", "192000",
-                "mp3.channels", "2",
-                "mp3.quality", "0",           // 0 = highest quality
-                "mp3.vbr", "false",          // Use CBR
-                "mp3.mode", "1",             // 1 = Joint Stereo
-                "mp3.copyright", "false",
-                "mp3.original", "true"
+                "bitrate", Integer.valueOf(192000),
+                "channels", Integer.valueOf(2),
+                "quality", Integer.valueOf(0),           // 0 = highest quality
+                "vbr", Boolean.FALSE,                    // Use CBR
+                "mode", Integer.valueOf(1),              // 1 = Joint Stereo
+                "copyright", Boolean.FALSE,
+                "original", Boolean.TRUE
             );
 
-            // Create MP3 file type with encoding properties
-            AudioFileFormat.Type mp3Type = new AudioFileTypes.Mp3FileType(
-                AudioFileFormat.Type.WAVE,    // Base type
+            // Create MP3 audio format
+            AudioFormat mp3Format = new AudioFormat(
+                new MpegEncoding("MPEG1L3"),
+                44100.0f,
+                AudioSystem.NOT_SPECIFIED,
+                2,
+                AudioSystem.NOT_SPECIFIED,
+                AudioSystem.NOT_SPECIFIED,
+                false,
                 encodingProperties
             );
 
-            // Write MP3 file with configured properties
-            AudioSystem.write(concatenatedStream, mp3Type, tempFile);
+            // Write MP3 file with configured format
+            AudioFileFormat.Type mp3FileType = new MpegFileFormatType("MP3", "mp3");
+            AudioSystem.write(
+                AudioSystem.getAudioInputStream(mp3Format, concatenatedStream),
+                mp3FileType,
+                tempFile
+            );
 
             // Read the resulting MP3 file
             byte[] mp3Data = new byte[(int) tempFile.length()];
