@@ -1,17 +1,14 @@
 package ai.bluefields.podcastgen.util;
 
-import javazoom.jl.decoder.*;
-import net.sourceforge.lame.lowlevel.LameEncoder;
-import net.sourceforge.lame.mp3.Lame;
-import net.sourceforge.lame.mp3.MPEGMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.sound.sampled.*;
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.tritonus.share.sampled.AudioFileTypes;
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
@@ -21,7 +18,17 @@ public class AudioUtils {
             throw new IllegalArgumentException("No MP3 files provided");
         }
 
-        AudioFormat commonFormat = null;
+        // Define high-quality audio format (44.1kHz, 16-bit, stereo)
+        AudioFormat commonFormat = new AudioFormat(
+            AudioFormat.Encoding.PCM_SIGNED,
+            44100.0f,    // Sample rate
+            16,          // Sample size in bits
+            2,           // Channels
+            4,           // Frame size (bytes)
+            44100.0f,    // Frame rate
+            false        // Little endian
+        );
+
         ByteArrayOutputStream concatenatedPCM = new ByteArrayOutputStream();
         
         // Step 1: Convert each MP3 to PCM and concatenate
@@ -29,28 +36,11 @@ public class AudioUtils {
             log.debug("Processing MP3 file: {}", mp3File);
             
             try (AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3File.toFile())) {
-                // Get or set common format
-                if (commonFormat == null) {
-                    // Convert to PCM format
-                    commonFormat = new AudioFormat(
-                        44100,                 // Sample rate
-                        16,                    // Sample size in bits
-                        2,                     // Channels
-                        true,                  // Signed
-                        false                  // Little endian
-                    );
-                }
-                
-                // Convert MP3 to PCM format if needed
-                AudioInputStream pcmStream;
-                if (!mp3Stream.getFormat().matches(commonFormat)) {
-                    pcmStream = AudioSystem.getAudioInputStream(commonFormat, mp3Stream);
-                } else {
-                    pcmStream = mp3Stream;
-                }
+                // Convert MP3 to PCM format
+                AudioInputStream pcmStream = AudioSystem.getAudioInputStream(commonFormat, mp3Stream);
                 
                 // Read PCM data
-                byte[] buffer = new byte[4096];
+                byte[] buffer = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = pcmStream.read(buffer)) != -1) {
                     concatenatedPCM.write(buffer, 0, bytesRead);
@@ -71,30 +61,52 @@ public class AudioUtils {
             pcmData.length / commonFormat.getFrameSize()
         );
         
-        return encodePCMtoMP3(concatenatedStream);
-    }
-    
-    private static byte[] encodePCMtoMP3(AudioInputStream pcmStream) throws Exception {
-        LameEncoder encoder = new LameEncoder(pcmStream.getFormat(), 
-            256,                // Bitrate (kbps)
-            MPEGMode.STEREO,    // STEREO mode
-            Lame.QUALITY_HIGHEST, // Quality
-            false               // VBR disabled
+        // Create temporary file for the MP3
+        File tempFile = File.createTempFile("concat", ".mp3");
+        
+        // Set up audio format with high quality MP3 parameters
+        AudioFormat.Encoding mp3Encoding = new AudioFormat.Encoding("MP3");
+        AudioFormat mp3Format = new AudioFormat(
+            mp3Encoding,
+            44100.0f,    // Sample rate
+            16,          // Sample size in bits
+            2,           // Channels
+            -1,          // Frame size (compressed)
+            -1,          // Frame rate (compressed)
+            false        // Little endian
         );
-        
-        ByteArrayOutputStream mp3Output = new ByteArrayOutputStream();
-        byte[] pcmBuffer = new byte[encoder.getPCMBufferSize()];
-        byte[] mp3Buffer = new byte[encoder.getMP3BufferSize()];
-        
-        int bytesRead;
-        while ((bytesRead = pcmStream.read(pcmBuffer)) > 0) {
-            int bytesEncoded = encoder.encodeBuffer(pcmBuffer, 0, bytesRead, mp3Buffer);
-            mp3Output.write(mp3Buffer, 0, bytesEncoded);
+
+        // Set up format properties for high quality MP3
+        Map<String, Object> properties = Map.of(
+            "bitrate", 192000,          // 192 kbps
+            "quality", 0,               // Highest quality
+            "channel_mode", "stereo",   // Stereo mode
+            "vbr", false,              // Constant bitrate
+            "encoding_quality", 0       // Highest encoding quality
+        );
+
+        AudioFileFormat.Type mp3FileType = new AudioFileTypes.Mp3FileType(
+            "MP3",
+            "mp3",
+            properties
+        );
+
+        // Write to temporary file with high quality settings
+        AudioSystem.write(
+            new AudioInputStream(concatenatedStream, mp3Format, concatenatedStream.getFrameLength()),
+            mp3FileType,
+            tempFile
+        );
+
+        // Read the resulting MP3 file
+        byte[] mp3Data = new byte[(int) tempFile.length()];
+        try (FileInputStream fis = new FileInputStream(tempFile)) {
+            fis.read(mp3Data);
         }
+
+        // Clean up
+        tempFile.delete();
         
-        int bytesEncoded = encoder.encodeFinish(mp3Buffer);
-        mp3Output.write(mp3Buffer, 0, bytesEncoded);
-        
-        return mp3Output.toByteArray();
+        return mp3Data;
     }
 }
