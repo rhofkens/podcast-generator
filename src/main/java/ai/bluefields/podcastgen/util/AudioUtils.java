@@ -14,10 +14,19 @@ import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Utility class for audio processing operations.
+ * Handles MP3 concatenation, format conversion, and audio quality validation.
+ */
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
+    
+    // Constants for audio processing limits and configuration
     private static final long MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
     private static final int MAX_RETRIES = 3;
+    private static final int BUFFER_SIZE = 8192; // 8KB buffer for audio processing
+    
+    // Thread pool for parallel processing
     private static final ExecutorService executor = Executors.newFixedThreadPool(
         Runtime.getRuntime().availableProcessors()
     );
@@ -201,13 +210,33 @@ public class AudioUtils {
         }
     }
     
+    /**
+     * Concatenates multiple MP3 files into a single MP3 file.
+     * Process: MP3 -> WAV -> Concatenate WAVs -> Convert back to MP3
+     *
+     * @param mp3Files List of paths to MP3 files to concatenate
+     * @return byte array containing the concatenated MP3 data
+     * @throws Exception if any processing step fails
+     */
     public static byte[] concatenateMP3Files(List<Path> mp3Files) throws Exception {
         return concatenateMP3Files(mp3Files, null);
     }
     
+    /**
+     * Concatenates multiple MP3 files with progress tracking.
+     *
+     * @param mp3Files List of paths to MP3 files to concatenate
+     * @param progressListener Optional listener for progress updates
+     * @return byte array containing the concatenated MP3 data
+     * @throws Exception if any processing step fails
+     */
     public static byte[] concatenateMP3Files(List<Path> mp3Files, 
             AudioProcessingProgressListener progressListener) throws Exception {
+        log.debug("Starting MP3 concatenation for {} files", mp3Files.size());
+        
+        // Input validation
         if (mp3Files == null || mp3Files.isEmpty()) {
+            log.error("No MP3 files provided for concatenation");
             throw new IllegalArgumentException("No MP3 files provided");
         }
         
