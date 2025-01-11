@@ -2,6 +2,9 @@ package ai.bluefields.podcastgen.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.nio.file.Files;
+import java.util.Comparator;
+import java.util.Map;
 import ws.schild.jave.Encoder;
 import ws.schild.jave.MultimediaObject;
 import ws.schild.jave.encode.AudioAttributes;
@@ -14,10 +17,60 @@ import java.util.ArrayList;
 
 public class AudioUtils {
     private static final Logger log = LoggerFactory.getLogger(AudioUtils.class);
+    private static final long MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500MB
+    private static final int MAX_RETRIES = 3;
+    
+    public interface AudioProcessingProgressListener {
+        void onProgress(String stage, int progress);
+    }
+    
+    public static class AudioFormatConfig {
+        private final int sampleRate;
+        private final int channels;
+        private final int bitRate;
+        private final String codec;
+        
+        public static final AudioFormatConfig DEFAULT = new AudioFormatConfig(
+            44100,  // CD quality
+            2,      // Stereo
+            192000, // 192kbps
+            "libmp3lame"
+        );
+        
+        public AudioFormatConfig(int sampleRate, int channels, int bitRate, String codec) {
+            this.sampleRate = sampleRate;
+            this.channels = channels;
+            this.bitRate = bitRate;
+            this.codec = codec;
+        }
+        
+        public AudioAttributes toAudioAttributes() {
+            AudioAttributes attrs = new AudioAttributes();
+            attrs.setCodec(codec);
+            attrs.setBitRate(bitRate);
+            attrs.setChannels(channels);
+            attrs.setSamplingRate(sampleRate);
+            return attrs;
+        }
+    }
     
     public static byte[] concatenateMP3Files(List<Path> mp3Files) throws Exception {
+        return concatenateMP3Files(mp3Files, null);
+    }
+    
+    public static byte[] concatenateMP3Files(List<Path> mp3Files, 
+            AudioProcessingProgressListener progressListener) throws Exception {
         if (mp3Files == null || mp3Files.isEmpty()) {
             throw new IllegalArgumentException("No MP3 files provided");
+        }
+        
+        // Check total size
+        long totalSize = mp3Files.stream()
+            .mapToLong(path -> path.toFile().length())
+            .sum();
+        
+        if (totalSize > MAX_TOTAL_SIZE) {
+            throw new IllegalArgumentException("Total audio size exceeds maximum allowed");
         }
 
         File tempDir = new File(System.getProperty("java.io.tmpdir"), "podcast-concat-" + System.currentTimeMillis());
