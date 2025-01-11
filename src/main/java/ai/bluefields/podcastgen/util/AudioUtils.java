@@ -59,15 +59,11 @@ public class AudioUtils {
                 AudioSystem.write(concatenatedStream, AudioFileFormat.Type.WAVE, concatenatedWav);
             }
             
-            // Step 3: Convert final WAV back to MP3 using a custom approach
+            // Step 3: Convert final WAV back to MP3
             File outputMp3 = new File(tempDir, "output.mp3");
-            try (FileInputStream wavInput = new FileInputStream(concatenatedWav)) {
-                try (FileOutputStream mp3Output = new FileOutputStream(outputMp3)) {
-                    Converter converter = new Converter();
-                    // Use a different convert method that takes streams
-                    converter.convert(wavInput, mp3Output, null, null);
-                }
-            }
+            Converter converter = new Converter();
+            // Use the String-based convert method instead
+            converter.convert(concatenatedWav.getAbsolutePath(), outputMp3.getAbsolutePath());
             
             // Read the final MP3 file
             byte[] mp3Data = new byte[(int) outputMp3.length()];
