@@ -72,7 +72,7 @@ zitadel:
 
 app:
   features:
-    load-sample-data: false
+    load-sample-data: true
   uploads:
     base-path: uploads
     voice-previews-path: ${app.uploads.base-path}/voice-previews
