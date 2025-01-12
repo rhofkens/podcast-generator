@@ -69,6 +69,8 @@ sudo -u postgres psql
 CREATE DATABASE podcast_db;
 CREATE USER podcastadmin WITH ENCRYPTED PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE podcast_db TO podcastadmin;
+# needed to create schemas starting from postgresql v15
+GRANT all ON SCHEMA public TO podcastadmin;
 ```
 
 ### Zitadel Setup
