@@ -120,17 +120,15 @@ ZITADEL_ORG_ID=your_org_id
 
 ### Building and Running
 
-1. Build and run the backend:
+1. Clone this repo
 ```bash
-./mvnw spring-boot:run
+git clone https://github.com/rhofkens/podcast-generator
 ```
-
-2. Install and run the frontend:
+2. Build and run the application. 
 ```bash
-cd src/main/frontend
-npm install
-npm run dev
+mvn spring-boot:run
 ```
+3. Open the browser and navigate to http://localhost:8080.  Log on with your Zitadel account and click "New podcast" to create your first podcast.
 
 ## User Flow
 
